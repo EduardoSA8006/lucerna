@@ -1,0 +1,4 @@
+.qmlls.ini
+*.qmlc
+*.jsc
+.cache/
