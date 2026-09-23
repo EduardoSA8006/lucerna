@@ -14,10 +14,14 @@ Singleton {
     property string device: ""
     property real value: 0
 
+    // Emitido a cada pedido de ajuste, mesmo que o valor já esteja no limite.
+    signal adjusted
+
     function set(fraction: real): void {
         const percent = Math.round(Math.max(0.01, Math.min(1, fraction)) * 100);
         writer.target = percent / 100;
         writer.exec(["brightnessctl", "-m", "-c", "backlight", "set", `${percent}%`]);
+        adjusted();
     }
 
     function change(delta: real): void {
