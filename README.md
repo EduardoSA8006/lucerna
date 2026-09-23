@@ -2,13 +2,15 @@
 
 Shell de desktop próprio para o Hyprland, escrito em Quickshell (QML). A proposta completa, com princípios e arquitetura, está em [`Lucerna — Proposta.md`](<Lucerna — Proposta.md>). Os wallpapers animados, ainda por implementar, estão em [`Lucerna — Proposta do Wallpaper.md`](<Lucerna — Proposta do Wallpaper.md>).
 
-Tem barra, launcher, notificações com central lateral, tela de bloqueio, wallpaper, seletor de temas, OSD de volume e brilho e menu de energia. Tudo sai de um tema em JSON (`themes/`), trocável ao vivo, e o tema também ajusta as bordas do Hyprland.
+Tem barra, painel superior (visão geral, mídia com letra sincronizada, desempenho e clima), launcher, notificações com central lateral, tela de bloqueio, wallpaper, seletor de temas, OSD de volume e brilho e menu de energia. Os ícones são Material Symbols e as animações usam as curvas de movimento do Material 3. Tudo sai de um tema em JSON (`themes/`), trocável ao vivo, e o tema também ajusta as bordas do Hyprland.
 
 ## Requisitos
 
 - Hyprland 0.56+ com configuração em Lua (`hyprland.lua`)
 - Quickshell 0.3.1+
-- Opcionais: PipeWire (volume), UPower (bateria), NetworkManager (rede), `brightnessctl` (brilho), Nerd Font (ícones; os temas usam `JetBrains Mono Nerd Font`)
+- Fonte de ícones: `ttf-material-symbols-variable` (repositório oficial)
+- Opcionais: PipeWire (volume), UPower (bateria), NetworkManager (rede), `brightnessctl` (brilho), `nvidia-smi` (uso da GPU NVIDIA; vem com o driver)
+- Serviços na internet, só enquanto a aba correspondente está aberta: [Open-Meteo](https://open-meteo.com) (clima) e [LRCLIB](https://lrclib.net) (letras)
 
 ## Instalação
 
@@ -25,6 +27,7 @@ end)
 
 local ipc = "qs -c lucerna ipc call "
 hl.bind("SUPER + Space",  hl.dsp.exec_cmd(ipc .. "panels toggle launcher"))
+hl.bind("SUPER + D",      hl.dsp.exec_cmd(ipc .. "panels toggle dashboard"))
 hl.bind("SUPER + N",      hl.dsp.exec_cmd(ipc .. "panels toggle notifications"))
 hl.bind("SUPER + T",      hl.dsp.exec_cmd(ipc .. "panels toggle themes"))
 hl.bind("SUPER + Escape", hl.dsp.exec_cmd(ipc .. "panels toggle power"))
@@ -39,7 +42,8 @@ O volume é controlado por `wpctl` direto nos atalhos; o shell percebe a mudanç
 
 | Alvo | Funções |
 | --- | --- |
-| `panels` | `open <nome>`, `close`, `toggle <nome>`, `get` (nomes: `launcher`, `notifications`, `themes`, `power`) |
+| `panels` | `open <nome>`, `close`, `toggle <nome>`, `get` (nomes: `launcher`, `dashboard`, `notifications`, `themes`, `power`) |
+| `dashboard` | `open <aba>` (`overview`, `media`, `performance`, `weather`), `toggle` |
 | `session` | `lock`, `isLocked` |
 | `theme` | `set <id>`, `get`, `list` |
 | `brightness` | `up`, `down`, `set <0-100>` |
@@ -66,12 +70,15 @@ Requisitos no host: Docker, uma sessão Wayland e o usuário no grupo `docker`.
 - Com `LUCERNA_DEV=1`, definido pelo `run.sh`, suspender, reiniciar e desligar são só simulados: sem isso, o comando chegaria ao host pelo D-Bus.
 - O brilho é só leitura no container; os ajustes são simulados.
 - A senha da tela de bloqueio no container é `lucerna` (usuário `dev`).
+- O fuso horário vem do host (`/etc/localtime`). A rede na aba Desempenho é a do container, não a do host.
+- Para testar a aba Mídia, a imagem tem `mpv` com `mpv-mpris`: `dev/run.sh shell` e `mpv --no-video arquivo.mp3`.
 
 Atalhos no Hyprland aninhado (mod = `Alt`, para não brigar com o KDE):
 
 | Atalho | Ação |
 | --- | --- |
 | `Alt+Space` | Launcher |
+| `Alt+D` | Painel superior (também clicando no relógio); dentro dele, `Tab`/`Shift+Tab` ou `1`–`4` trocam de aba |
 | `Alt+N` | Central de notificações |
 | `Alt+T` | Seletor de temas |
 | `Alt+Esc` | Menu de energia |

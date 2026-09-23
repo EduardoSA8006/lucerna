@@ -20,7 +20,7 @@ Rectangle {
         : "transparent"
     opacity: enabled ? 1 : 0.4
 
-    Behavior on color { ColorAnimation { duration: ThemeManager.anim.fast } }
+    Behavior on color { ColorAnim {} }
 
     MouseArea {
         id: mouse

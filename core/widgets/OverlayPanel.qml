@@ -22,10 +22,11 @@ PanelWindow {
 
     property real shown: open ? 1 : 0
 
+    // Abre com mola (curva expressiva) e fecha acelerando, sem passar do zero:
+    // passar do zero esconderia a janela e ela piscaria.
     Behavior on shown {
-        NumberAnimation {
-            duration: ThemeManager.anim.normal
-            easing.type: Easing.OutCubic
+        Anim {
+            type: root.open ? Anim.Spatial : Anim.EmphasizedAccel
         }
     }
 

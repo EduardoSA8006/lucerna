@@ -57,7 +57,7 @@ Item {
             border.width: 1
             border.color: LockscreenState.error ? ThemeManager.colors.danger : input.activeFocus ? ThemeManager.alpha(ThemeManager.colors.accent, 0.6) : ThemeManager.colors.border
 
-            Behavior on border.color { ColorAnimation { duration: ThemeManager.anim.fast } }
+            Behavior on border.color { ColorAnim {} }
 
             SequentialAnimation {
                 id: shake

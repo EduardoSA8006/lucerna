@@ -26,7 +26,7 @@ Item {
         border.width: 2
         border.color: card.selected ? ThemeManager.colors.accent : "transparent"
 
-        Behavior on border.color { ColorAnimation { duration: ThemeManager.anim.fast } }
+        Behavior on border.color { ColorAnim {} }
     }
 
     ClippingRectangle {

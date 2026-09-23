@@ -26,7 +26,9 @@ Com um shell próprio, só roda o que foi escrito, e cada decisão visual e de c
 
 - **Hyprland 0.56 ou mais novo, com configuração em Lua** (`hyprland.lua`). O formato `.conf` sai na 0.57, e o modo Lua muda o IPC: `dispatch` passa a receber código Lua (`hl.dsp.focus({ workspace = 2 })`) e `keyword` é substituído por `eval`. O Lucerna fala só o dialeto Lua.
 - **Quickshell 0.3.1 ou mais novo**, que detecta o modo Lua do Hyprland (`Hyprland.usingLua`).
-- Serviços do sistema usados quando presentes: PipeWire (áudio), UPower (bateria), NetworkManager (rede) e `brightnessctl` (brilho). Na falta de um deles, o componente correspondente simplesmente não aparece.
+- **Fonte de ícones:** `ttf-material-symbols-variable`, do repositório oficial do Arch. É a única dependência de pacote além do Hyprland e do Quickshell.
+- Serviços do sistema usados quando presentes: PipeWire (áudio), UPower (bateria), NetworkManager (rede), `brightnessctl` (brilho) e `nvidia-smi` (uso da GPU NVIDIA, que vem com o driver). Na falta de um deles, o componente correspondente simplesmente não aparece.
+- **Mínimo de dependências de terceiros:** o que o Qt e o Quickshell já oferecem vem primeiro (`/proc`, `/sys`, `XMLHttpRequest`, `QtQuick.Shapes`). Quando algo crescer a ponto de pedir C++, a saída é um plugin próprio, em repositório separado, e não uma biblioteca externa. Os candidatos estão em [`Lucerna — Plugins Próprios.md`](<Lucerna — Plugins Próprios.md>).
 
 ## Identidade visual
 
@@ -37,6 +39,8 @@ O Lucerna terá vários temas pré-configurados, trocáveis a qualquer momento p
 - **Temas embutidos:** Lamparina (padrão, âmbar), Luar (azul frio), Brasa (vermelho-alaranjado) e Pergaminho (claro). Os wallpapers são gerados por `dev/wallpapers.py`.
 - **Troca ao vivo:** ao escolher um tema no painel, toda a interface muda na hora, com transição suave, e a escolha fica salva para a próxima sessão.
 - **Integração com o Hyprland:** a troca também ajusta bordas e arredondamento do compositor via `hyprctl eval`, para o visual ficar coeso fora do shell.
+- **Ícones:** Material Symbols Rounded, com o eixo de preenchimento animado para estados ativos (o ícone "se acende").
+- **Movimento:** as curvas e durações do Material 3, as mesmas do Caelestia, em `ThemeManager.anim`, usadas pelos componentes `Anim` e `ColorAnim`. As curvas "expressivas" dão o efeito de mola em movimento e tamanho; opacidade e cor usam curvas que não passam do alvo. O tema só ajusta a velocidade geral (`animation.scale`).
 
 ## Escopo
 
@@ -45,6 +49,7 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Componente | Função |
 | --- | --- |
 | Barra | Workspaces do Hyprland, relógio, volume, bateria e rede |
+| Painel superior | Desce da barra: visão geral (usuário, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima |
 | Launcher | Abrir aplicativos e ações rápidas |
 | Notificações | Servidor de notificações próprio, com central lateral |
 | Tela de bloqueio | Bloqueio próprio, no visual do tema ativo |
@@ -81,7 +86,8 @@ lucerna/
 ├── core/
 │   ├── theme/ThemeManager.qml  # carrega o tema ativo e expõe os tokens
 │   ├── panels/Panels.qml       # qual painel está aberto; ponte entre features
-│   ├── widgets/                # botões, ícones, painéis base
+│   ├── widgets/                # botões, ícones, medidores, abas, Anim, painéis base
+│   ├── format/Format.qml       # números, tamanhos e tempos em pt-BR
 │   └── config/Config.qml       # preferências persistidas
 ├── services/
 │   ├── Hypr.qml                # IPC do Hyprland (dialeto Lua)
@@ -90,11 +96,17 @@ lucerna/
 │   ├── Battery.qml
 │   ├── Brightness.qml
 │   ├── Notifications.qml
-│   └── Session.qml             # bloquear, suspender, reiniciar, desligar
+│   ├── Session.qml             # bloquear, suspender, reiniciar, desligar
+│   ├── SystemStats.qml         # CPU, memória, disco, rede, temperatura, GPU
+│   ├── Media.qml               # players MPRIS
+│   ├── Lyrics.qml              # letras sincronizadas (LRCLIB)
+│   ├── Weather.qml             # previsão (Open-Meteo)
+│   └── scripts/gpu-status.sh
 ├── features/
 │   ├── bar/
 │   │   ├── ui/
 │   │   └── state/
+│   ├── dashboard/
 │   ├── launcher/
 │   ├── notifications/
 │   ├── lockscreen/
@@ -116,7 +128,8 @@ lucerna/
 Atalhos do Hyprland falam com o shell por `IpcHandler`, sem scripts intermediários:
 
 ```sh
-qs -c lucerna ipc call panels toggle launcher   # launcher, notifications, themes, power
+qs -c lucerna ipc call panels toggle launcher   # launcher, dashboard, notifications, themes, power
+qs -c lucerna ipc call dashboard open weather   # overview, media, performance, weather
 qs -c lucerna ipc call session lock
 qs -c lucerna ipc call brightness up            # up, down, set <0-100>
 qs -c lucerna ipc call theme set luar           # get, list
@@ -124,6 +137,21 @@ qs -c lucerna ipc call notifications clear      # toggleDnd, count
 ```
 
 O volume não precisa de IPC: os atalhos chamam `wpctl`, e o shell reage à mudança pelo PipeWire.
+
+## Serviços externos
+
+Dois recursos dependem de internet, e cada um só faz requisições enquanto a aba que o mostra está aberta:
+
+| Serviço | Uso | O que é enviado |
+| --- | --- | --- |
+| [Open-Meteo](https://open-meteo.com) | Previsão do tempo, busca de cidade | Nome da cidade digitada e as coordenadas dela |
+| [LRCLIB](https://lrclib.net) | Letras sincronizadas | Título, artista, álbum e duração da faixa |
+
+A localização não é descoberta pelo IP (o Caelestia usa o `ip-api.com` para isso): a cidade é digitada uma vez na aba Clima e fica salva na config.
+
+## Consumo
+
+Os dados do painel só são coletados enquanto a aba que os mostra está visível: `SystemStats` a cada 2 s, a posição da mídia a cada 0,5 s, o pico do áudio só na aba Mídia e o clima a cada 30 min. Com o painel fechado, nada disso roda. A GPU NVIDIA em repouso não é acordada: o `nvidia-smi` só roda se o gerenciamento de energia do kernel disser que ela já está ativa.
 
 ## Segurança da tela de bloqueio
 

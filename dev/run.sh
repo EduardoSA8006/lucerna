@@ -39,6 +39,7 @@ exec docker run --rm -it \
     --device "$intel_render" --device "$intel_card" \
     -e WAYLAND_DISPLAY=wayland-host \
     -e LUCERNA_DEV=1 \
+    -v /etc/localtime:/etc/localtime:ro \
     -v "$runtime/$WAYLAND_DISPLAY:/run/user/1000/wayland-host" \
     -v "$repo:/home/dev/.config/quickshell/lucerna" \
     -v "$repo/dev/hyprland.lua:/home/dev/.config/hypr/hyprland.lua:ro" \

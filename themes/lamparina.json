@@ -19,7 +19,7 @@
     "font": {
         "sans": "Noto Sans",
         "mono": "JetBrains Mono Nerd Font",
-        "icon": "JetBrains Mono Nerd Font",
+        "icon": "Material Symbols Rounded",
         "size": {
             "small": 11,
             "normal": 13,
@@ -39,9 +39,7 @@
         "large": 20
     },
     "animation": {
-        "fast": 120,
-        "normal": 220,
-        "slow": 420
+        "scale": 1
     },
     "bar": {
         "height": 34

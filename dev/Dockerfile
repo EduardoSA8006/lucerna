@@ -2,13 +2,15 @@
 # O Hyprland roda aninhado, como uma janela na sessão Wayland do host.
 FROM archlinux:latest
 
+# mpv, mpv-mpris e ffmpeg só servem para testar a aba Mídia (um player MPRIS).
 RUN pacman -Syu --noconfirm --needed \
         hyprland quickshell \
         qt6-svg qt6-imageformats qt6-5compat \
         mesa vulkan-intel \
         dbus kitty foot htop grim wl-clipboard libnotify wtype \
         wireplumber brightnessctl \
-        ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji \
+        ttf-material-symbols-variable ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji \
+        mpv mpv-mpris ffmpeg \
         hicolor-icon-theme adwaita-icon-theme \
     && pacman -Scc --noconfirm
 

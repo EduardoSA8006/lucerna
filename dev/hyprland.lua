@@ -42,6 +42,7 @@ hl.bind(mod .. " + SHIFT + E", hl.dsp.exit())
 
 -- Lucerna
 hl.bind(mod .. " + Space",  hl.dsp.exec_cmd(ipc .. "panels toggle launcher"))
+hl.bind(mod .. " + D",      hl.dsp.exec_cmd(ipc .. "panels toggle dashboard"))
 hl.bind(mod .. " + N",      hl.dsp.exec_cmd(ipc .. "panels toggle notifications"))
 hl.bind(mod .. " + T",      hl.dsp.exec_cmd(ipc .. "panels toggle themes"))
 hl.bind(mod .. " + Escape", hl.dsp.exec_cmd(ipc .. "panels toggle power"))

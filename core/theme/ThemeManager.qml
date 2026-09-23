@@ -36,19 +36,21 @@ Singleton {
         property color danger: root.token("danger")
         property color success: root.token("success")
         property color warning: root.token("warning")
+        // Trilho de medidores e barras: em tema claro, "raised" some sobre o cartão.
+        readonly property color track: root.dark ? raised : border
 
-        Behavior on base { ColorAnimation { duration: root.anim.slow } }
-        Behavior on surface { ColorAnimation { duration: root.anim.slow } }
-        Behavior on raised { ColorAnimation { duration: root.anim.slow } }
-        Behavior on border { ColorAnimation { duration: root.anim.slow } }
-        Behavior on text { ColorAnimation { duration: root.anim.slow } }
-        Behavior on textMuted { ColorAnimation { duration: root.anim.slow } }
-        Behavior on textFaint { ColorAnimation { duration: root.anim.slow } }
-        Behavior on accent { ColorAnimation { duration: root.anim.slow } }
-        Behavior on accentText { ColorAnimation { duration: root.anim.slow } }
-        Behavior on danger { ColorAnimation { duration: root.anim.slow } }
-        Behavior on success { ColorAnimation { duration: root.anim.slow } }
-        Behavior on warning { ColorAnimation { duration: root.anim.slow } }
+        Behavior on base { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on surface { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on raised { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on border { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on text { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on textMuted { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on textFaint { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on accent { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on accentText { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on danger { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on success { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on warning { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
     }
 
     readonly property QtObject font: QtObject {
@@ -74,10 +76,35 @@ Singleton {
         readonly property int large: root.data.spacing?.large ?? 20
     }
 
+    // Tokens de movimento do Material 3 (as mesmas curvas do Caelestia). O tema
+    // só ajusta a velocidade geral com "animation.scale" (1 = padrão, 0 = sem animação).
+    // Use pelos componentes Anim e ColorAnim, não direto.
     readonly property QtObject anim: QtObject {
-        readonly property int fast: root.data.animation?.fast ?? 120
-        readonly property int normal: root.data.animation?.normal ?? 220
-        readonly property int slow: root.data.animation?.slow ?? 420
+        readonly property real scale: root.data.animation?.scale ?? 1
+
+        readonly property int small: 200 * scale
+        readonly property int normal: 400 * scale
+        readonly property int large: 600 * scale
+        readonly property int extraLarge: 1000 * scale
+        readonly property int fastSpatial: 350 * scale
+        readonly property int spatial: 500 * scale
+        readonly property int slowSpatial: 650 * scale
+        readonly property int fastEffects: 150 * scale
+        readonly property int effects: 200 * scale
+        readonly property int slowEffects: 300 * scale
+
+        readonly property var standard: [0.2, 0, 0, 1, 1, 1]
+        readonly property var standardAccel: [0.3, 0, 1, 1, 1, 1]
+        readonly property var standardDecel: [0, 0, 0, 1, 1, 1]
+        readonly property var emphasized: [0.05, 0, 2 / 15, 0.06, 1 / 6, 0.4, 5 / 24, 0.82, 0.25, 1, 1, 1]
+        readonly property var emphasizedAccel: [0.3, 0, 0.8, 0.15, 1, 1]
+        readonly property var emphasizedDecel: [0.05, 0.7, 0.1, 1, 1, 1]
+        readonly property var fastSpatialCurve: [0.42, 1.67, 0.21, 0.9, 1, 1]
+        readonly property var spatialCurve: [0.38, 1.21, 0.22, 1, 1, 1]
+        readonly property var slowSpatialCurve: [0.39, 1.29, 0.35, 0.98, 1, 1]
+        readonly property var fastEffectsCurve: [0.31, 0.94, 0.34, 1, 1, 1]
+        readonly property var effectsCurve: [0.34, 0.8, 0.34, 1, 1, 1]
+        readonly property var slowEffectsCurve: [0.34, 0.88, 0.34, 1, 1, 1]
     }
 
     readonly property int barHeight: data.bar?.height ?? 34

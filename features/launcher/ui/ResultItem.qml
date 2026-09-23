@@ -78,6 +78,6 @@ Clickable {
         color: ThemeManager.colors.accent
         opacity: item.selected ? 1 : 0
 
-        Behavior on opacity { NumberAnimation { duration: ThemeManager.anim.fast } }
+        Behavior on opacity { Anim { type: Anim.FastEffects } }
     }
 }

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.core.theme
+import qs.core.widgets
 import qs.features.bar.state
 
 // Indicador de workspaces: o com foco vira uma pílula acesa; os ocupados, um
@@ -46,8 +47,8 @@ Item {
                         : cell.state_ === "occupied" ? ThemeManager.colors.textMuted
                         : cell.containsMouse ? ThemeManager.colors.textMuted : ThemeManager.colors.border
 
-                    Behavior on width { NumberAnimation { duration: ThemeManager.anim.normal; easing.type: Easing.OutCubic } }
-                    Behavior on color { ColorAnimation { duration: ThemeManager.anim.fast } }
+                    Behavior on width { Anim { type: Anim.FastSpatial } }
+                    Behavior on color { ColorAnim {} }
                 }
             }
         }
