@@ -8,6 +8,7 @@ import qs.features.notifications.ui
 import qs.features.osd.ui
 import qs.features.powerMenu.ui
 import qs.features.settings.ui
+import qs.features.sidebar.ui
 import qs.features.themeSwitcher.ui
 import qs.features.wallpaper.ui
 
@@ -17,10 +18,10 @@ ShellRoot {
     Dashboard {}
     Launcher {}
     NotificationPopups {}
-    NotificationCenter {}
     Osd {}
     PowerMenu {}
     Settings {}
+    Sidebar {}
     Lockscreen {}
     ThemeSwitcher {}
 }

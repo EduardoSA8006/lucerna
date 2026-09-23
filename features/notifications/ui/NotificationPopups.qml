@@ -27,7 +27,7 @@ PanelWindow {
         interval: 600
     }
 
-    visible: hasPopups || linger.running
+    visible: (hasPopups || linger.running) && !NotificationsState.sidebarOpen
     screen: NotificationsState.screen
     anchors {
         top: true
@@ -64,7 +64,11 @@ PanelWindow {
             width: ListView.view.width
             notification: modelData
             popup: true
+            timeText: NotificationsState.timeLabel(modelData)
+            timeout: NotificationsState.timeoutFor(modelData)
             onExpired: NotificationsState.hidePopup(modelData)
+            onDismissRequested: NotificationsState.dismiss(modelData)
+            onActionInvoked: action => NotificationsState.invoke(modelData, action)
         }
 
         add: Transition {

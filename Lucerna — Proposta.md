@@ -57,7 +57,8 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Configurações | Tópicos à esquerda e opções à direita: aparência (tema, animações), transparência e desfoque, notificações, atalhos e sobre; barra, painel e energia ainda por fazer |
 | Painel superior | Desce do topo: visão geral (usuário com atalhos para configurações e energia, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima |
 | Launcher | Abrir aplicativos e ações rápidas |
-| Notificações | Servidor de notificações próprio, com central lateral |
+| Notificações | Servidor de notificações próprio; popups e a lista na central lateral |
+| Central lateral | Cartão na altura da tela, na borda direita ou esquerda (configurável): trilho de seções (Wi-Fi, Bluetooth, som, avisos, bateria, tela) e o conteúdo de cada uma, como redes disponíveis com senha, dispositivos para parear, saída e entrada de áudio e perfil de energia |
 | Tela de bloqueio | Bloqueio próprio, no visual do tema ativo |
 | Wallpaper | Gerenciamento de papel de parede, vinculado ao tema |
 | Seletor de temas | Painel para trocar rapidamente entre temas pré-configurados |
@@ -103,6 +104,8 @@ lucerna/
 │   ├── Brightness.qml
 │   ├── Notifications.qml
 │   ├── Session.qml             # bloquear, suspender, reiniciar, desligar
+│   ├── Bluetooth.qml           # adaptador e dispositivos (BlueZ)
+│   ├── DevMode.qml             # simula ações que mudariam o sistema do host
 │   ├── SystemStats.qml         # CPU, memória, disco, rede, temperatura, GPU
 │   ├── Media.qml               # players MPRIS
 │   ├── Lyrics.qml              # letras sincronizadas (LRCLIB)
@@ -116,6 +119,7 @@ lucerna/
 │   ├── settings/
 │   ├── launcher/
 │   ├── notifications/
+│   ├── sidebar/
 │   ├── lockscreen/
 │   ├── wallpaper/
 │   ├── themeSwitcher/
@@ -135,7 +139,8 @@ lucerna/
 Atalhos do Hyprland falam com o shell por `IpcHandler`, sem scripts intermediários:
 
 ```sh
-qs -c lucerna ipc call panels toggle launcher   # launcher, dashboard, notifications, themes, power
+qs -c lucerna ipc call panels toggle launcher   # launcher, dashboard, settings, sidebar, themes, power
+qs -c lucerna ipc call sidebar open wifi        # bluetooth, sound, notifications, battery, display
 qs -c lucerna ipc call dashboard open weather   # overview, media, performance, weather
 qs -c lucerna ipc call session lock
 qs -c lucerna ipc call brightness up            # up, down, set <0-100>
@@ -172,7 +177,7 @@ O sistema de desenvolvimento roda KDE Plasma, não Hyprland. Para testar, o Luce
 
 - **Ciclo rápido:** o repositório é montado em `~/.config/quickshell/lucerna` dentro do container, e o Quickshell recarrega sozinho quando um arquivo muda.
 - **Dados reais:** o container recebe o socket do PipeWire e o D-Bus do sistema do host, então volume, bateria e rede mostram o estado real da máquina.
-- **Modo de desenvolvimento:** `dev/run.sh` define `LUCERNA_DEV=1`. Nesse modo, suspender, reiniciar, desligar e sair só registram a ação e mostram uma notificação. Sem isso, um `poweroff` no container chegaria ao host pelo D-Bus do sistema.
+- **Modo de desenvolvimento:** `dev/run.sh` define `LUCERNA_DEV=1`. Nesse modo, ações que mudariam o sistema (suspender, reiniciar, desligar; ligar/desligar Wi-Fi e Bluetooth, conectar a redes e dispositivos, trocar o perfil de energia) só registram a ação e mostram uma notificação (`services/DevMode.qml`). Sem isso, elas chegariam ao host pelo D-Bus do sistema.
 - **GPU:** só a GPU Intel é repassada; o container não tem os drivers da NVIDIA.
 - **Tela de bloqueio:** o usuário do container é `dev`, com a senha `lucerna`.
 - **Limitações:** o brilho é só leitura no container, porque ajustá-lo exige uma sessão do logind. A sessão completa (login pelo TTY, `hypridle`, PAM do sistema real) fica para uma VM QEMU com virgl, quando for preciso.

@@ -1,6 +1,5 @@
 import QtQuick
 import qs.core.theme
-import qs.core.widgets
 
 // Uma linha de opção: ícone, título, descrição e o controle à direita.
 // `wide` põe o controle embaixo do texto, ocupando a largura (para sliders).

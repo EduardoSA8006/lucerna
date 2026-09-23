@@ -108,6 +108,7 @@ PanelWindow {
                     visible: BarState.networkAvailable
                     iconSize: 18
                     foreground: BarState.online ? ThemeManager.colors.textMuted : ThemeManager.colors.textFaint
+                    onClicked: BarState.toggleSection("wifi")
                 }
 
                 IconButton {
@@ -115,7 +116,13 @@ PanelWindow {
                     visible: BarState.audioAvailable
                     iconSize: 18
                     foreground: BarState.muted ? ThemeManager.colors.textFaint : ThemeManager.colors.textMuted
-                    onClicked: BarState.toggleMute()
+                    // Clique abre o Som; botão do meio silencia; a roda ajusta o volume.
+                    onClicked: event => {
+                        if (event.button === Qt.MiddleButton)
+                            BarState.toggleMute();
+                        else
+                            BarState.toggleSection("sound");
+                    }
                     onWheel: event => BarState.scrollVolume(event.angleDelta.y / 120)
                 }
 
@@ -125,6 +132,7 @@ PanelWindow {
                     visible: BarState.batteryAvailable
                     iconSize: 18
                     foreground: BarState.batteryLow ? ThemeManager.colors.danger : ThemeManager.colors.textMuted
+                    onClicked: BarState.toggleSection("battery")
                 }
             }
 
@@ -133,8 +141,8 @@ PanelWindow {
                 icon: BarState.bellIcon
                 iconSize: 18
                 label: BarState.notificationCount > 0 ? `${BarState.notificationCount}` : ""
-                active: BarState.openPanel === "notifications"
-                onClicked: BarState.togglePanel("notifications")
+                active: BarState.sectionOpen("notifications")
+                onClicked: BarState.toggleSection("notifications")
             }
         }
     }

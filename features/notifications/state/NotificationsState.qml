@@ -13,7 +13,11 @@ import qs.services
 Singleton {
     id: root
 
-    readonly property bool centerOpen: Panels.isOpen("notifications")
+    // Com a central lateral aberta os popups esperam: ficariam por cima dela.
+    readonly property bool sidebarOpen: Panels.isOpen("sidebar")
+
+    // A lista de notificações fica na central lateral, na seção "notifications".
+    readonly property bool centerOpen: Panels.isOpen("sidebar") && Config.sidebarSection === "notifications"
     readonly property var screen: Hypr.focusedScreen
     readonly property real topOffset: Config.barAutoHide ? ThemeManager.spacing.small : ThemeManager.barHeight + ThemeManager.spacing.small * 2
     readonly property var popups: Notifications.popups
@@ -59,10 +63,6 @@ Singleton {
         id: clock
 
         precision: SystemClock.Minutes
-    }
-
-    function close(): void {
-        Panels.close();
     }
 
     function toggleDoNotDisturb(): void {

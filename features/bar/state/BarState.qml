@@ -151,4 +151,13 @@ Singleton {
     function togglePanel(name: string): void {
         Panels.toggle(name);
     }
+
+    // Abre a central lateral na seção (ou fecha, se já estiver nela).
+    function toggleSection(section: string): void {
+        Panels.toggleSidebar(section);
+    }
+
+    function sectionOpen(section: string): bool {
+        return Panels.isOpen("sidebar") && Config.sidebarSection === section;
+    }
 }

@@ -77,6 +77,53 @@ Singleton {
     readonly property string wind: "air"
     readonly property string rain: "water_drop"
 
+    // Central lateral
+    readonly property string wifiOn: "wifi"
+    readonly property string bluetooth: "bluetooth"
+    readonly property string bluetoothConnected: "bluetooth_connected"
+    readonly property string bluetoothOff: "bluetooth_disabled"
+    readonly property string bluetoothSearching: "bluetooth_searching"
+    readonly property string mic: "mic"
+    readonly property string micOff: "mic_off"
+    readonly property string speaker: "speaker"
+    readonly property string sound: "graphic_eq"
+    readonly property string sidebar: "view_sidebar"
+    readonly property string sideRight: "right_panel_open"
+    readonly property string sideLeft: "left_panel_open"
+    readonly property string unlink: "link_off"
+    readonly property string trash: "delete"
+    readonly property string sync: "sync"
+    readonly property string eco: "eco"
+    readonly property string balance: "balance"
+    readonly property string rocket: "rocket_launch"
+    readonly property string bolt: "electric_bolt"
+
+    // Ícone de um dispositivo Bluetooth, pelo tipo que o BlueZ informa (ex.: "audio-headset").
+    function forDevice(kind: string): string {
+        const k = kind ?? "";
+        if (k.includes("headset"))
+            return "headset_mic";
+        if (k.includes("headphone") || k.includes("audio-card"))
+            return "headphones";
+        if (k.includes("speaker") || k.startsWith("audio"))
+            return "speaker";
+        if (k.includes("mouse"))
+            return "mouse";
+        if (k.includes("keyboard"))
+            return "keyboard";
+        if (k.includes("gaming") || k.includes("joystick"))
+            return "gamepad";
+        if (k.includes("phone"))
+            return "smartphone";
+        if (k.includes("watch"))
+            return "watch";
+        if (k.includes("computer"))
+            return "computer";
+        if (k.includes("video") || k.includes("display"))
+            return "tv";
+        return "bluetooth";
+    }
+
     // Configurações
     readonly property string settings: "settings"
     readonly property string tune: "tune"
