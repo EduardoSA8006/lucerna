@@ -93,8 +93,19 @@ PanelWindow {
         }
     }
 
-    // Relógio centralizado na tela, independente da largura dos lados.
+    // Relógio centralizado na tela, independente da largura dos lados. Abre o painel superior.
+    Clickable {
+        anchors.centerIn: parent
+        width: clock.implicitWidth + ThemeManager.spacing.normal * 2
+        height: ThemeManager.barHeight - ThemeManager.spacing.small
+        active: BarState.openPanel === "dashboard"
+        activeColor: ThemeManager.alpha(ThemeManager.colors.accent, 0.16)
+        onClicked: BarState.togglePanel("dashboard")
+    }
+
     Row {
+        id: clock
+
         anchors.centerIn: parent
         spacing: ThemeManager.spacing.small
 

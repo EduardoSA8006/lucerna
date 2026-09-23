@@ -11,6 +11,8 @@ Singleton {
 
     property alias theme: adapter.theme
     property alias doNotDisturb: adapter.doNotDisturb
+    property alias dashboardTab: adapter.dashboardTab
+    property alias weatherLocation: adapter.weatherLocation
 
     FileView {
         path: Quickshell.statePath("config.json")
@@ -29,6 +31,9 @@ Singleton {
 
             property string theme: "lamparina"
             property bool doNotDisturb: false
+            property string dashboardTab: "overview"
+            // { name, latitude, longitude } da cidade escolhida na aba Clima
+            property var weatherLocation: null
         }
     }
 }

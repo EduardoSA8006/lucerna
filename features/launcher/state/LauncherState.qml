@@ -21,6 +21,7 @@ Singleton {
     // Ações do próprio shell. `keywords` ajuda a achar por sinônimos.
     readonly property var actions: [
         { name: "Bloquear tela", description: "Ação", glyph: Icons.lock, keywords: "lock bloqueio", run: () => Session.lock() },
+        { name: "Painel", description: "Ação", glyph: Icons.dashboard, keywords: "dashboard calendario clima desempenho midia musica", run: () => Panels.open("dashboard") },
         { name: "Trocar tema", description: "Ação", glyph: Icons.palette, keywords: "theme cores aparência", run: () => Panels.open("themes") },
         { name: "Notificações", description: "Ação", glyph: Icons.bell, keywords: "central avisos", run: () => Panels.open("notifications") },
         { name: Config.doNotDisturb ? "Desativar não perturbe" : "Ativar não perturbe", description: "Ação", glyph: Icons.bellSleep, keywords: "dnd silencio silenciar", run: () => Config.doNotDisturb = !Config.doNotDisturb },
