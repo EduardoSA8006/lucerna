@@ -1,9 +1,21 @@
 import QtQuick
 import Quickshell
 
-// Uma barra por monitor.
+// Em cada monitor: a faixa invisível que detecta o mouse no topo e a barra.
 Variants {
     model: Quickshell.screens
 
-    delegate: BarWindow {}
+    delegate: Scope {
+        id: scope
+
+        required property var modelData
+
+        BarTrigger {
+            screen: scope.modelData
+        }
+
+        BarWindow {
+            screen: scope.modelData
+        }
+    }
 }

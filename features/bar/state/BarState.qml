@@ -2,13 +2,86 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import qs.core.config
 import qs.core.panels
 import qs.core.widgets
 import qs.services
 
-// View model da barra: junta o que os serviços informam no formato que a UI mostra.
+// View model da barra: o que ela mostra e quando ela aparece.
+//
+// Com auto-ocultar ligado, a barra fica escondida e aparece na tela onde o
+// mouse encostou no topo (ou, por um instante, ao trocar de workspace). Some
+// quando o mouse sai e quando um painel abre. Na área de trabalho vazia (sem
+// janelas no workspace daquela tela), fica à mostra: não cobre nada.
 Singleton {
     id: root
+
+    // Visibilidade
+    readonly property bool autoHide: Config.barAutoHide
+    readonly property bool showDate: Config.barShowDate
+    readonly property bool panelOpen: Panels.current !== ""
+    property var revealedScreen: null
+    property bool hovering: false
+
+    function shownOn(screen: var): bool {
+        if (!autoHide)
+            return true;
+        if (panelOpen)
+            return false;
+        return revealedScreen === screen || (Config.barOnEmpty && Hypr.isScreenEmpty(screen));
+    }
+
+    // Mouse encostou no topo da tela.
+    function reveal(screen: var): void {
+        revealedScreen = screen;
+        hideDelay.stop();
+    }
+
+    function setHovering(on: bool): void {
+        hovering = on;
+        if (on)
+            hideDelay.stop();
+        else
+            hideDelay.restart();
+    }
+
+    // Aparece por um instante (troca de workspace).
+    function peek(screen: var): void {
+        if (!autoHide || panelOpen)
+            return;
+        revealedScreen = screen;
+        if (!hovering)
+            peekDelay.restart();
+    }
+
+    Timer {
+        id: hideDelay
+
+        interval: 450
+        onTriggered: {
+            if (!root.hovering)
+                root.revealedScreen = null;
+        }
+    }
+
+    Timer {
+        id: peekDelay
+
+        interval: 1400
+        onTriggered: {
+            if (!root.hovering)
+                root.revealedScreen = null;
+        }
+    }
+
+    Connections {
+        target: Hypr
+
+        function onFocusedWorkspaceIdChanged() {
+            if (Config.barPeek)
+                root.peek(Hypr.focusedScreen);
+        }
+    }
 
     // Workspaces: sempre mostra pelo menos `minWorkspaces`, mais os que existirem além disso.
     readonly property int minWorkspaces: 5
@@ -46,7 +119,6 @@ Singleton {
     // Áudio
     readonly property bool audioAvailable: Audio.available
     readonly property bool muted: Audio.muted
-    readonly property int volumePercent: Math.round(Audio.volume * 100)
     readonly property string volumeIcon: Audio.muted || Audio.volume === 0 ? Icons.volumeOff : Audio.volume < 0.34 ? Icons.volumeLow : Audio.volume < 0.67 ? Icons.volumeMedium : Icons.volumeHigh
 
     function scrollVolume(steps: real): void {
@@ -60,7 +132,6 @@ Singleton {
     // Rede
     readonly property bool networkAvailable: Network.available
     readonly property bool online: Network.kind !== "offline"
-    readonly property string networkLabel: Network.kind === "offline" ? "Desconectado" : Network.name
     readonly property string networkIcon: Network.kind === "wired" ? Icons.ethernet : Network.kind === "wifi" ? Icons.level(Icons.wifi, Network.signal) : Network.wifiEnabled ? Icons.offline : Icons.wifiOff
 
     // Bateria

@@ -22,7 +22,7 @@ Singleton {
         { id: "appearance", icon: Icons.palette, label: "Aparência", description: "Tema e animações" },
         { id: "glass", icon: Icons.blur, label: "Transparência e desfoque", description: "O vidro dos painéis" },
         { id: "notifications", icon: Icons.bell, label: "Notificações", description: "Popups e não perturbe" },
-        { id: "bar", icon: Icons.toolbar, label: "Barra", description: "Itens e posição", soon: true },
+        { id: "bar", icon: Icons.toolbar, label: "Barra", description: "Quando aparece e o que mostra" },
         { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Abas e dados", soon: true },
         { id: "power", icon: Icons.power, label: "Energia", description: "Ações e confirmações", soon: true },
         { id: "shortcuts", icon: Icons.keyboard, label: "Atalhos", description: "Teclas e comandos" },
@@ -107,6 +107,28 @@ Singleton {
 
     function resetGlass(): void {
         ThemeManager.resetGlass();
+    }
+
+    // Barra
+    readonly property bool barAutoHide: Config.barAutoHide
+    readonly property bool barPeek: Config.barPeek
+    readonly property bool barShowDate: Config.barShowDate
+    readonly property bool barOnEmpty: Config.barOnEmpty
+
+    function setBarOnEmpty(on: bool): void {
+        Config.barOnEmpty = on;
+    }
+
+    function setBarAutoHide(on: bool): void {
+        Config.barAutoHide = on;
+    }
+
+    function setBarPeek(on: bool): void {
+        Config.barPeek = on;
+    }
+
+    function setBarShowDate(on: bool): void {
+        Config.barShowDate = on;
     }
 
     // Notificações

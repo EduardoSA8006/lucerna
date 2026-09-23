@@ -27,6 +27,12 @@ Singleton {
         return Hyprland.monitorFor(screen);
     }
 
+    // Se o workspace à mostra no monitor dessa tela não tem nenhuma janela.
+    function isScreenEmpty(screen: var): bool {
+        const ws = Hyprland.monitorFor(screen)?.activeWorkspace;
+        return !ws || ws.toplevels.values.length === 0;
+    }
+
     function workspace(id: int): var {
         return workspaces.find(w => w.id === id) ?? null;
     }

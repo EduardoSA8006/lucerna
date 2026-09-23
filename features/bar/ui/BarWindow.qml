@@ -1,123 +1,141 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import qs.core.theme
 import qs.core.widgets
 import qs.features.bar.state
 
+// Barra flutuante: uma pílula centralizada no topo. Com auto-ocultar, desce com
+// mola quando o mouse encosta no topo e sobe quando ele sai; sem auto-ocultar,
+// fica fixa e reserva o espaço dela.
 PanelWindow {
     id: root
 
-    required property var modelData
+    readonly property bool shown: BarState.shownOn(screen)
+    readonly property real gap: ThemeManager.spacing.small
+    property real progress: shown ? 1 : 0
 
-    screen: modelData
-    anchors {
-        top: true
-        left: true
-        right: true
+    Behavior on progress {
+        Anim {
+            type: root.shown ? Anim.Spatial : Anim.EmphasizedAccel
+        }
     }
-    implicitHeight: ThemeManager.barHeight
-    color: ThemeManager.glass(ThemeManager.colors.base, 0)
+
+    visible: progress > 0
+    anchors.top: true
+    implicitWidth: pill.width + 32
+    implicitHeight: pill.height + gap * 2
+    color: "transparent"
+    exclusionMode: BarState.autoHide ? ExclusionMode.Ignore : ExclusionMode.Auto
+    // Só a pílula recebe o mouse; as sobras transparentes deixam passar.
+    mask: Region {
+        item: pill
+    }
+    WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "lucerna-panel-bar"
 
     Rectangle {
-        anchors {
-            left: parent.left
-            right: parent.right
-            bottom: parent.bottom
-        }
-        height: 1
-        color: ThemeManager.colors.border
-    }
+        id: pill
 
-    RowLayout {
-        anchors {
-            fill: parent
-            leftMargin: ThemeManager.spacing.small
-            rightMargin: ThemeManager.spacing.small
-        }
-        spacing: ThemeManager.spacing.small
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: root.gap - (1 - root.progress) * (height + root.gap * 2)
+        width: content.implicitWidth + ThemeManager.spacing.normal * 2
+        height: ThemeManager.barHeight
+        radius: height / 2
+        color: ThemeManager.glass(ThemeManager.colors.base, 0)
+        border.width: ThemeManager.outlines ? 1 : 0
+        border.color: ThemeManager.colors.border
 
-        IconButton {
-            icon: Icons.apps
-            active: BarState.openPanel === "launcher"
-            onClicked: BarState.togglePanel("launcher")
+        Behavior on width { Anim { type: Anim.FastSpatial } }
+
+        HoverHandler {
+            onHoveredChanged: BarState.setHovering(hovered)
         }
 
-        Workspaces {}
+        Row {
+            id: content
 
-        Item {
-            Layout.fillWidth: true
-        }
+            anchors.centerIn: parent
+            spacing: ThemeManager.spacing.small
 
-        IconButton {
-            icon: BarState.networkIcon
-            visible: BarState.networkAvailable
-            foreground: BarState.online ? ThemeManager.colors.textMuted : ThemeManager.colors.textFaint
-        }
+            Workspaces {
+                anchors.verticalCenter: parent.verticalCenter
+            }
 
-        IconButton {
-            icon: BarState.volumeIcon
-            label: BarState.muted ? "" : `${BarState.volumePercent}%`
-            visible: BarState.audioAvailable
-            foreground: BarState.muted ? ThemeManager.colors.textFaint : ThemeManager.colors.text
-            onClicked: BarState.toggleMute()
-            onWheel: event => BarState.scrollVolume(event.angleDelta.y / 120)
-        }
+            Divider {}
 
-        IconButton {
-            icon: BarState.batteryIcon
-            label: `${BarState.batteryPercent}%`
-            visible: BarState.batteryAvailable
-            foreground: BarState.batteryLow ? ThemeManager.colors.danger : ThemeManager.colors.text
-        }
+            // Relógio: abre o painel superior.
+            Clickable {
+                anchors.verticalCenter: parent.verticalCenter
+                width: clock.implicitWidth + ThemeManager.spacing.normal * 2
+                height: pill.height - 8
+                radius: height / 2
+                active: BarState.openPanel === "dashboard"
+                activeColor: ThemeManager.alpha(ThemeManager.colors.accent, 0.16)
+                onClicked: BarState.togglePanel("dashboard")
 
-        IconButton {
-            icon: BarState.bellIcon
-            label: BarState.notificationCount > 0 ? `${BarState.notificationCount}` : ""
-            active: BarState.openPanel === "notifications"
-            onClicked: BarState.togglePanel("notifications")
-        }
+                Row {
+                    id: clock
 
-        IconButton {
-            icon: Icons.palette
-            active: BarState.openPanel === "themes"
-            onClicked: BarState.togglePanel("themes")
-        }
+                    anchors.centerIn: parent
+                    spacing: ThemeManager.spacing.small
 
-        IconButton {
-            icon: Icons.power
-            active: BarState.openPanel === "power"
-            onClicked: BarState.togglePanel("power")
-        }
-    }
+                    Txt {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: BarState.time
+                        mono: true
+                        font.weight: Font.DemiBold
+                    }
 
-    // Relógio centralizado na tela, independente da largura dos lados. Abre o painel superior.
-    Clickable {
-        anchors.centerIn: parent
-        width: clock.implicitWidth + ThemeManager.spacing.normal * 2
-        height: ThemeManager.barHeight - ThemeManager.spacing.small
-        active: BarState.openPanel === "dashboard"
-        activeColor: ThemeManager.alpha(ThemeManager.colors.accent, 0.16)
-        onClicked: BarState.togglePanel("dashboard")
-    }
+                    Txt {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: BarState.showDate
+                        text: BarState.date
+                        muted: true
+                    }
+                }
+            }
 
-    Row {
-        id: clock
+            Divider {}
 
-        anchors.centerIn: parent
-        spacing: ThemeManager.spacing.small
+            // Estado do sistema: compacto, sem rótulos (o OSD mostra o volume ao mudar).
+            Row {
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 2
 
-        Txt {
-            text: BarState.time
-            mono: true
-            font.weight: Font.DemiBold
-        }
+                IconButton {
+                    icon: BarState.networkIcon
+                    visible: BarState.networkAvailable
+                    iconSize: 18
+                    foreground: BarState.online ? ThemeManager.colors.textMuted : ThemeManager.colors.textFaint
+                }
 
-        Txt {
-            text: BarState.date
-            muted: true
+                IconButton {
+                    icon: BarState.volumeIcon
+                    visible: BarState.audioAvailable
+                    iconSize: 18
+                    foreground: BarState.muted ? ThemeManager.colors.textFaint : ThemeManager.colors.textMuted
+                    onClicked: BarState.toggleMute()
+                    onWheel: event => BarState.scrollVolume(event.angleDelta.y / 120)
+                }
+
+                IconButton {
+                    icon: BarState.batteryIcon
+                    label: `${BarState.batteryPercent}%`
+                    visible: BarState.batteryAvailable
+                    iconSize: 18
+                    foreground: BarState.batteryLow ? ThemeManager.colors.danger : ThemeManager.colors.textMuted
+                }
+            }
+
+            IconButton {
+                anchors.verticalCenter: parent.verticalCenter
+                icon: BarState.bellIcon
+                iconSize: 18
+                label: BarState.notificationCount > 0 ? `${BarState.notificationCount}` : ""
+                active: BarState.openPanel === "notifications"
+                onClicked: BarState.togglePanel("notifications")
+            }
         }
     }
 }

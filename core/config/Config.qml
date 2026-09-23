@@ -19,6 +19,10 @@ Singleton {
     property alias notificationTimeout: adapter.notificationTimeout
     property alias settingsTopic: adapter.settingsTopic
     property alias outlines: adapter.outlines
+    property alias barAutoHide: adapter.barAutoHide
+    property alias barPeek: adapter.barPeek
+    property alias barShowDate: adapter.barShowDate
+    property alias barOnEmpty: adapter.barOnEmpty
 
     FileView {
         path: Quickshell.statePath("config.json")
@@ -52,6 +56,13 @@ Singleton {
             property string settingsTopic: "glass"
             // Contorno nos cartões; null = seguir o tema.
             property var outlines: null
+            // Barra: some sozinha (aparece ao encostar o mouse no topo), aparece
+            // por um instante ao trocar de workspace, e mostra a data.
+            property bool barAutoHide: true
+            property bool barPeek: true
+            property bool barShowDate: true
+            // Com auto-ocultar, a barra fica à mostra quando o workspace não tem janelas.
+            property bool barOnEmpty: true
         }
     }
 }

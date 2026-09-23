@@ -268,6 +268,7 @@ OverlayPanel {
                             appearance: appearancePage,
                             glass: glassPage,
                             notifications: notificationsPage,
+                            bar: barPage,
                             shortcuts: shortcutsPage,
                             about: aboutPage
                         })[SettingsState.current.id] ?? soonPage
@@ -319,6 +320,12 @@ OverlayPanel {
         id: glassPage
 
         GlassPage {}
+    }
+
+    Component {
+        id: barPage
+
+        BarPage {}
     }
 
     Component {

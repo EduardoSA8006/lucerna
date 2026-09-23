@@ -6,6 +6,7 @@ import Quickshell.Io
 import Quickshell.Services.Notifications
 import qs.core.config
 import qs.core.panels
+import qs.core.theme
 import qs.services
 
 // View model das notificações: popups e central lateral.
@@ -14,6 +15,7 @@ Singleton {
 
     readonly property bool centerOpen: Panels.isOpen("notifications")
     readonly property var screen: Hypr.focusedScreen
+    readonly property real topOffset: Config.barAutoHide ? ThemeManager.spacing.small : ThemeManager.barHeight + ThemeManager.spacing.small * 2
     readonly property var popups: Notifications.popups
     readonly property var list: Notifications.list
     readonly property bool doNotDisturb: Config.doNotDisturb
