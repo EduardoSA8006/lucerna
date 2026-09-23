@@ -1,0 +1,56 @@
+{
+    "name": "Brasa",
+    "description": "Carvão quase apagado e um vermelho-alaranjado de brasa viva.",
+    "dark": true,
+    "colors": {
+        "base": "#0d0908",
+        "surface": "#160f0d",
+        "raised": "#211613",
+        "border": "#33211c",
+        "text": "#f1e1d8",
+        "textMuted": "#b59a8d",
+        "textFaint": "#735a4e",
+        "accent": "#ff6b3d",
+        "accentText": "#1c0a04",
+        "danger": "#ff4f5e",
+        "success": "#a9c77a",
+        "warning": "#ffb547"
+    },
+    "font": {
+        "sans": "Noto Sans",
+        "mono": "JetBrains Mono Nerd Font",
+        "icon": "JetBrains Mono Nerd Font",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 6,
+        "normal": 10,
+        "large": 16
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "fast": 120,
+        "normal": 220,
+        "slow": 420
+    },
+    "bar": {
+        "height": 34
+    },
+    "wallpaper": "wallpapers/brasa.jpg",
+    "hyprland": {
+        "activeBorder": "#ff6b3d",
+        "inactiveBorder": "#33211c",
+        "borderSize": 2,
+        "rounding": 10
+    }
+}

@@ -1,0 +1,56 @@
+{
+    "name": "Luar",
+    "description": "Azul de madrugada e um brilho frio, prateado, de lua cheia.",
+    "dark": true,
+    "colors": {
+        "base": "#0b0e14",
+        "surface": "#121722",
+        "raised": "#1a2130",
+        "border": "#273044",
+        "text": "#dde4f0",
+        "textMuted": "#95a0b5",
+        "textFaint": "#5c6680",
+        "accent": "#9ec1ff",
+        "accentText": "#0b1426",
+        "danger": "#f0788a",
+        "success": "#8fd6a8",
+        "warning": "#f2cf7a"
+    },
+    "font": {
+        "sans": "Noto Sans",
+        "mono": "JetBrains Mono Nerd Font",
+        "icon": "JetBrains Mono Nerd Font",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 6,
+        "normal": 10,
+        "large": 16
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "fast": 120,
+        "normal": 220,
+        "slow": 420
+    },
+    "bar": {
+        "height": 34
+    },
+    "wallpaper": "wallpapers/luar.jpg",
+    "hyprland": {
+        "activeBorder": "#9ec1ff",
+        "inactiveBorder": "#273044",
+        "borderSize": 2,
+        "rounding": 10
+    }
+}

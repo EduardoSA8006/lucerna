@@ -1,0 +1,164 @@
+import QtQuick
+import QtQuick.Layouts
+import Quickshell.Widgets
+import qs.core.theme
+import qs.core.widgets
+import qs.features.notifications.state
+
+// Cartão de uma notificação, usado nos popups e na central. Em modo popup,
+// uma linha de acento mostra o tempo restante (pausa com o mouse em cima).
+Surface {
+    id: card
+
+    required property var notification
+    property bool popup: false
+    readonly property bool critical: NotificationsState.isCritical(notification)
+    readonly property string image: NotificationsState.imageFor(notification)
+    readonly property int timeout: popup ? NotificationsState.timeoutFor(notification) : 0
+
+    signal expired
+
+    raisedLevel: !popup
+    radius: ThemeManager.radius.normal
+    border.color: critical ? ThemeManager.colors.danger : ThemeManager.colors.border
+    implicitHeight: layout.implicitHeight + ThemeManager.spacing.normal * 2
+    clip: true
+
+    HoverHandler {
+        id: hover
+    }
+
+    NumberAnimation on remaining {
+        id: countdown
+
+        running: card.timeout > 0
+        paused: hover.hovered
+        from: 1
+        to: 0
+        duration: card.timeout
+        onFinished: card.expired()
+    }
+
+    property real remaining: 1
+
+    RowLayout {
+        id: layout
+
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: parent.top
+            margins: ThemeManager.spacing.normal
+        }
+        spacing: ThemeManager.spacing.normal
+
+        ClippingRectangle {
+            Layout.alignment: Qt.AlignTop
+            Layout.preferredWidth: 40
+            Layout.preferredHeight: 40
+            visible: card.image !== ""
+            radius: ThemeManager.radius.small
+            color: "transparent"
+
+            Image {
+                anchors.fill: parent
+                source: card.image
+                sourceSize: Qt.size(80, 80)
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 2
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: ThemeManager.spacing.small
+
+                Txt {
+                    Layout.fillWidth: true
+                    text: card.notification.appName || "Notificação"
+                    faint: true
+                    font.pixelSize: ThemeManager.font.small
+                }
+
+                Txt {
+                    text: NotificationsState.timeLabel(card.notification)
+                    faint: true
+                    font.pixelSize: ThemeManager.font.small
+                }
+
+                IconButton {
+                    icon: Icons.close
+                    iconSize: 13
+                    implicitWidth: 20
+                    implicitHeight: 20
+                    foreground: ThemeManager.colors.textMuted
+                    onClicked: NotificationsState.dismiss(card.notification)
+                }
+            }
+
+            Txt {
+                Layout.fillWidth: true
+                text: card.notification.summary
+                font.weight: Font.DemiBold
+                wrapMode: Text.Wrap
+                maximumLineCount: 2
+            }
+
+            Txt {
+                Layout.fillWidth: true
+                visible: text !== ""
+                text: card.notification.body
+                textFormat: Text.StyledText
+                muted: true
+                wrapMode: Text.Wrap
+                maximumLineCount: card.popup ? 4 : 8
+                linkColor: ThemeManager.colors.accent
+                onLinkActivated: link => Qt.openUrlExternally(link)
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                Layout.topMargin: ThemeManager.spacing.tiny
+                visible: card.notification.actions.length > 0
+                spacing: ThemeManager.spacing.tiny
+
+                Repeater {
+                    model: card.notification.actions
+
+                    delegate: Clickable {
+                        required property var modelData
+
+                        implicitWidth: actionLabel.implicitWidth + ThemeManager.spacing.normal * 2
+                        implicitHeight: 26
+                        border.width: 1
+                        border.color: ThemeManager.colors.border
+                        onClicked: NotificationsState.invoke(card.notification, modelData)
+
+                        Txt {
+                            id: actionLabel
+
+                            anchors.centerIn: parent
+                            text: modelData.text
+                            font.pixelSize: ThemeManager.font.small
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        visible: card.timeout > 0
+        anchors.bottom: parent.bottom
+        x: card.radius
+        width: (parent.width - card.radius * 2) * card.remaining
+        height: 2
+        radius: 1
+        color: card.critical ? ThemeManager.colors.danger : ThemeManager.colors.accent
+        opacity: 0.8
+    }
+}
