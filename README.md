@@ -1,6 +1,6 @@
 # Lucerna
 
-Shell de desktop próprio para o Hyprland, escrito em Quickshell (QML). A proposta completa, com princípios e arquitetura, está em [`Lucerna — Proposta.md`](<Lucerna — Proposta.md>).
+Shell de desktop próprio para o Hyprland, escrito em Quickshell (QML). A proposta completa, com princípios e arquitetura, está em [`Lucerna — Proposta.md`](<Lucerna — Proposta.md>). Os wallpapers animados, ainda por implementar, estão em [`Lucerna — Proposta do Wallpaper.md`](<Lucerna — Proposta do Wallpaper.md>).
 
 Tem barra, launcher, notificações com central lateral, tela de bloqueio, wallpaper, seletor de temas, OSD de volume e brilho e menu de energia. Tudo sai de um tema em JSON (`themes/`), trocável ao vivo, e o tema também ajusta as bordas do Hyprland.
 
