@@ -24,7 +24,10 @@ Singleton {
         { name: "Painel", description: "Ação", glyph: Icons.dashboard, keywords: "dashboard calendario clima desempenho midia musica", run: () => Panels.open("dashboard") },
         { name: "Configurações", description: "Ação", glyph: Icons.settings, keywords: "ajustes preferencias transparencia desfoque blur opacidade animacoes settings", run: () => Panels.open("settings") },
         { name: "Trocar tema", description: "Ação", glyph: Icons.palette, keywords: "theme cores aparência", run: () => Panels.open("themes") },
-        { name: "Notificações", description: "Ação", glyph: Icons.bell, keywords: "central avisos", run: () => Panels.open("notifications") },
+        { name: "Notificações", description: "Ação", glyph: Icons.bell, keywords: "central avisos", run: () => Panels.openSidebar("notifications") },
+        { name: "Wi-Fi", description: "Ação", glyph: Icons.wifiOn, keywords: "rede internet wifi conexao", run: () => Panels.openSidebar("wifi") },
+        { name: "Bluetooth", description: "Ação", glyph: Icons.bluetooth, keywords: "fone dispositivos parear", run: () => Panels.openSidebar("bluetooth") },
+        { name: "Som", description: "Ação", glyph: Icons.sound, keywords: "audio volume microfone saida", run: () => Panels.openSidebar("sound") },
         { name: Config.doNotDisturb ? "Desativar não perturbe" : "Ativar não perturbe", description: "Ação", glyph: Icons.bellSleep, keywords: "dnd silencio silenciar", run: () => Config.doNotDisturb = !Config.doNotDisturb },
         { name: "Menu de energia", description: "Ação", glyph: Icons.power, keywords: "desligar reiniciar suspender sair logout power", run: () => Panels.open("power") }
     ]

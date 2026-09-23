@@ -22,6 +22,7 @@ Singleton {
         { id: "appearance", icon: Icons.palette, label: "Aparência", description: "Tema e animações" },
         { id: "glass", icon: Icons.blur, label: "Transparência e desfoque", description: "O vidro dos painéis" },
         { id: "notifications", icon: Icons.bell, label: "Notificações", description: "Popups e não perturbe" },
+        { id: "sidebar", icon: Icons.sidebar, label: "Central lateral", description: "Lado da tela" },
         { id: "bar", icon: Icons.toolbar, label: "Barra", description: "Quando aparece e o que mostra" },
         { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Abas e dados", soon: true },
         { id: "power", icon: Icons.power, label: "Energia", description: "Ações e confirmações", soon: true },
@@ -131,6 +132,17 @@ Singleton {
         Config.barShowDate = on;
     }
 
+    // Central lateral
+    readonly property string sidebarSide: Config.sidebarSide
+
+    function setSidebarSide(side: string): void {
+        Config.sidebarSide = side;
+    }
+
+    function previewSidebar(): void {
+        Panels.openSidebar(Config.sidebarSection);
+    }
+
     // Notificações
     readonly property bool doNotDisturb: Config.doNotDisturb
     readonly property real notificationSeconds: Config.notificationTimeout / 1000
@@ -152,7 +164,8 @@ Singleton {
         { keys: "Mod + Espaço", action: "Launcher", command: "panels toggle launcher" },
         { keys: "Mod + D", action: "Painel superior", command: "panels toggle dashboard" },
         { keys: "Mod + S", action: "Configurações", command: "panels toggle settings" },
-        { keys: "Mod + N", action: "Central de notificações", command: "panels toggle notifications" },
+        { keys: "Mod + N", action: "Avisos (central lateral)", command: "sidebar toggle notifications" },
+        { keys: "Mod + C", action: "Central lateral", command: "sidebar toggle" },
         { keys: "Mod + T", action: "Seletor de temas", command: "panels toggle themes" },
         { keys: "Mod + Esc", action: "Menu de energia", command: "panels toggle power" },
         { keys: "Mod + L", action: "Bloquear a tela", command: "session lock" },

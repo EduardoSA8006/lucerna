@@ -10,7 +10,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property bool devMode: Quickshell.env("LUCERNA_DEV") === "1"
+    readonly property bool devMode: DevMode.active
     // Sobrevive ao recarregamento do shell: um reload não pode desbloquear a tela.
     readonly property bool locked: persist.locked
 
@@ -44,12 +44,8 @@ Singleton {
     }
 
     function run(command: var, label: string): void {
-        if (devMode) {
-            console.info(`Session: ${label} simulado (${command.join(" ")})`);
-            Quickshell.execDetached(["notify-send", "-a", "Lucerna", "Modo de desenvolvimento", `${label}: ação simulada.`]);
-            return;
-        }
-        Quickshell.execDetached(command);
+        if (!DevMode.simulate(label))
+            Quickshell.execDetached(command);
     }
 
     IpcHandler {

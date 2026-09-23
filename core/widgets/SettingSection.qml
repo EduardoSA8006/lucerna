@@ -1,6 +1,5 @@
 import QtQuick
 import qs.core.theme
-import qs.core.widgets
 
 // Grupo de opções: título discreto e um cartão com as linhas, separadas por fios.
 Column {

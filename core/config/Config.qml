@@ -23,6 +23,8 @@ Singleton {
     property alias barPeek: adapter.barPeek
     property alias barShowDate: adapter.barShowDate
     property alias barOnEmpty: adapter.barOnEmpty
+    property alias sidebarSide: adapter.sidebarSide
+    property alias sidebarSection: adapter.sidebarSection
 
     FileView {
         path: Quickshell.statePath("config.json")
@@ -63,6 +65,9 @@ Singleton {
             property bool barShowDate: true
             // Com auto-ocultar, a barra fica à mostra quando o workspace não tem janelas.
             property bool barOnEmpty: true
+            // Central lateral: "right" ou "left", e a última seção aberta.
+            property string sidebarSide: "right"
+            property string sidebarSection: "wifi"
         }
     }
 }

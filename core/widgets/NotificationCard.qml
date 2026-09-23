@@ -1,11 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
+import Quickshell.Services.Notifications
 import Quickshell.Widgets
 import qs.core.theme
-import qs.core.widgets
-import qs.features.notifications.state
 
-// Cartão de uma notificação, usado nos popups e na central. Em modo popup,
+// Cartão de uma notificação, usado nos popups e na central lateral. Em modo popup,
 // uma linha de acento mostra o tempo restante (pausa com o mouse em cima).
 Surface {
     id: card
@@ -14,9 +14,26 @@ Surface {
     // por isso todo acesso a ela tolera null.
     required property var notification
     property bool popup: false
-    readonly property bool critical: notification ? NotificationsState.isCritical(notification) : false
-    readonly property string image: notification ? NotificationsState.imageFor(notification) : ""
-    readonly property int timeout: popup && notification ? NotificationsState.timeoutFor(notification) : 0
+    // Quem usa informa o texto do horário e o prazo (0 = sem contagem) e reage
+    // aos sinais; o cartão não conhece estado nenhum.
+    property string timeText: ""
+    property int timeout: 0
+    readonly property bool critical: notification?.urgency === NotificationUrgency.Critical
+    readonly property string image: {
+        if (!notification)
+            return "";
+        if (notification.image)
+            return notification.image;
+        const icon = notification.appIcon;
+        if (!icon)
+            return "";
+        if (icon.startsWith("/"))
+            return `file://${icon}`;
+        return icon.includes("://") ? icon : Quickshell.iconPath(icon, true);
+    }
+
+    signal dismissRequested
+    signal actionInvoked(var action)
 
     signal expired
 
@@ -89,7 +106,7 @@ Surface {
                 }
 
                 Txt {
-                    text: card.notification ? NotificationsState.timeLabel(card.notification) : ""
+                    text: card.timeText
                     faint: true
                     font.pixelSize: ThemeManager.font.small
                 }
@@ -100,10 +117,7 @@ Surface {
                     implicitWidth: 20
                     implicitHeight: 20
                     foreground: ThemeManager.colors.textMuted
-                    onClicked: {
-                        if (card.notification)
-                            NotificationsState.dismiss(card.notification);
-                    }
+                    onClicked: card.dismissRequested()
                 }
             }
 
@@ -143,7 +157,7 @@ Surface {
                         implicitHeight: 28
                         radius: 14
                         color: ThemeManager.alpha(ThemeManager.colors.accent, 0.14)
-                        onClicked: NotificationsState.invoke(card.notification, modelData)
+                        onClicked: card.actionInvoked(modelData)
 
                         Txt {
                             id: actionLabel

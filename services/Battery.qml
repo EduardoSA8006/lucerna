@@ -16,4 +16,16 @@ Singleton {
     readonly property bool onBattery: UPower.onBattery
     // Segundos até esvaziar (descarregando) ou encher (carregando); 0 se desconhecido.
     readonly property real timeRemaining: charging ? (device?.timeToFull ?? 0) : (device?.timeToEmpty ?? 0)
+    readonly property real health: device?.healthSupported ? device.healthPercentage / 100 : NaN
+    readonly property real changeRate: device?.changeRate ?? 0
+
+    // Perfil de energia (power-profiles-daemon): 0 economia, 1 equilibrado, 2 desempenho.
+    readonly property int profile: PowerProfiles.profile
+    readonly property bool hasPerformance: PowerProfiles.hasPerformanceProfile
+
+    function setProfile(value: int): void {
+        const names = ["Modo economia", "Modo equilibrado", "Modo desempenho"];
+        if (!DevMode.simulate(names[value] ?? "Perfil de energia"))
+            PowerProfiles.profile = value;
+    }
 }

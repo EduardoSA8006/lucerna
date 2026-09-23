@@ -2,7 +2,7 @@
 
 Shell de desktop próprio para o Hyprland, escrito em Quickshell (QML). A proposta completa, com princípios e arquitetura, está em [`Lucerna — Proposta.md`](<Lucerna — Proposta.md>). Os wallpapers animados, ainda por implementar, estão em [`Lucerna — Proposta do Wallpaper.md`](<Lucerna — Proposta do Wallpaper.md>).
 
-Tem barra flutuante (escondida até o mouse encostar no topo), painel superior (visão geral, mídia com letra sincronizada, desempenho e clima), tela de configurações, launcher, notificações com central lateral, tela de bloqueio, wallpaper, seletor de temas, OSD de volume e brilho e menu de energia. Os ícones são Material Symbols e as animações usam as curvas de movimento do Material 3. Tudo sai de um tema em JSON (`themes/`), trocável ao vivo, e o tema também ajusta as bordas do Hyprland.
+Tem barra flutuante (escondida até o mouse encostar no topo), central lateral (Wi-Fi, Bluetooth, som, avisos, bateria e tela), painel superior (visão geral, mídia com letra sincronizada, desempenho e clima), tela de configurações, launcher, notificações com central lateral, tela de bloqueio, wallpaper, seletor de temas, OSD de volume e brilho e menu de energia. Os ícones são Material Symbols e as animações usam as curvas de movimento do Material 3. Tudo sai de um tema em JSON (`themes/`), trocável ao vivo, e o tema também ajusta as bordas do Hyprland.
 
 ## Requisitos
 
@@ -29,7 +29,8 @@ local ipc = "qs -c lucerna ipc call "
 hl.bind("SUPER + Space",  hl.dsp.exec_cmd(ipc .. "panels toggle launcher"))
 hl.bind("SUPER + D",      hl.dsp.exec_cmd(ipc .. "panels toggle dashboard"))
 hl.bind("SUPER + S",      hl.dsp.exec_cmd(ipc .. "panels toggle settings"))
-hl.bind("SUPER + N",      hl.dsp.exec_cmd(ipc .. "panels toggle notifications"))
+hl.bind("SUPER + N",      hl.dsp.exec_cmd(ipc .. "sidebar toggle notifications"))
+hl.bind("SUPER + C",      hl.dsp.exec_cmd(ipc .. "sidebar toggle \"\""))
 hl.bind("SUPER + T",      hl.dsp.exec_cmd(ipc .. "panels toggle themes"))
 hl.bind("SUPER + Escape", hl.dsp.exec_cmd(ipc .. "panels toggle power"))
 hl.bind("SUPER + L",      hl.dsp.exec_cmd(ipc .. "session lock"))
@@ -43,12 +44,13 @@ O volume é controlado por `wpctl` direto nos atalhos; o shell percebe a mudanç
 
 | Alvo | Funções |
 | --- | --- |
-| `panels` | `open <nome>`, `close`, `toggle <nome>`, `get` (nomes: `launcher`, `dashboard`, `settings`, `notifications`, `themes`, `power`) |
+| `panels` | `open <nome>`, `close`, `toggle <nome>`, `get` (nomes: `launcher`, `dashboard`, `settings`, `sidebar`, `themes`, `power`) |
 | `settings` | `open <tópico>` (`appearance`, `glass`, `notifications`, `shortcuts`, `about`…) |
 | `dashboard` | `open <aba>` (`overview`, `media`, `performance`, `weather`), `toggle` |
 | `session` | `lock`, `isLocked` |
 | `theme` | `set <id>`, `get`, `list` |
 | `brightness` | `up`, `down`, `set <0-100>` |
+| `sidebar` | `open <seção>`, `toggle <seção>` (`wifi`, `bluetooth`, `sound`, `notifications`, `battery`, `display`; vazio = a última) |
 | `notifications` | `clear`, `toggleDnd`, `count` |
 
 ## Temas
@@ -79,7 +81,7 @@ dev/run.sh log        # segue o log do Quickshell
 Requisitos no host: Docker, uma sessão Wayland e o usuário no grupo `docker`.
 
 - Volume, bateria e rede mostram o estado real do host (o PipeWire e o D-Bus do sistema são repassados).
-- Com `LUCERNA_DEV=1`, definido pelo `run.sh`, suspender, reiniciar e desligar são só simulados: sem isso, o comando chegaria ao host pelo D-Bus.
+- Com `LUCERNA_DEV=1`, definido pelo `run.sh`, suspender, reiniciar, desligar e as ações da central lateral (ligar/desligar Wi-Fi e Bluetooth, conectar a redes e dispositivos, perfil de energia) são só simulados: sem isso, chegariam ao host pelo D-Bus. A leitura (redes, dispositivos, bateria) é real.
 - O brilho é só leitura no container; os ajustes são simulados.
 - A senha da tela de bloqueio no container é `lucerna` (usuário `dev`).
 - O fuso horário vem do host (`/etc/localtime`). A rede na aba Desempenho é a do container, não a do host.
@@ -92,7 +94,8 @@ Atalhos no Hyprland aninhado (mod = `Alt`, para não brigar com o KDE):
 | `Alt+Space` | Launcher |
 | `Alt+S` | Configurações |
 | `Alt+D` | Painel superior (também clicando no relógio da barra); dentro dele, `Tab`/`Shift+Tab` ou `1`–`4` trocam de aba |
-| `Alt+N` | Central de notificações |
+| `Alt+N` | Central lateral nos avisos |
+| `Alt+C` | Central lateral (última seção) |
 | `Alt+T` | Seletor de temas |
 | `Alt+Esc` | Menu de energia |
 | `Alt+L` | Bloquear a tela |

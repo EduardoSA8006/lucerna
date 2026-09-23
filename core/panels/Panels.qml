@@ -3,9 +3,10 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.core.config
 
 // Ponte entre features: diz qual painel está aberto. Só um fica aberto por vez;
-// abrir outro fecha o anterior. Nomes em uso: launcher, dashboard, settings, notifications, themes, power.
+// abrir outro fecha o anterior. Nomes em uso: launcher, dashboard, settings, sidebar, themes, power.
 Singleton {
     id: root
 
@@ -25,6 +26,20 @@ Singleton {
 
     function isOpen(name: string): bool {
         return current === name;
+    }
+
+    // Central lateral numa seção (wifi, bluetooth, sound, notifications, battery, display).
+    function openSidebar(section: string): void {
+        Config.sidebarSection = section;
+        open("sidebar");
+    }
+
+    // Fecha se já estiver aberta nessa seção; senão abre (ou troca) para ela.
+    function toggleSidebar(section: string): void {
+        if (current === "sidebar" && Config.sidebarSection === section)
+            close();
+        else
+            openSidebar(section);
     }
 
     IpcHandler {
