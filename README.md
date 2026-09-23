@@ -2,7 +2,7 @@
 
 Shell de desktop próprio para o Hyprland, escrito em Quickshell (QML). A proposta completa, com princípios e arquitetura, está em [`Lucerna — Proposta.md`](<Lucerna — Proposta.md>). Os wallpapers animados, ainda por implementar, estão em [`Lucerna — Proposta do Wallpaper.md`](<Lucerna — Proposta do Wallpaper.md>).
 
-Tem barra, painel superior (visão geral, mídia com letra sincronizada, desempenho e clima), tela de configurações, launcher, notificações com central lateral, tela de bloqueio, wallpaper, seletor de temas, OSD de volume e brilho e menu de energia. Os ícones são Material Symbols e as animações usam as curvas de movimento do Material 3. Tudo sai de um tema em JSON (`themes/`), trocável ao vivo, e o tema também ajusta as bordas do Hyprland.
+Tem barra flutuante (escondida até o mouse encostar no topo), painel superior (visão geral, mídia com letra sincronizada, desempenho e clima), tela de configurações, launcher, notificações com central lateral, tela de bloqueio, wallpaper, seletor de temas, OSD de volume e brilho e menu de energia. Os ícones são Material Symbols e as animações usam as curvas de movimento do Material 3. Tudo sai de um tema em JSON (`themes/`), trocável ao vivo, e o tema também ajusta as bordas do Hyprland.
 
 ## Requisitos
 
@@ -91,7 +91,7 @@ Atalhos no Hyprland aninhado (mod = `Alt`, para não brigar com o KDE):
 | --- | --- |
 | `Alt+Space` | Launcher |
 | `Alt+S` | Configurações |
-| `Alt+D` | Painel superior (também clicando no relógio); dentro dele, `Tab`/`Shift+Tab` ou `1`–`4` trocam de aba |
+| `Alt+D` | Painel superior (também clicando no relógio da barra); dentro dele, `Tab`/`Shift+Tab` ou `1`–`4` trocam de aba |
 | `Alt+N` | Central de notificações |
 | `Alt+T` | Seletor de temas |
 | `Alt+Esc` | Menu de energia |

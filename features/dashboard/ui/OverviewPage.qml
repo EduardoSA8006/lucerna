@@ -112,6 +112,27 @@ Item {
                         }
                     }
                 }
+
+                // Configurações e energia, que saíram da barra.
+                Column {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.rightMargin: ThemeManager.spacing.small
+                    spacing: 2
+
+                    IconButton {
+                        icon: Icons.settings
+                        iconSize: 18
+                        onClicked: OverviewState.openSettings()
+                    }
+
+                    IconButton {
+                        icon: Icons.power
+                        iconSize: 18
+                        foreground: ThemeManager.colors.danger
+                        onClicked: OverviewState.openPower()
+                    }
+                }
             }
 
             Surface {

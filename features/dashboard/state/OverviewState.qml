@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.core.format
+import qs.core.panels
 import qs.core.widgets
 import qs.services
 
@@ -84,5 +85,14 @@ Singleton {
 
     function togglePlaying(): void {
         Media.togglePlaying();
+    }
+
+    // Atalhos no cartão do usuário (a barra não tem mais esses botões).
+    function openSettings(): void {
+        Panels.open("settings");
+    }
+
+    function openPower(): void {
+        Panels.open("power");
     }
 }

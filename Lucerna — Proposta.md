@@ -53,9 +53,9 @@ O Lucerna cresce por módulos, começando pelo essencial.
 
 | Componente | Função |
 | --- | --- |
-| Barra | Workspaces do Hyprland, relógio, volume, bateria e rede |
+| Barra | Pílula flutuante e centralizada, escondida por padrão: aparece ao encostar o mouse no topo, por um instante ao trocar de workspace e o tempo todo na área de trabalho vazia (por monitor). Workspaces, relógio (abre o painel superior), rede, volume, bateria e notificações. Pode ficar fixa, reservando o espaço |
 | Configurações | Tópicos à esquerda e opções à direita: aparência (tema, animações), transparência e desfoque, notificações, atalhos e sobre; barra, painel e energia ainda por fazer |
-| Painel superior | Desce da barra: visão geral (usuário, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima |
+| Painel superior | Desce do topo: visão geral (usuário com atalhos para configurações e energia, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima |
 | Launcher | Abrir aplicativos e ações rápidas |
 | Notificações | Servidor de notificações próprio, com central lateral |
 | Tela de bloqueio | Bloqueio próprio, no visual do tema ativo |

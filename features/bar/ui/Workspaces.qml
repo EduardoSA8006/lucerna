@@ -7,7 +7,7 @@ import qs.features.bar.state
 // ponto claro; os vazios, um ponto apagado. Roda do mouse troca de workspace.
 Item {
     implicitWidth: row.implicitWidth
-    implicitHeight: ThemeManager.barHeight
+    implicitHeight: 28
 
     MouseArea {
         anchors.fill: parent
@@ -31,7 +31,7 @@ Item {
                 readonly property string state_: BarState.workspaceState(modelData)
 
                 width: dot.width + ThemeManager.spacing.small * 1.5
-                height: ThemeManager.barHeight
+                height: 28
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: BarState.focusWorkspace(modelData)

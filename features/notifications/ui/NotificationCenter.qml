@@ -23,7 +23,7 @@ OverlayPanel {
         anchors {
             top: parent.top
             bottom: parent.bottom
-            topMargin: ThemeManager.barHeight + ThemeManager.spacing.small
+            topMargin: NotificationsState.topOffset
             bottomMargin: ThemeManager.spacing.small
         }
         x: parent.width - width - ThemeManager.spacing.small + (1 - panel.progress) * 40

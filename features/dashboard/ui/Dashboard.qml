@@ -23,107 +23,96 @@ OverlayPanel {
     readonly property var pageItems: [overview, media, performance, weather]
     readonly property int index: DashboardState.currentIndex
 
-    // Recorte logo abaixo da barra: o painel parece sair de dentro dela.
-    Item {
-        id: clip
+    // Cartão flutuante que desce do topo da tela com mola (abaixo da barra,
+    // quando ela está fixa).
+    Rectangle {
+        id: drawer
 
         anchors.horizontalCenter: parent.horizontalCenter
-        y: ThemeManager.barHeight
-        width: drawer.width
-        height: Math.max(0, drawer.y + drawer.height + 1)
-        clip: true
+        width: 920
+        height: content.height + ThemeManager.spacing.large * 2
+        y: DashboardState.topOffset - (1 - panel.progress) * (height + DashboardState.topOffset + 16)
+        color: ThemeManager.glass(ThemeManager.colors.base, 0)
+        radius: ThemeManager.radius.large
+        border.width: ThemeManager.outlines ? 1 : 0
+        border.color: ThemeManager.colors.border
 
-        Rectangle {
-            id: drawer
+        FocusScope {
+            id: content
 
-            // Parte escondida atrás da barra: cobre a mola quando ela passa do alvo.
-            readonly property real hiddenTop: 40
+            anchors {
+                left: parent.left
+                right: parent.right
+                bottom: parent.bottom
+                leftMargin: ThemeManager.spacing.large
+                rightMargin: ThemeManager.spacing.large
+                bottomMargin: ThemeManager.spacing.large
+            }
+            height: tabs.height + ThemeManager.spacing.normal + pages.height
+            focus: true
 
-            width: 920
-            height: content.height + hiddenTop + ThemeManager.spacing.large
-            y: -hiddenTop - (1 - panel.progress) * (height - hiddenTop + 8)
-            color: ThemeManager.glass(ThemeManager.colors.base, 0)
-            radius: ThemeManager.radius.large
-            border.width: ThemeManager.outlines ? 1 : 0
-            border.color: ThemeManager.colors.border
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Tab)
+                    DashboardState.setTab(panel.index + 1);
+                else if (event.key === Qt.Key_Backtab)
+                    DashboardState.setTab(panel.index - 1);
+                else if (event.key >= Qt.Key_1 && event.key <= Qt.Key_4)
+                    DashboardState.setTab(event.key - Qt.Key_1);
+                else
+                    return;
+                event.accepted = true;
+            }
 
-            FocusScope {
-                id: content
+            TabBar {
+                id: tabs
 
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    bottom: parent.bottom
-                    leftMargin: ThemeManager.spacing.large
-                    rightMargin: ThemeManager.spacing.large
-                    bottomMargin: ThemeManager.spacing.large
-                }
-                height: tabs.height + ThemeManager.spacing.normal + pages.height
-                focus: true
+                width: parent.width
+                tabs: DashboardState.tabs
+                currentIndex: panel.index
+                onActivated: index => DashboardState.setTab(index)
+            }
 
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Tab)
-                        DashboardState.setTab(panel.index + 1);
-                    else if (event.key === Qt.Key_Backtab)
-                        DashboardState.setTab(panel.index - 1);
-                    else if (event.key >= Qt.Key_1 && event.key <= Qt.Key_4)
-                        DashboardState.setTab(event.key - Qt.Key_1);
-                    else
-                        return;
-                    event.accepted = true;
-                }
+            Item {
+                id: pages
 
-                TabBar {
-                    id: tabs
+                anchors.top: tabs.bottom
+                anchors.topMargin: ThemeManager.spacing.normal
+                width: parent.width
+                height: panel.pageItems[panel.index].implicitHeight
+                clip: true
 
-                    width: parent.width
-                    tabs: DashboardState.tabs
-                    currentIndex: panel.index
-                    onActivated: index => DashboardState.setTab(index)
-                }
-
-                Item {
-                    id: pages
-
-                    anchors.top: tabs.bottom
-                    anchors.topMargin: ThemeManager.spacing.normal
-                    width: parent.width
-                    height: panel.pageItems[panel.index].implicitHeight
-                    clip: true
-
-                    Behavior on height { Anim { type: Anim.Spatial } }
+                Behavior on height { Anim { type: Anim.Spatial } }
 
 
-                    Row {
-                        id: pagesRow
+                Row {
+                    id: pagesRow
 
-                        x: -panel.index * pages.width
+                    x: -panel.index * pages.width
 
-                        Behavior on x { Anim { type: Anim.Spatial } }
+                    Behavior on x { Anim { type: Anim.Spatial } }
 
-                        OverviewPage {
-                            id: overview
+                    OverviewPage {
+                        id: overview
 
-                            width: pages.width
-                        }
+                        width: pages.width
+                    }
 
-                        MediaPage {
-                            id: media
+                    MediaPage {
+                        id: media
 
-                            width: pages.width
-                        }
+                        width: pages.width
+                    }
 
-                        PerformancePage {
-                            id: performance
+                    PerformancePage {
+                        id: performance
 
-                            width: pages.width
-                        }
+                        width: pages.width
+                    }
 
-                        WeatherPage {
-                            id: weather
+                    WeatherPage {
+                        id: weather
 
-                            width: pages.width
-                        }
+                        width: pages.width
                     }
                 }
             }
