@@ -11,14 +11,23 @@ Singleton {
     id: root
 
     readonly property bool devMode: Quickshell.env("LUCERNA_DEV") === "1"
-    property bool locked: false
+    // Sobrevive ao recarregamento do shell: um reload não pode desbloquear a tela.
+    readonly property bool locked: persist.locked
 
     function lock(): void {
-        locked = true;
+        persist.locked = true;
     }
 
     function unlock(): void {
-        locked = false;
+        persist.locked = false;
+    }
+
+    PersistentProperties {
+        id: persist
+
+        reloadableId: "session"
+
+        property bool locked: false
     }
 
     function suspend(): void {
@@ -48,6 +57,10 @@ Singleton {
 
         function lock(): void {
             root.lock();
+        }
+
+        function isLocked(): bool {
+            return root.locked;
         }
     }
 }

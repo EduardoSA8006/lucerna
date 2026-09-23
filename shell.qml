@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.features.bar.ui
 import qs.features.launcher.ui
+import qs.features.lockscreen.ui
 import qs.features.notifications.ui
 import qs.features.osd.ui
 import qs.features.powerMenu.ui
@@ -16,5 +17,6 @@ ShellRoot {
     NotificationCenter {}
     Osd {}
     PowerMenu {}
+    Lockscreen {}
     ThemeSwitcher {}
 }

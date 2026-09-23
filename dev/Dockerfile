@@ -22,7 +22,8 @@ RUN groupadd -g "$GID" dev \
     && install -d -o "$UID" -g "$GID" /home/dev/.config/quickshell /home/dev/.config/hypr
 
 USER dev
-ENV XDG_RUNTIME_DIR=/run/user/1000 \
+ENV USER=dev \
+    XDG_RUNTIME_DIR=/run/user/1000 \
     XDG_SESSION_TYPE=wayland \
     QT_QPA_PLATFORM=wayland \
     LANG=pt_BR.UTF-8 \

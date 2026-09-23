@@ -14,6 +14,9 @@ Singleton {
     readonly property int count: list.length
     property var popups: []
     property bool doNotDisturb: false
+    // Horário de chegada (ms) por id. Persiste entre recarregamentos, como as
+    // próprias notificações; guardado como JSON porque objetos JS não passam de
+    // uma geração para outra.
     property var receivedAt: ({})
 
     readonly property int defaultTimeout: 5000
@@ -43,7 +46,23 @@ Singleton {
     }
 
     function timeOf(notification: var): var {
-        return receivedAt[notification.id] ?? new Date();
+        return new Date(receivedAt[notification.id] ?? Date.now());
+    }
+
+    PersistentProperties {
+        id: persist
+
+        reloadableId: "notifications"
+
+        property string receivedAt: "{}"
+
+        onLoaded: {
+            try {
+                root.receivedAt = JSON.parse(receivedAt);
+            } catch (e) {
+                root.receivedAt = {};
+            }
+        }
     }
 
     NotificationServer {
@@ -58,8 +77,12 @@ Singleton {
 
         onNotification: notification => {
             notification.tracked = true;
-            root.receivedAt[notification.id] = new Date();
             notification.closed.connect(() => root.hidePopup(notification));
+            // Reemitida depois de um reload: já foi vista, só volta para a lista.
+            if (notification.lastGeneration)
+                return;
+            root.receivedAt[notification.id] = Date.now();
+            persist.receivedAt = JSON.stringify(root.receivedAt);
             if (!root.doNotDisturb || notification.urgency === NotificationUrgency.Critical)
                 root.popups = [notification, ...root.popups.filter(n => n.id !== notification.id)];
         }
