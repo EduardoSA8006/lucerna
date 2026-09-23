@@ -24,6 +24,8 @@ Clickable {
 
             anchors.verticalCenter: parent.verticalCenter
             color: root.foreground
+            // O ícone "se acende" (preenche) no hover e quando ativo.
+            filled: root.active || root.hovered
         }
 
         Txt {

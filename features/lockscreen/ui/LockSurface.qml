@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import qs.core.theme
 import qs.core.widgets
 import qs.features.lockscreen.state
@@ -6,23 +7,45 @@ import qs.features.lockscreen.state
 Item {
     id: root
 
-    Component.onCompleted: input.forceActiveFocus()
+    // Entrada: o fundo desfoca aos poucos e o conteúdo sobe com mola.
+    property real shown: 0
+
+    Behavior on shown { Anim { type: Anim.SlowSpatial } }
+
+    Component.onCompleted: {
+        input.forceActiveFocus();
+        shown = 1;
+    }
 
     Image {
+        id: wallpaper
+
         anchors.fill: parent
         source: ThemeManager.wallpaper ? `file://${ThemeManager.wallpaper}` : ""
+        sourceSize: Qt.size(width / 2, height / 2)
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
+        visible: false
+    }
+
+    MultiEffect {
+        anchors.fill: parent
+        source: wallpaper
+        blurEnabled: true
+        blurMax: 64
+        blur: Math.min(1, root.shown)
+        brightness: -0.08 * Math.min(1, root.shown)
     }
 
     Rectangle {
         anchors.fill: parent
-        color: ThemeManager.alpha(ThemeManager.colors.base, 0.55)
+        color: ThemeManager.alpha(ThemeManager.colors.base, 0.45 * Math.min(1, root.shown))
     }
 
     Column {
         anchors.centerIn: parent
-        anchors.verticalCenterOffset: -40
+        anchors.verticalCenterOffset: -40 + (1 - root.shown) * 60
+        opacity: Math.min(1, root.shown)
         spacing: ThemeManager.spacing.small
 
         Txt {
@@ -54,7 +77,7 @@ Item {
             height: 48
             radius: height / 2
             color: ThemeManager.alpha(ThemeManager.colors.surface, 0.9)
-            border.width: 1
+            border.width: LockscreenState.error || input.activeFocus ? 2 : ThemeManager.outlines ? 1 : 0
             border.color: LockscreenState.error ? ThemeManager.colors.danger : input.activeFocus ? ThemeManager.alpha(ThemeManager.colors.accent, 0.6) : ThemeManager.colors.border
 
             Behavior on border.color { ColorAnim {} }

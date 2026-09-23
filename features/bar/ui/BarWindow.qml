@@ -18,8 +18,8 @@ PanelWindow {
         right: true
     }
     implicitHeight: ThemeManager.barHeight
-    color: ThemeManager.colors.base
-    WlrLayershell.namespace: "lucerna-bar"
+    color: ThemeManager.glass(ThemeManager.colors.base, 0)
+    WlrLayershell.namespace: "lucerna-panel-bar"
 
     Rectangle {
         anchors {

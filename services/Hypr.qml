@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 
 // Toda a conversa com o Hyprland passa por aqui. O Lucerna exige a config em
 // Lua (Hyprland 0.56+), então os dispatches são código Lua: hl.dsp.*.
@@ -10,6 +11,7 @@ Singleton {
     id: root
 
     readonly property bool usingLua: Hyprland.usingLua
+    property string version: ""
 
     // Workspaces normais (ids positivos), em ordem.
     readonly property var workspaces: Hyprland.workspaces.values.filter(w => w.id > 0).sort((a, b) => a.id - b.id)
@@ -44,6 +46,18 @@ Singleton {
 
     function exit(): void {
         dispatch("hl.dsp.exit()");
+    }
+
+    Process {
+        running: true
+        command: ["hyprctl", "version", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    root.version = JSON.parse(text).tag?.replace(/^v/, "") ?? "";
+                } catch (e) {}
+            }
+        }
     }
 
     // Executa Lua na config em uso, sem gravar no arquivo (hyprctl eval).

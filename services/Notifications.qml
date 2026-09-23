@@ -19,7 +19,8 @@ Singleton {
     // uma geração para outra.
     property var receivedAt: ({})
 
-    readonly property int defaultTimeout: 5000
+    // Tempo dos popups sem prazo definido pelo app, em ms (ajustável).
+    property int defaultTimeout: 5000
 
     function hidePopup(notification: var): void {
         popups = popups.filter(n => n !== notification);

@@ -2,7 +2,7 @@
 
 Shell de desktop próprio para o Hyprland, escrito em Quickshell (QML). A proposta completa, com princípios e arquitetura, está em [`Lucerna — Proposta.md`](<Lucerna — Proposta.md>). Os wallpapers animados, ainda por implementar, estão em [`Lucerna — Proposta do Wallpaper.md`](<Lucerna — Proposta do Wallpaper.md>).
 
-Tem barra, painel superior (visão geral, mídia com letra sincronizada, desempenho e clima), launcher, notificações com central lateral, tela de bloqueio, wallpaper, seletor de temas, OSD de volume e brilho e menu de energia. Os ícones são Material Symbols e as animações usam as curvas de movimento do Material 3. Tudo sai de um tema em JSON (`themes/`), trocável ao vivo, e o tema também ajusta as bordas do Hyprland.
+Tem barra, painel superior (visão geral, mídia com letra sincronizada, desempenho e clima), tela de configurações, launcher, notificações com central lateral, tela de bloqueio, wallpaper, seletor de temas, OSD de volume e brilho e menu de energia. Os ícones são Material Symbols e as animações usam as curvas de movimento do Material 3. Tudo sai de um tema em JSON (`themes/`), trocável ao vivo, e o tema também ajusta as bordas do Hyprland.
 
 ## Requisitos
 
@@ -28,6 +28,7 @@ end)
 local ipc = "qs -c lucerna ipc call "
 hl.bind("SUPER + Space",  hl.dsp.exec_cmd(ipc .. "panels toggle launcher"))
 hl.bind("SUPER + D",      hl.dsp.exec_cmd(ipc .. "panels toggle dashboard"))
+hl.bind("SUPER + S",      hl.dsp.exec_cmd(ipc .. "panels toggle settings"))
 hl.bind("SUPER + N",      hl.dsp.exec_cmd(ipc .. "panels toggle notifications"))
 hl.bind("SUPER + T",      hl.dsp.exec_cmd(ipc .. "panels toggle themes"))
 hl.bind("SUPER + Escape", hl.dsp.exec_cmd(ipc .. "panels toggle power"))
@@ -42,7 +43,8 @@ O volume é controlado por `wpctl` direto nos atalhos; o shell percebe a mudanç
 
 | Alvo | Funções |
 | --- | --- |
-| `panels` | `open <nome>`, `close`, `toggle <nome>`, `get` (nomes: `launcher`, `dashboard`, `notifications`, `themes`, `power`) |
+| `panels` | `open <nome>`, `close`, `toggle <nome>`, `get` (nomes: `launcher`, `dashboard`, `settings`, `notifications`, `themes`, `power`) |
+| `settings` | `open <tópico>` (`appearance`, `glass`, `notifications`, `shortcuts`, `about`…) |
 | `dashboard` | `open <aba>` (`overview`, `media`, `performance`, `weather`), `toggle` |
 | `session` | `lock`, `isLocked` |
 | `theme` | `set <id>`, `get`, `list` |
@@ -51,7 +53,17 @@ O volume é controlado por `wpctl` direto nos atalhos; o shell percebe a mudanç
 
 ## Temas
 
-Cada arquivo em `themes/*.json` é um tema; o nome do arquivo é o id. Para criar um, copie `themes/lamparina.json`, mude as cores e o wallpaper, e ele aparece no seletor na hora. As preferências (tema ativo, não perturbe) ficam em `~/.local/state/quickshell/by-shell/<id>/config.json`.
+Cada arquivo em `themes/*.json` é um tema; o nome do arquivo é o id. Além de cores, fontes, raios e espaçamentos, o tema define:
+
+- `transparency`: `enabled`, `base` (opacidade dos painéis) e `layers` (dos cartões dentro deles). O desfoque atrás dos painéis é feito pelo próprio Hyprland: o shell aplica a regra de camada `^lucerna-panel-.*` sozinho, sem precisar mexer no `hyprland.lua`.
+- `hyprland`: bordas, arredondamento e intensidade do desfoque (`blurSize`, `blurPasses`), aplicados via `hyprctl eval`.
+- `animation.scale`: velocidade geral das animações (1 = padrão, 0 = desligadas).
+- `fonts`: fontes que o tema traz em `themes/fonts/`, carregadas pelo shell sem instalar nada no sistema (o Nebulosa traz a Rubik, licença OFL).
+- `surfaces.outline`: contorno fino nos cartões. O padrão é sem contorno; os cartões se destacam pelo tom.
+- `colors.track`: cor opcional dos trilhos de medidores e sliders.
+
+Pela tela de configurações (`Super+S`), o usuário ajusta transparência, desfoque, contorno dos cartões, velocidade das animações e notificações por cima do tema. Esses ajustes ficam na config (`transparencyOverride`, `blurOverride`, `outlines`, `animationScale`, `notificationTimeout`) e valem para qualquer tema; "Restaurar padrões do tema" os apaga.
+ Para criar um, copie `themes/nebulosa.json` (o padrão), mude as cores e o wallpaper, e ele aparece no seletor na hora. As preferências (tema ativo, não perturbe) ficam em `~/.local/state/quickshell/by-shell/<id>/config.json`.
 
 ## Testando sem Hyprland
 
@@ -78,6 +90,7 @@ Atalhos no Hyprland aninhado (mod = `Alt`, para não brigar com o KDE):
 | Atalho | Ação |
 | --- | --- |
 | `Alt+Space` | Launcher |
+| `Alt+S` | Configurações |
 | `Alt+D` | Painel superior (também clicando no relógio); dentro dele, `Tab`/`Shift+Tab` ou `1`–`4` trocam de aba |
 | `Alt+N` | Central de notificações |
 | `Alt+T` | Seletor de temas |

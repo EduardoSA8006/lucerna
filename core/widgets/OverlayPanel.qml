@@ -13,7 +13,7 @@ PanelWindow {
     id: root
 
     required property bool open
-    property real dim: ThemeManager.dark ? 0.45 : 0.22
+    property real dim: ThemeManager.dark ? 0.4 : 0.22
     property string name: "panel"
     readonly property real progress: shown
     default property alias content: container.data
@@ -40,7 +40,8 @@ PanelWindow {
     }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: `lucerna-${name}`
+    // "lucerna-panel-*" recebe o desfoque do Hyprland (ver ThemeSwitcherState).
+    WlrLayershell.namespace: `lucerna-panel-${name}`
     WlrLayershell.keyboardFocus: open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     Rectangle {

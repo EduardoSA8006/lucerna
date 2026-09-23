@@ -10,10 +10,31 @@ Clickable {
 
     required property var result
     property bool selected: false
+    // Posição na lista, para o atraso da entrada em cascata.
+    property int order: 0
 
     height: 48
     radius: ThemeManager.radius.normal
-    color: selected ? ThemeManager.alpha(ThemeManager.colors.accent, 0.14) : "transparent"
+    color: "transparent"
+
+    // Entra suave, e com um leve atraso por posição (efeito cascata).
+    opacity: 0
+    Component.onCompleted: fadeIn.start()
+
+    SequentialAnimation {
+        id: fadeIn
+
+        PauseAnimation {
+            duration: Math.min(item.order, 8) * 18
+        }
+
+        Anim {
+            target: item
+            property: "opacity"
+            to: 1
+            type: Anim.FastEffects
+        }
+    }
 
     readonly property string iconPath: result.icon ? Quickshell.iconPath(result.icon, true) : ""
 

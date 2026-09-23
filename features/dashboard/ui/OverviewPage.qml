@@ -213,6 +213,12 @@ Item {
                             width: parent.width
                             spacing: ThemeManager.spacing.small
 
+                            AnimatedNumber {
+                                id: number
+
+                                value: modelData.value
+                            }
+
                             Icon {
                                 anchors.verticalCenter: parent.verticalCenter
                                 icon: parent.modelData.icon
@@ -238,7 +244,7 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 44
                                 horizontalAlignment: Text.AlignRight
-                                text: Format.percent(parent.modelData.value)
+                                text: Format.percent(number.shown)
                                 mono: true
                                 font.pixelSize: ThemeManager.font.small + 1
                             }

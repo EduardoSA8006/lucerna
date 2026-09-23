@@ -32,14 +32,19 @@ Com um shell próprio, só roda o que foi escrito, e cada decisão visual e de c
 
 ## Identidade visual
 
-O Lucerna terá vários temas pré-configurados, trocáveis a qualquer momento por um painel de seleção rápida. O tema padrão, **Lamparina**, segue a ideia do nome: fundo escuro e profundo com um único acento âmbar, como a chama de uma lamparina.
+O Lucerna terá vários temas pré-configurados, trocáveis a qualquer momento por um painel de seleção rápida. O tema padrão é o **Nebulosa**, inspirado no Caelestia: lilás sobre grafite, cartões sólidos e a fonte Rubik. O **Lamparina** segue a ideia do nome: fundo escuro e profundo com um único acento âmbar, como a chama de uma lamparina.
 
 - **Tema como dado:** cada tema é um arquivo em `themes/` com cores, fontes, raios, espaçamentos e wallpaper. Criar um tema novo é adicionar um arquivo, sem tocar em código.
 - **Um ponto de verdade:** um `ThemeManager` (singleton) carrega o tema ativo e expõe os tokens (cores, fontes, raios, espaçamentos, durações de animação e altura da barra); nenhum componente usa cor, fonte ou espaçamento fixo. As dimensões estruturais de cada painel, como a largura do launcher, ficam no próprio componente.
-- **Temas embutidos:** Lamparina (padrão, âmbar), Luar (azul frio), Brasa (vermelho-alaranjado) e Pergaminho (claro). Os wallpapers são gerados por `dev/wallpapers.py`.
+- **Temas embutidos:** Nebulosa (padrão, inspirado no Caelestia: o esquema Catppuccin Mocha do Material 3 e a fonte Rubik), Lamparina (âmbar), Luar (azul frio), Brasa (vermelho-alaranjado) e Pergaminho (claro). Os wallpapers são gerados por `dev/wallpapers.py`.
+- **Cartões:** sólidos e sem contorno, destacados pelo tom (como no Material 3), com raio de 22 px. O contorno é um token do tema (`surfaces.outline`) e pode ser ligado nas configurações.
+- **Fontes do tema:** um tema pode trazer fontes em `themes/fonts/`, carregadas pelo `FontLoader` sem instalar nada no sistema.
 - **Troca ao vivo:** ao escolher um tema no painel, toda a interface muda na hora, com transição suave, e a escolha fica salva para a próxima sessão.
+- **Ajustes do usuário por cima do tema:** transparência, desfoque e velocidade das animações podem ser mudados na tela de configurações. Ficam na config como sobreposições do tema (o `ThemeManager` junta os dois), então valem para qualquer tema e podem ser desfeitos.
 - **Integração com o Hyprland:** a troca também ajusta bordas e arredondamento do compositor via `hyprctl eval`, para o visual ficar coeso fora do shell.
-- **Ícones:** Material Symbols Rounded, com o eixo de preenchimento animado para estados ativos (o ícone "se acende").
+- **Ícones:** Material Symbols Rounded, com o eixo de preenchimento animado para estados ativos e hover (o ícone "se acende").
+- **Vidro:** painéis translúcidos (`transparency` no tema), com o desfoque feito pelo Hyprland por uma regra de camada que o shell aplica sozinho (`hl.layer_rule` com `ignore_alpha`, para o véu escuro atrás dos painéis não ser desfocado). A tela de bloqueio desfoca o próprio wallpaper com o `MultiEffect` do Qt.
+- **Interação:** "state layer" do Material 3 em todo botão: véu no hover e onda (ripple) a partir do ponto do clique. Seleções (launcher, menu de energia, temas, abas) são um destaque único que desliza com mola até o item escolhido.
 - **Movimento:** as curvas e durações do Material 3, as mesmas do Caelestia, em `ThemeManager.anim`, usadas pelos componentes `Anim` e `ColorAnim`. As curvas "expressivas" dão o efeito de mola em movimento e tamanho; opacidade e cor usam curvas que não passam do alvo. O tema só ajusta a velocidade geral (`animation.scale`).
 
 ## Escopo
@@ -49,6 +54,7 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Componente | Função |
 | --- | --- |
 | Barra | Workspaces do Hyprland, relógio, volume, bateria e rede |
+| Configurações | Tópicos à esquerda e opções à direita: aparência (tema, animações), transparência e desfoque, notificações, atalhos e sobre; barra, painel e energia ainda por fazer |
 | Painel superior | Desce da barra: visão geral (usuário, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima |
 | Launcher | Abrir aplicativos e ações rápidas |
 | Notificações | Servidor de notificações próprio, com central lateral |
@@ -86,7 +92,7 @@ lucerna/
 ├── core/
 │   ├── theme/ThemeManager.qml  # carrega o tema ativo e expõe os tokens
 │   ├── panels/Panels.qml       # qual painel está aberto; ponte entre features
-│   ├── widgets/                # botões, ícones, medidores, abas, Anim, painéis base
+│   ├── widgets/                # botões, ícones, medidores, abas, switch, slider, Anim, painéis base
 │   ├── format/Format.qml       # números, tamanhos e tempos em pt-BR
 │   └── config/Config.qml       # preferências persistidas
 ├── services/
@@ -107,6 +113,7 @@ lucerna/
 │   │   ├── ui/
 │   │   └── state/
 │   ├── dashboard/
+│   ├── settings/
 │   ├── launcher/
 │   ├── notifications/
 │   ├── lockscreen/
@@ -115,7 +122,7 @@ lucerna/
 │   ├── osd/
 │   └── powerMenu/
 ├── themes/
-│   ├── lamparina.json          # um arquivo por tema
+│   ├── nebulosa.json           # um arquivo por tema (o padrão)
 │   └── wallpapers/
 └── dev/                        # ambiente de teste (não é carregado pelo shell)
     ├── Dockerfile

@@ -44,7 +44,7 @@ Item {
                     Icon {
                         anchors.horizontalCenter: parent.horizontalCenter
                         icon: tab.modelData.icon
-                        filled: tab.current
+                        filled: tab.current || tab.hovered
                         color: tab.current ? ThemeManager.colors.accent : ThemeManager.colors.textMuted
 
                         Behavior on color { ColorAnim {} }
@@ -67,7 +67,7 @@ Item {
 
     // Indicador: a largura do rótulo da aba atual, colado embaixo.
     Rectangle {
-        readonly property Item target: repeater.itemAt(root.currentIndex)
+        readonly property Item target: repeater.count > 0 ? repeater.itemAt(root.currentIndex) : null
         readonly property real targetWidth: Math.max(28, (target?.labelWidth ?? 40) + 12)
 
         anchors.bottom: parent.bottom

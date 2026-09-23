@@ -14,21 +14,28 @@ PanelWindow {
     anchors.bottom: true
     margins.bottom: 72
     implicitWidth: pill.width
-    implicitHeight: pill.height
+    implicitHeight: pill.height + 32
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     mask: Region {}
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "lucerna-osd"
+    WlrLayershell.namespace: "lucerna-panel-osd"
 
     Surface {
         id: pill
 
         width: 280
         height: 52
+        level: 0
         radius: height / 2
+        // Sobe de baixo com mola ao aparecer e desce ao sumir.
         opacity: OsdState.shown ? 1 : 0
         scale: OsdState.shown ? 1 : 0.94
+        transform: Translate {
+            y: OsdState.shown ? 0 : 28
+
+            Behavior on y { Anim { type: OsdState.shown ? Anim.Spatial : Anim.EmphasizedAccel } }
+        }
 
         Behavior on opacity { Anim { type: Anim.Effects } }
         Behavior on scale { Anim { type: Anim.Spatial } }

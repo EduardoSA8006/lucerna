@@ -12,7 +12,10 @@ Item {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.NoButton
-        onWheel: event => OverviewState.shiftMonth(event.angleDelta.y > 0 ? -1 : 1)
+        onWheel: event => {
+            grid.direction = event.angleDelta.y > 0 ? -1 : 1;
+            OverviewState.shiftMonth(grid.direction);
+        }
     }
 
     Column {
@@ -30,7 +33,10 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 icon: Icons.chevronLeft
                 iconSize: 18
-                onClicked: OverviewState.shiftMonth(-1)
+                onClicked: {
+                    grid.direction = -1;
+                    OverviewState.shiftMonth(-1);
+                }
             }
 
             Clickable {
@@ -54,7 +60,10 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 icon: Icons.chevronRight
                 iconSize: 18
-                onClicked: OverviewState.shiftMonth(1)
+                onClicked: {
+                    grid.direction = 1;
+                    OverviewState.shiftMonth(1);
+                }
             }
         }
 
@@ -62,6 +71,27 @@ Item {
             id: grid
 
             readonly property real cell: width / 7
+            property int direction: 1
+
+            // Ao trocar de mês, os dias entram deslizando do lado da navegação.
+            Connections {
+                target: OverviewState
+
+                function onMonthOffsetChanged() {
+                    monthSlide.restart();
+                }
+            }
+
+            ParallelAnimation {
+                id: monthSlide
+
+                Anim { target: grid; property: "opacity"; from: 0; to: 1; type: Anim.Effects }
+                Anim { target: slide; property: "x"; from: 24 * grid.direction; to: 0; type: Anim.Spatial }
+            }
+
+            transform: Translate {
+                id: slide
+            }
 
             width: parent.width
             columns: 7

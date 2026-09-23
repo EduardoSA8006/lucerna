@@ -11,7 +11,7 @@ import qs.core.config
 Singleton {
     id: root
 
-    readonly property string defaultTheme: "lamparina"
+    readonly property string defaultTheme: "nebulosa"
     readonly property string directory: Quickshell.shellPath("themes")
     readonly property string current: Config.theme
 
@@ -36,8 +36,11 @@ Singleton {
         property color danger: root.token("danger")
         property color success: root.token("success")
         property color warning: root.token("warning")
-        // Trilho de medidores e barras: em tema claro, "raised" some sobre o cartão.
-        readonly property color track: root.dark ? raised : border
+        // Trilho de medidores e barras. O tema pode definir; senão, "raised" no
+        // escuro e "border" no claro (onde "raised" some sobre o cartão).
+        property color track: root.data.colors?.track ?? (root.dark ? raised : border)
+
+        Behavior on track { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
 
         Behavior on base { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
         Behavior on surface { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
@@ -80,7 +83,7 @@ Singleton {
     // só ajusta a velocidade geral com "animation.scale" (1 = padrão, 0 = sem animação).
     // Use pelos componentes Anim e ColorAnim, não direto.
     readonly property QtObject anim: QtObject {
-        readonly property real scale: root.data.animation?.scale ?? 1
+        readonly property real scale: Config.animationScale >= 0 ? Config.animationScale : (root.data.animation?.scale ?? 1)
 
         readonly property int small: 200 * scale
         readonly property int normal: 400 * scale
@@ -108,6 +111,64 @@ Singleton {
     }
 
     readonly property int barHeight: data.bar?.height ?? 34
+
+    // Contorno fino nos cartões e painéis. O padrão é sem contorno: os cartões
+    // se destacam pelo tom, como no Material 3. O usuário pode ligar (Config).
+    readonly property bool outlines: Config.outlines ?? data.surfaces?.outline ?? false
+
+    // Transparência dos painéis: o tema dá o padrão e o usuário pode ajustar
+    // (Config.transparencyOverride, pela tela de configurações).
+    //   base:   fundo dos painéis (barra, painel superior, launcher, menus)
+    //   layers: cartões dentro de um painel
+    readonly property QtObject transparency: QtObject {
+        readonly property var custom: Config.transparencyOverride ?? {}
+        readonly property var theme: root.data.transparency ?? {}
+        readonly property bool enabled: custom.enabled ?? theme.enabled ?? false
+        readonly property real base: custom.base ?? theme.base ?? 1
+        readonly property real layers: custom.layers ?? theme.layers ?? 1
+        readonly property bool customized: Object.keys(custom).length > 0
+    }
+
+    // Desfoque atrás dos painéis, feito pelo Hyprland (regra de camada aplicada
+    // pelo seletor de temas). Só tem efeito com a transparência ligada.
+    readonly property QtObject blur: QtObject {
+        readonly property var custom: Config.blurOverride ?? {}
+        readonly property bool enabled: custom.enabled ?? root.data.hyprland?.blur ?? true
+        readonly property int size: custom.size ?? root.data.hyprland?.blurSize ?? 6
+        readonly property int passes: custom.passes ?? root.data.hyprland?.blurPasses ?? 2
+        readonly property bool customized: Object.keys(custom).length > 0
+    }
+
+    function setTransparency(key: string, value: var): void {
+        const next = Object.assign({}, Config.transparencyOverride ?? {});
+        next[key] = value;
+        Config.transparencyOverride = next;
+    }
+
+    function setBlur(key: string, value: var): void {
+        const next = Object.assign({}, Config.blurOverride ?? {});
+        next[key] = value;
+        Config.blurOverride = next;
+    }
+
+    // Volta transparência e desfoque aos valores do tema.
+    function resetGlass(): void {
+        Config.transparencyOverride = null;
+        Config.blurOverride = null;
+    }
+
+    // Cor com a transparência do tema. level 0 = fundo de painel, 1 = cartão.
+    // Cartões translúcidos clareiam um pouco (proporcional à transparência)
+    // para continuar se destacando do painel sem precisar de contorno.
+    function glass(c: color, level: int): color {
+        if (!transparency.enabled)
+            return c;
+        if (level === 0)
+            return Qt.rgba(c.r, c.g, c.b, c.a * transparency.base);
+        const lift = (1 - transparency.layers) * (dark ? 0.09 : 0.04);
+        const t = Qt.tint(c, Qt.rgba(colors.text.r, colors.text.g, colors.text.b, lift));
+        return Qt.rgba(t.r, t.g, t.b, c.a * transparency.layers);
+    }
 
     function apply(id: string): void {
         Config.theme = id;
@@ -161,6 +222,18 @@ Singleton {
         }
         list.sort((a, b) => a.id === defaultTheme ? -1 : b.id === defaultTheme ? 1 : a.name.localeCompare(b.name));
         themes = list;
+    }
+
+    // Fontes que o tema traz em themes/ (ex.: "fonts/Rubik[wght].ttf"), carregadas
+    // sem instalar nada no sistema.
+    Instantiator {
+        model: root.data.fonts ?? []
+
+        delegate: FontLoader {
+            required property string modelData
+
+            source: `file://${root.resolvePath(modelData)}`
+        }
     }
 
     IpcHandler {

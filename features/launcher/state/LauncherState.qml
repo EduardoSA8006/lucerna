@@ -22,6 +22,7 @@ Singleton {
     readonly property var actions: [
         { name: "Bloquear tela", description: "Ação", glyph: Icons.lock, keywords: "lock bloqueio", run: () => Session.lock() },
         { name: "Painel", description: "Ação", glyph: Icons.dashboard, keywords: "dashboard calendario clima desempenho midia musica", run: () => Panels.open("dashboard") },
+        { name: "Configurações", description: "Ação", glyph: Icons.settings, keywords: "ajustes preferencias transparencia desfoque blur opacidade animacoes settings", run: () => Panels.open("settings") },
         { name: "Trocar tema", description: "Ação", glyph: Icons.palette, keywords: "theme cores aparência", run: () => Panels.open("themes") },
         { name: "Notificações", description: "Ação", glyph: Icons.bell, keywords: "central avisos", run: () => Panels.open("notifications") },
         { name: Config.doNotDisturb ? "Desativar não perturbe" : "Ativar não perturbe", description: "Ação", glyph: Icons.bellSleep, keywords: "dnd silencio silenciar", run: () => Config.doNotDisturb = !Config.doNotDisturb },
