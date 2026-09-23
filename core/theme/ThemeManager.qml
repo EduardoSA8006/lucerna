@@ -136,6 +136,22 @@ Singleton {
         themes = list;
     }
 
+    IpcHandler {
+        target: "theme"
+
+        function set(id: string): void {
+            root.apply(id);
+        }
+
+        function get(): string {
+            return root.current;
+        }
+
+        function list(): string {
+            return root.themes.map(t => t.id).join("\n");
+        }
+    }
+
     FileView {
         id: activeFile
 

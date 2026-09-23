@@ -13,7 +13,7 @@ PanelWindow {
     id: root
 
     required property bool open
-    property real dim: 0.45
+    property real dim: ThemeManager.dark ? 0.45 : 0.22
     property string name: "panel"
     readonly property real progress: shown
     default property alias content: container.data
