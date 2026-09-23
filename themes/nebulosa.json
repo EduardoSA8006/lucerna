@@ -1,0 +1,68 @@
+{
+    "name": "Nebulosa",
+    "description": "Inspirado no Caelestia: o esquema Catppuccin Mocha do Material 3, lilás sobre grafite, cartões sólidos e a fonte Rubik.",
+    "dark": true,
+    "colors": {
+        "base": "#131317",
+        "surface": "#201f23",
+        "raised": "#2a292e",
+        "border": "#47464f",
+        "text": "#e5e1e7",
+        "textMuted": "#c8c5d1",
+        "textFaint": "#918f9a",
+        "accent": "#c2c1ff",
+        "accentText": "#2a2a60",
+        "danger": "#ffb4ab",
+        "success": "#b5ccba",
+        "warning": "#f9e2af",
+        "track": "#45455c"
+    },
+    "font": {
+        "sans": "Rubik",
+        "mono": "CaskaydiaCove Nerd Font",
+        "icon": "Material Symbols Rounded",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 8,
+        "normal": 14,
+        "large": 22
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "scale": 1
+    },
+    "bar": {
+        "height": 34
+    },
+    "wallpaper": "wallpapers/nebulosa.jpg",
+    "hyprland": {
+        "activeBorder": "#c2c1ff",
+        "inactiveBorder": "#47464f",
+        "borderSize": 2,
+        "rounding": 12,
+        "blurSize": 6,
+        "blurPasses": 2
+    },
+    "transparency": {
+        "enabled": true,
+        "base": 0.85,
+        "layers": 0.45
+    },
+    "surfaces": {
+        "outline": false
+    },
+    "fonts": [
+        "fonts/Rubik[wght].ttf"
+    ]
+}

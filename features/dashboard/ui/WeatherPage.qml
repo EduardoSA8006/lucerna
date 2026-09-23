@@ -67,7 +67,7 @@ Item {
             height: 44
             radius: 22
             color: ThemeManager.colors.surface
-            border.width: 1
+            border.width: search.activeFocus ? 2 : ThemeManager.outlines ? 1 : 0
             border.color: search.activeFocus ? ThemeManager.colors.accent : ThemeManager.colors.border
 
             Behavior on border.color { ColorAnim {} }

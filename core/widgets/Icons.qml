@@ -77,6 +77,21 @@ Singleton {
     readonly property string wind: "air"
     readonly property string rain: "water_drop"
 
+    // Configurações
+    readonly property string settings: "settings"
+    readonly property string tune: "tune"
+    readonly property string blur: "blur_on"
+    readonly property string blurOff: "blur_off"
+    readonly property string opacity: "opacity"
+    readonly property string animation: "animation"
+    readonly property string toolbar: "toolbar"
+    readonly property string keyboard: "keyboard_command_key"
+    readonly property string info: "info"
+    readonly property string restore: "settings_backup_restore"
+    readonly property string timer: "timer"
+    readonly property string soon: "auto_awesome"
+    readonly property string wallpaper: "wallpaper"
+
     // Escolhe o ícone de uma escala (lista) conforme uma fração de 0 a 1.
     function level(list: var, fraction: real): string {
         const i = Math.round(Math.max(0, Math.min(1, fraction)) * (list.length - 1));

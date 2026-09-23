@@ -43,6 +43,9 @@ Singleton {
 
     property real uptime: 0
     property string hostname: ""
+    property string osName: ""
+    property string kernel: ""
+    property string quickshellVersion: ""
 
     property var lastCpu: null
     property var lastNet: null
@@ -202,6 +205,24 @@ Singleton {
     FileView {
         path: "/proc/sys/kernel/hostname"
         onLoaded: root.hostname = text().trim()
+    }
+
+    FileView {
+        path: "/proc/sys/kernel/osrelease"
+        onLoaded: root.kernel = text().trim()
+    }
+
+    FileView {
+        path: "/etc/os-release"
+        onLoaded: root.osName = text().match(/^PRETTY_NAME="?([^"\n]*)"?/m)?.[1] ?? ""
+    }
+
+    Process {
+        running: true
+        command: ["qs", "--version"]
+        stdout: StdioCollector {
+            onStreamFinished: root.quickshellVersion = text.match(/\d+\.\d+\.\d+/)?.[0] ?? text.trim()
+        }
     }
 
     FileView {

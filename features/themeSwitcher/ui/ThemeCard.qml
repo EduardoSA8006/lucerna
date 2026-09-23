@@ -17,23 +17,16 @@ Item {
 
     width: 200
     height: 150
+    // Cresce um pouco no hover e encolhe ao pressionar.
+    scale: mouse.pressed ? 0.95 : mouse.containsMouse ? 1.03 : 1
 
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: -3
-        radius: ThemeManager.radius.normal + 3
-        color: "transparent"
-        border.width: 2
-        border.color: card.selected ? ThemeManager.colors.accent : "transparent"
-
-        Behavior on border.color { ColorAnim {} }
-    }
+    Behavior on scale { Anim { type: Anim.FastSpatial } }
 
     ClippingRectangle {
         anchors.fill: parent
         radius: ThemeManager.radius.normal
         color: card.c.base ?? "black"
-        border.width: 1
+        border.width: ThemeManager.outlines ? 1 : 0
         border.color: card.c.border ?? "gray"
 
         Image {
@@ -121,7 +114,10 @@ Item {
     }
 
     MouseArea {
+        id: mouse
+
         anchors.fill: parent
+        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: card.clicked()
     }

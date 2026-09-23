@@ -9,7 +9,7 @@ RUN pacman -Syu --noconfirm --needed \
         mesa vulkan-intel \
         dbus kitty foot htop grim wl-clipboard libnotify wtype \
         wireplumber brightnessctl \
-        ttf-material-symbols-variable ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji \
+        ttf-material-symbols-variable ttf-jetbrains-mono-nerd ttf-cascadia-code-nerd noto-fonts noto-fonts-emoji \
         mpv mpv-mpris ffmpeg \
         hicolor-icon-theme adwaita-icon-theme \
     && pacman -Scc --noconfirm

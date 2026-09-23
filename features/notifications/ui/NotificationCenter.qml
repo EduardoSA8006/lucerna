@@ -19,6 +19,7 @@ OverlayPanel {
         id: drawer
 
         width: 400
+        level: 0
         anchors {
             top: parent.top
             bottom: parent.bottom
@@ -62,7 +63,9 @@ OverlayPanel {
                 Layout.fillHeight: true
                 clip: true
                 spacing: ThemeManager.spacing.small
-                model: NotificationsState.list
+                model: ScriptModel {
+                    values: NotificationsState.list
+                }
                 boundsBehavior: Flickable.StopAtBounds
 
                 delegate: NotificationCard {
@@ -73,10 +76,20 @@ OverlayPanel {
                 }
 
                 add: Transition {
-                    Anim { property: "opacity"; from: 0; to: 1; type: Anim.Effects }
+                    ParallelAnimation {
+                        Anim { property: "x"; from: 48; to: 0; type: Anim.Spatial }
+                        Anim { property: "opacity"; from: 0; to: 1; type: Anim.Effects }
+                    }
+                }
+                remove: Transition {
+                    ParallelAnimation {
+                        Anim { property: "x"; to: 96; type: Anim.EmphasizedAccel }
+                        Anim { property: "opacity"; to: 0; type: Anim.EmphasizedAccel }
+                    }
                 }
                 displaced: Transition {
-                    Anim { property: "y"; type: Anim.Spatial }
+                    Anim { properties: "x,y"; type: Anim.Spatial }
+                    Anim { property: "opacity"; to: 1; type: Anim.Effects }
                 }
 
                 Column {

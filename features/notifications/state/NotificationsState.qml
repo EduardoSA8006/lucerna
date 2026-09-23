@@ -24,11 +24,17 @@ Singleton {
             Notifications.clearPopups();
     }
 
-    // O "não perturbe" é salvo na config e repassado ao serviço.
+    // O "não perturbe" e o tempo dos popups são salvos na config e repassados ao serviço.
     Binding {
         target: Notifications
         property: "doNotDisturb"
         value: Config.doNotDisturb
+    }
+
+    Binding {
+        target: Notifications
+        property: "defaultTimeout"
+        value: Config.notificationTimeout
     }
 
     IpcHandler {

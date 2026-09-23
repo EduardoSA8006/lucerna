@@ -10,17 +10,21 @@ import qs.features.notifications.state
 Surface {
     id: card
 
+    // A notificação pode ser destruída enquanto o cartão ainda anima a saída;
+    // por isso todo acesso a ela tolera null.
     required property var notification
     property bool popup: false
-    readonly property bool critical: NotificationsState.isCritical(notification)
-    readonly property string image: NotificationsState.imageFor(notification)
-    readonly property int timeout: popup ? NotificationsState.timeoutFor(notification) : 0
+    readonly property bool critical: notification ? NotificationsState.isCritical(notification) : false
+    readonly property string image: notification ? NotificationsState.imageFor(notification) : ""
+    readonly property int timeout: popup && notification ? NotificationsState.timeoutFor(notification) : 0
 
     signal expired
 
     raisedLevel: !popup
+    level: popup ? 0 : 1
     radius: ThemeManager.radius.normal
     border.color: critical ? ThemeManager.colors.danger : ThemeManager.colors.border
+    border.width: critical ? 2 : ThemeManager.outlines ? 1 : 0
     implicitHeight: layout.implicitHeight + ThemeManager.spacing.normal * 2
     clip: true
 
@@ -79,13 +83,13 @@ Surface {
 
                 Txt {
                     Layout.fillWidth: true
-                    text: card.notification.appName || "Notificação"
+                    text: card.notification?.appName || "Notificação"
                     faint: true
                     font.pixelSize: ThemeManager.font.small
                 }
 
                 Txt {
-                    text: NotificationsState.timeLabel(card.notification)
+                    text: card.notification ? NotificationsState.timeLabel(card.notification) : ""
                     faint: true
                     font.pixelSize: ThemeManager.font.small
                 }
@@ -96,13 +100,16 @@ Surface {
                     implicitWidth: 20
                     implicitHeight: 20
                     foreground: ThemeManager.colors.textMuted
-                    onClicked: NotificationsState.dismiss(card.notification)
+                    onClicked: {
+                        if (card.notification)
+                            NotificationsState.dismiss(card.notification);
+                    }
                 }
             }
 
             Txt {
                 Layout.fillWidth: true
-                text: card.notification.summary
+                text: card.notification?.summary ?? ""
                 font.weight: Font.DemiBold
                 wrapMode: Text.Wrap
                 maximumLineCount: 2
@@ -111,7 +118,7 @@ Surface {
             Txt {
                 Layout.fillWidth: true
                 visible: text !== ""
-                text: card.notification.body
+                text: card.notification?.body ?? ""
                 textFormat: Text.StyledText
                 muted: true
                 wrapMode: Text.Wrap
@@ -123,19 +130,19 @@ Surface {
             Flow {
                 Layout.fillWidth: true
                 Layout.topMargin: ThemeManager.spacing.tiny
-                visible: card.notification.actions.length > 0
+                visible: (card.notification?.actions.length ?? 0) > 0
                 spacing: ThemeManager.spacing.tiny
 
                 Repeater {
-                    model: card.notification.actions
+                    model: card.notification?.actions ?? []
 
                     delegate: Clickable {
                         required property var modelData
 
                         implicitWidth: actionLabel.implicitWidth + ThemeManager.spacing.normal * 2
-                        implicitHeight: 26
-                        border.width: 1
-                        border.color: ThemeManager.colors.border
+                        implicitHeight: 28
+                        radius: 14
+                        color: ThemeManager.alpha(ThemeManager.colors.accent, 0.14)
                         onClicked: NotificationsState.invoke(card.notification, modelData)
 
                         Txt {

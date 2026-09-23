@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Io
 
 // Ponte entre features: diz qual painel está aberto. Só um fica aberto por vez;
-// abrir outro fecha o anterior. Nomes em uso: launcher, dashboard, notifications, themes, power.
+// abrir outro fecha o anterior. Nomes em uso: launcher, dashboard, settings, notifications, themes, power.
 Singleton {
     id: root
 

@@ -28,9 +28,9 @@
         }
     },
     "radius": {
-        "small": 6,
-        "normal": 10,
-        "large": 16
+        "small": 8,
+        "normal": 14,
+        "large": 22
     },
     "spacing": {
         "tiny": 4,
@@ -49,6 +49,16 @@
         "activeBorder": "#9ec1ff",
         "inactiveBorder": "#273044",
         "borderSize": 2,
-        "rounding": 10
+        "rounding": 10,
+        "blurSize": 6,
+        "blurPasses": 2
+    },
+    "transparency": {
+        "enabled": true,
+        "base": 0.8,
+        "layers": 0.55
+    },
+    "surfaces": {
+        "outline": false
     }
 }

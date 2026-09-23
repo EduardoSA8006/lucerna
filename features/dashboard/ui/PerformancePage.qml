@@ -11,6 +11,24 @@ Item {
 
     implicitHeight: layout.implicitHeight
 
+    AnimatedNumber {
+        id: cpuNumber
+
+        value: PerformanceState.cpuUsage
+    }
+
+    AnimatedNumber {
+        id: diskNumber
+
+        value: PerformanceState.disks[0]?.fraction ?? 0
+    }
+
+    AnimatedNumber {
+        id: memNumber
+
+        value: PerformanceState.memFraction
+    }
+
     ColumnLayout {
         id: layout
 
@@ -131,7 +149,7 @@ Item {
 
                         Txt {
                             anchors.centerIn: parent
-                            text: PerformanceState.cpuUsageText
+                            text: Format.percent(cpuNumber.shown)
                             mono: true
                             color: ThemeManager.colors.accent
                             font.pixelSize: ThemeManager.font.large + 6
@@ -242,7 +260,7 @@ Item {
 
                             Txt {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: Format.percent(PerformanceState.disks[0]?.fraction ?? 0)
+                                text: Format.percent(diskNumber.shown)
                                 mono: true
                                 font.pixelSize: ThemeManager.font.large + 6
                                 font.weight: Font.DemiBold
@@ -411,7 +429,7 @@ Item {
 
                         Txt {
                             anchors.centerIn: parent
-                            text: Format.percent(PerformanceState.memFraction)
+                            text: Format.percent(memNumber.shown)
                             mono: true
                             font.pixelSize: ThemeManager.font.large + 4
                             font.weight: Font.DemiBold

@@ -42,9 +42,9 @@ OverlayPanel {
             width: 920
             height: content.height + hiddenTop + ThemeManager.spacing.large
             y: -hiddenTop - (1 - panel.progress) * (height - hiddenTop + 8)
-            color: ThemeManager.colors.base
+            color: ThemeManager.glass(ThemeManager.colors.base, 0)
             radius: ThemeManager.radius.large
-            border.width: 1
+            border.width: ThemeManager.outlines ? 1 : 0
             border.color: ThemeManager.colors.border
 
             FocusScope {

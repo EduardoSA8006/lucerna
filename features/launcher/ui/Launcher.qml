@@ -29,6 +29,7 @@ OverlayPanel {
         anchors.horizontalCenter: parent.horizontalCenter
         y: parent.height * 0.22 + (1 - panel.progress) * 16
         width: 560
+        level: 0
         height: column.implicitHeight + ThemeManager.spacing.normal * 2
 
         Column {
@@ -104,21 +105,49 @@ OverlayPanel {
                 }
             }
 
-            Repeater {
-                model: LauncherState.results
+            Item {
+                width: parent.width
+                height: results.implicitHeight
+                visible: LauncherState.results.length > 0
 
-                delegate: ResultItem {
-                    required property var modelData
-                    required property int index
+                // Destaque único que desliza, com mola, até o item selecionado.
+                Rectangle {
+                    readonly property Item target: resultItems.count > 0 ? resultItems.itemAt(panel.selected) : null
 
-                    width: column.width
-                    result: modelData
-                    selected: index === panel.selected
-                    onHoveredChanged: {
-                        if (hovered)
-                            panel.selected = index;
+                    width: parent.width
+                    height: target?.height ?? 48
+                    y: target?.y ?? 0
+                    radius: ThemeManager.radius.normal
+                    color: ThemeManager.alpha(ThemeManager.colors.accent, 0.14)
+
+                    Behavior on y { Anim { type: Anim.FastSpatial } }
+                }
+
+                Column {
+                    id: results
+
+                    width: parent.width
+
+                    Repeater {
+                        id: resultItems
+
+                        model: LauncherState.results
+
+                        delegate: ResultItem {
+                            required property var modelData
+                            required property int index
+
+                            width: column.width
+                            result: modelData
+                            order: index
+                            selected: index === panel.selected
+                            onHoveredChanged: {
+                                if (hovered)
+                                    panel.selected = index;
+                            }
+                            onClicked: LauncherState.activate(modelData)
+                        }
                     }
-                    onClicked: LauncherState.activate(modelData)
                 }
             }
 
