@@ -1,0 +1,56 @@
+{
+    "name": "Pergaminho",
+    "description": "Tema claro: papel envelhecido e tinta cor de ferrugem.",
+    "dark": false,
+    "colors": {
+        "base": "#f3ecdf",
+        "surface": "#fbf7ef",
+        "raised": "#ffffff",
+        "border": "#ddd2bf",
+        "text": "#2b241b",
+        "textMuted": "#6e6352",
+        "textFaint": "#a0947f",
+        "accent": "#b8641b",
+        "accentText": "#fff8ee",
+        "danger": "#b8412e",
+        "success": "#4f7a2a",
+        "warning": "#a7771a"
+    },
+    "font": {
+        "sans": "Noto Sans",
+        "mono": "JetBrains Mono Nerd Font",
+        "icon": "JetBrains Mono Nerd Font",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 6,
+        "normal": 10,
+        "large": 16
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "fast": 120,
+        "normal": 220,
+        "slow": 420
+    },
+    "bar": {
+        "height": 34
+    },
+    "wallpaper": "wallpapers/pergaminho.jpg",
+    "hyprland": {
+        "activeBorder": "#b8641b",
+        "inactiveBorder": "#ddd2bf",
+        "borderSize": 2,
+        "rounding": 10
+    }
+}
