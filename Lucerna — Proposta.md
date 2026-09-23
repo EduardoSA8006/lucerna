@@ -33,7 +33,8 @@ Com um shell próprio, só roda o que foi escrito, e cada decisão visual e de c
 O Lucerna terá vários temas pré-configurados, trocáveis a qualquer momento por um painel de seleção rápida. O tema padrão, **Lamparina**, segue a ideia do nome: fundo escuro e profundo com um único acento âmbar, como a chama de uma lamparina.
 
 - **Tema como dado:** cada tema é um arquivo em `themes/` com cores, fontes, raios, espaçamentos e wallpaper. Criar um tema novo é adicionar um arquivo, sem tocar em código.
-- **Um ponto de verdade:** um `ThemeManager` (singleton) carrega o tema ativo e expõe os tokens; nenhum componente usa cor ou tamanho fixo.
+- **Um ponto de verdade:** um `ThemeManager` (singleton) carrega o tema ativo e expõe os tokens (cores, fontes, raios, espaçamentos, durações de animação e altura da barra); nenhum componente usa cor, fonte ou espaçamento fixo. As dimensões estruturais de cada painel, como a largura do launcher, ficam no próprio componente.
+- **Temas embutidos:** Lamparina (padrão, âmbar), Luar (azul frio), Brasa (vermelho-alaranjado) e Pergaminho (claro). Os wallpapers são gerados por `dev/wallpapers.py`.
 - **Troca ao vivo:** ao escolher um tema no painel, toda a interface muda na hora, com transição suave, e a escolha fica salva para a próxima sessão.
 - **Integração com o Hyprland:** a troca também ajusta bordas e arredondamento do compositor via `hyprctl eval`, para o visual ficar coeso fora do shell.
 
@@ -117,10 +118,18 @@ Atalhos do Hyprland falam com o shell por `IpcHandler`, sem scripts intermediár
 ```sh
 qs -c lucerna ipc call panels toggle launcher   # launcher, notifications, themes, power
 qs -c lucerna ipc call session lock
-qs -c lucerna ipc call brightness up            # up, down
+qs -c lucerna ipc call brightness up            # up, down, set <0-100>
+qs -c lucerna ipc call theme set luar           # get, list
+qs -c lucerna ipc call notifications clear      # toggleDnd, count
 ```
 
 O volume não precisa de IPC: os atalhos chamam `wpctl`, e o shell reage à mudança pelo PipeWire.
+
+## Segurança da tela de bloqueio
+
+- O bloqueio usa o protocolo `ext-session-lock`: se o shell cair, o Hyprland continua bloqueado.
+- O estado de bloqueio fica em `PersistentProperties`, então recarregar o shell (por exemplo, ao salvar um arquivo) não desbloqueia a tela.
+- A autenticação usa uma configuração PAM própria (`features/lockscreen/pam/password`), só com `pam_unix`, em vez do `login` do sistema.
 
 ## Ambiente de desenvolvimento
 
@@ -130,6 +139,7 @@ O sistema de desenvolvimento roda KDE Plasma, não Hyprland. Para testar, o Luce
 - **Dados reais:** o container recebe o socket do PipeWire e o D-Bus do sistema do host, então volume, bateria e rede mostram o estado real da máquina.
 - **Modo de desenvolvimento:** `dev/run.sh` define `LUCERNA_DEV=1`. Nesse modo, suspender, reiniciar, desligar e sair só registram a ação e mostram uma notificação. Sem isso, um `poweroff` no container chegaria ao host pelo D-Bus do sistema.
 - **GPU:** só a GPU Intel é repassada; o container não tem os drivers da NVIDIA.
+- **Tela de bloqueio:** o usuário do container é `dev`, com a senha `lucerna`.
 - **Limitações:** o brilho é só leitura no container, porque ajustá-lo exige uma sessão do logind. A sessão completa (login pelo TTY, `hypridle`, PAM do sistema real) fica para uma VM QEMU com virgl, quando for preciso.
 
 ## Instalação
