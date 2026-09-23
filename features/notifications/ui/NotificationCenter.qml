@@ -73,10 +73,10 @@ OverlayPanel {
                 }
 
                 add: Transition {
-                    NumberAnimation { property: "opacity"; from: 0; to: 1; duration: ThemeManager.anim.normal }
+                    Anim { property: "opacity"; from: 0; to: 1; type: Anim.Effects }
                 }
                 displaced: Transition {
-                    NumberAnimation { property: "y"; duration: ThemeManager.anim.normal; easing.type: Easing.OutCubic }
+                    Anim { property: "y"; type: Anim.Spatial }
                 }
 
                 Column {

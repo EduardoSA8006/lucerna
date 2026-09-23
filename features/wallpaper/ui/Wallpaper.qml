@@ -63,7 +63,8 @@ Variants {
                 property: "opacity"
                 to: 1
                 duration: WallpaperState.fadeDuration
-                easing.type: Easing.InOutQuad
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: ThemeManager.anim.standard
                 onFinished: back.source = ""
             }
         }

@@ -30,8 +30,8 @@ PanelWindow {
         opacity: OsdState.shown ? 1 : 0
         scale: OsdState.shown ? 1 : 0.94
 
-        Behavior on opacity { NumberAnimation { duration: ThemeManager.anim.normal } }
-        Behavior on scale { NumberAnimation { duration: ThemeManager.anim.normal; easing.type: Easing.OutCubic } }
+        Behavior on opacity { Anim { type: Anim.Effects } }
+        Behavior on scale { Anim { type: Anim.Spatial } }
 
         Icon {
             id: glyph
@@ -56,7 +56,7 @@ PanelWindow {
             }
             height: 6
             radius: 3
-            color: ThemeManager.colors.raised
+            color: ThemeManager.colors.track
 
             Rectangle {
                 width: parent.width * Math.min(1, OsdState.value)
@@ -64,7 +64,7 @@ PanelWindow {
                 radius: parent.radius
                 color: OsdState.muted ? ThemeManager.colors.textFaint : ThemeManager.colors.accent
 
-                Behavior on width { NumberAnimation { duration: ThemeManager.anim.fast } }
+                Behavior on width { Anim { type: Anim.Standard } }
             }
         }
 

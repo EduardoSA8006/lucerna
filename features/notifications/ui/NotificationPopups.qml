@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import qs.core.theme
+import qs.core.widgets
 import qs.features.notifications.state
 
 // Popups no canto superior direito do monitor com foco. Somem quando a
@@ -45,9 +46,21 @@ PanelWindow {
                 popup: true
                 onExpired: NotificationsState.hidePopup(modelData)
 
+                // Entra deslizando da direita, com mola.
                 opacity: 0
-                Component.onCompleted: opacity = 1
-                Behavior on opacity { NumberAnimation { duration: ThemeManager.anim.normal } }
+                transform: Translate {
+                    id: slide
+
+                    x: 48
+
+                    Behavior on x { Anim { type: Anim.Spatial } }
+                }
+                Component.onCompleted: {
+                    opacity = 1;
+                    slide.x = 0;
+                }
+
+                Behavior on opacity { Anim { type: Anim.Effects } }
             }
         }
     }
