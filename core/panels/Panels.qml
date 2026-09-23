@@ -41,5 +41,9 @@ Singleton {
         function toggle(name: string): void {
             root.toggle(name);
         }
+
+        function get(): string {
+            return root.current;
+        }
     }
 }

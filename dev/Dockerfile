@@ -6,7 +6,7 @@ RUN pacman -Syu --noconfirm --needed \
         hyprland quickshell \
         qt6-svg qt6-imageformats qt6-5compat \
         mesa vulkan-intel \
-        dbus kitty foot htop grim wl-clipboard libnotify \
+        dbus kitty foot htop grim wl-clipboard libnotify wtype \
         wireplumber brightnessctl \
         ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji \
         hicolor-icon-theme adwaita-icon-theme \
@@ -25,7 +25,8 @@ USER dev
 ENV XDG_RUNTIME_DIR=/run/user/1000 \
     XDG_SESSION_TYPE=wayland \
     QT_QPA_PLATFORM=wayland \
-    LANG=pt_BR.UTF-8
+    LANG=pt_BR.UTF-8 \
+    QS_ICON_THEME=Adwaita
 WORKDIR /home/dev
 
 CMD ["dbus-run-session", "start-hyprland"]

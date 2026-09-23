@@ -15,6 +15,7 @@ Singleton {
     FileView {
         path: Quickshell.statePath("config.json")
         blockLoading: true
+        printErrors: false
         watchChanges: true
         onFileChanged: reload()
         onAdapterUpdated: writeAdapter()
