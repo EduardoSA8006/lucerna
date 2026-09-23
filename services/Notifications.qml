@@ -22,6 +22,10 @@ Singleton {
         popups = popups.filter(n => n !== notification);
     }
 
+    function clearPopups(): void {
+        popups = [];
+    }
+
     function dismiss(notification: var): void {
         notification.dismiss();
     }
@@ -57,7 +61,7 @@ Singleton {
             root.receivedAt[notification.id] = new Date();
             notification.closed.connect(() => root.hidePopup(notification));
             if (!root.doNotDisturb || notification.urgency === NotificationUrgency.Critical)
-                root.popups = [...root.popups.filter(n => n.id !== notification.id), notification];
+                root.popups = [notification, ...root.popups.filter(n => n.id !== notification.id)];
         }
     }
 }
