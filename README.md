@@ -100,7 +100,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | --- | --- |
 | **Barra** | Workspaces, hora e data, rede, som, bateria e avisos. Tem quatro estilos e pode ficar fixa ou esconder sozinha. Na área de trabalho vazia fica sempre à mostra, e aparece por um instante ao trocar de workspace. |
 | **Painel superior** | Visão geral (perfil, relógio, calendário, clima, recursos e mídia), mídia com letra sincronizada (LRCLIB) e pulso do áudio na capa, desempenho (CPU, GPU, memória, disco e rede) e clima (Open-Meteo). Abas reordenáveis e opção de abrir ao parar o mouse na hora. |
-| **Central lateral** | Wi-Fi (conectar, com senha), Bluetooth (parear e conectar), som (saídas, entradas e volumes), avisos, bateria (perfil de energia) e brilho. Abre à esquerda ou à direita. |
+| **Central lateral** | Wi-Fi (conectar, com senha), Bluetooth (parear e conectar), som (saídas, entradas e volumes), avisos, bateria (perfil de energia) e tela (brilho de cada tela, inclusive monitores externos por DDC/CI, luz noturna e "não apagar"). Abre à esquerda ou à direita. |
 | **Notificações** | Popups com ações, pausa no mouse e prazo ajustável, não perturbe e a central de avisos. |
 | **Launcher** | Três estilos: compacto (busca e lista), completo (categorias de aplicativos, arquivos, documentos, imagens, músicas, vídeos e web, com favoritos, grade e detalhes: ações do app, descrição, versão e desenvolvedor) e tela cheia (gaveta de apps por categoria). Os apps mais abertos vêm primeiro, com os favoritos na frente. Em todos os estilos: clique direito num item para as opções, `Ctrl+F` fixa ou tira dos favoritos e `Ctrl+H` oculta; no compacto e na tela cheia, `/texto` busca arquivos e `?texto` pesquisa na web. A busca de arquivos usa o `fd` quando há, e, sem busca, mostra os recentes. |
 | **Área de transferência** | Histórico num painel próprio (`Super+V`): textos e imagens, busca, filtro, fixar e apagar. Escolher copia e cola na janela em foco (Ctrl+Shift+V nos terminais). Senhas marcadas pelos gerenciadores ficam de fora. |
@@ -147,7 +147,8 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
   - UPower: bateria e perfis de energia
   - NetworkManager: rede
   - BlueZ: Bluetooth
-  - `brightnessctl`: brilho
+  - `brightnessctl`: brilho da tela integrada
+  - `ddcutil`: brilho dos monitores externos (DDC/CI). Precisa do módulo `i2c-dev` carregado (`echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf`); o pacote já dá acesso ao usuário da sessão.
   - `nvidia-smi`: GPU NVIDIA; vem com o driver
   - `hyprsunset`: luz noturna
   - `wl-clipboard`: histórico da área de transferência
@@ -210,7 +211,7 @@ Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [arg
 | `launcher` | `open <categoria> <busca>` (`apps`, `files`, `documents`, `images`, `music`, `videos`, `web`; a busca pode ser `""`), `toggle` |
 | `session` | `lock`, `isLocked` |
 | `theme` | `set <id>`, `get`, `list` |
-| `brightness` | `up`, `down`, `set <0-100>` |
+| `brightness` | `up`, `down`, `set <0-100>` (a tela em foco), `setFor <id> <0-100>`, `list` (as telas e os ids: `backlight`, `ddc:<barramento>`) |
 | `monitors` | `identify` |
 | `overview` | `toggle` |
 | `capture` | `open <shot\|record>` (o painel; `""` = o último), `screen`, `window` (direto), `record` (gravar ou parar), `stop` |

@@ -16,7 +16,7 @@ Singleton {
     property bool armed: false
 
     readonly property var screen: Hypr.focusedScreen
-    readonly property real value: kind === "volume" ? Audio.volume : Brightness.value
+    readonly property real value: kind === "volume" ? Audio.volume : Brightness.shownValue
     readonly property bool muted: kind === "volume" && Audio.muted
     readonly property int percent: Math.round(value * 100)
     readonly property string icon: kind === "brightness"
