@@ -66,6 +66,8 @@ Singleton {
     property alias wallpaperFill: adapter.wallpaperFill
     property alias wallpaperFullRes: adapter.wallpaperFullRes
     property alias wallpaperFolder: adapter.wallpaperFolder
+    property alias videoVariants: adapter.videoVariants
+    property alias wallpaperVideoPrecache: adapter.wallpaperVideoPrecache
     property alias mouseDevices: adapter.mouseDevices
     property alias keyboardLayouts: adapter.keyboardLayouts
     property alias keyboardOptions: adapter.keyboardOptions
@@ -187,6 +189,11 @@ Singleton {
             property bool wallpaperFullRes: false
             // Última pasta aberta no seletor de imagens.
             property string wallpaperFolder: ""
+            // Versões convertidas de cada vídeo, uma por tela:
+            // { "/caminho/original.mp4": { "2560x1080-c-30": { video, poster, used } } }.
+            property var videoVariants: ({})
+            // Preparar vídeos também para resoluções comuns (na tomada, sem pressa).
+            property bool wallpaperVideoPrecache: false
             // Velocidade própria por mouse: { nome: { sensitivity, accel_profile } }.
             property var mouseDevices: ({})
             // Layouts [{ layout, variant }] e opções do xkb; null = os do hyprland.lua.

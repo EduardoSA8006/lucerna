@@ -48,7 +48,7 @@
     "wallpaper": {
         "static": "wallpapers/nebulosa.jpg",
         "shader": "shaders/aurora.qsb",
-        "fps": 30
+        "fps": 20
     },
     "hyprland": {
         "activeBorder": "#c2c1ff",

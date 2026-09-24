@@ -23,6 +23,18 @@ ShaderEffect {
     readonly property bool ready: status === ShaderEffect.Compiled && shader !== ""
     readonly property bool failed: status === ShaderEffect.Error
 
+    // Textura de ruído dos efeitos (themes/shaders/noise.png), repetida.
+    property var noiseTex: ShaderEffectSource {
+        wrapMode: ShaderEffectSource.Repeat
+        hideSource: true
+        sourceItem: Image {
+            source: `file://${ThemeManager.directory}/shaders/noise.png`
+            width: 256
+            height: 256
+            smooth: true
+        }
+    }
+
     fragmentShader: shader ? `file://${shader}` : ""
     blending: false
 

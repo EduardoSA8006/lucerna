@@ -30,7 +30,7 @@ PanelWindow {
     StaticWallpaper {
         anchors.fill: parent
         source: window.wallpaper.static
-        fillMode: window.wallpaper.kind === "image" ? WallpaperState.fill : Image.PreserveAspectCrop
+        fillMode: window.wallpaper.kind === "image" || window.wallpaper.kind === "video" ? WallpaperState.fill : Image.PreserveAspectCrop
         fadeDuration: WallpaperState.fadeDuration
     }
 
@@ -41,7 +41,7 @@ PanelWindow {
 
         readonly property real factor: WallpaperState.fullRes ? 1 : 0.5
 
-        active: window.effect
+        active: window.effect && window.wallpaper.shader !== ""
         width: parent.width * factor
         height: parent.height * factor
         scale: 1 / factor
@@ -64,6 +64,27 @@ PanelWindow {
             shader: window.wallpaper.shader
             fps: Math.min(WallpaperState.fps, window.wallpaper.fps ?? 30)
             running: WallpaperState.shouldAnimate(window.targetScreen)
+        }
+    }
+
+    // Vídeo por cima da capa. Carregado por URL: sem o Qt Multimedia, só esta
+    // camada falha (fica a capa) e o resto do shell segue.
+    Loader {
+        id: videoLoader
+
+        anchors.fill: parent
+        readonly property string video: WallpaperState.videoFor(window.targetScreen)
+
+        active: window.effect && video !== ""
+        source: active ? "VideoWallpaper.qml" : ""
+        opacity: item?.showing ? 1 : 0
+
+        Behavior on opacity { NumberAnimation { duration: WallpaperState.fadeDuration } }
+
+        onLoaded: {
+            item.source = Qt.binding(() => videoLoader.video);
+            item.playing = Qt.binding(() => WallpaperState.shouldAnimate(window.targetScreen));
+            item.fillMode = Qt.binding(() => WallpaperState.fill);
         }
     }
 }

@@ -47,7 +47,7 @@
     "wallpaper": {
         "static": "wallpapers/lamparina.jpg",
         "shader": "shaders/chama.qsb",
-        "fps": 30
+        "fps": 20
     },
     "hyprland": {
         "activeBorder": "#e8a13a",

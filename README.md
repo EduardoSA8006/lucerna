@@ -13,7 +13,7 @@ Barra, painel superior, central lateral, launcher, notificações, tela de bloqu
 - **Remapeamento real de teclas**, em qualquer programa e inclusive para modificadores (Caps Lock → Esc, Alt Gr → Super). O Lucerna gera o keymap, confere se ele compila e só então o entrega ao Hyprland.
 - **Monitores arrastando**: a disposição se monta num canvas com encaixe magnético. Cada monitor tem resolução, taxa, escala, rotação, espelhamento, VRR e 10 bits. Aplicar pede confirmação em todas as telas e, sem resposta em 15 s, volta ao anterior.
 - **Painéis que convivem**: o painel superior e a central lateral ficam abertos juntos, desviam um do outro e não cobrem a barra.
-- **Papel de parede animado e leve**: cada tema tem um efeito em shader (aurora, brasas, chama, luar, papel), nas cores do tema, a 30 fps e em meia resolução. Ele pausa sozinho com tela cheia, tela bloqueada ou tela apagada. Cada tema pode trocar o seu por outro efeito ou por uma imagem sua.
+- **Papel de parede animado e leve**: cada tema tem um efeito em shader (aurora, brasas, chama, luar, papel), nas cores do tema, a 30 fps e em meia resolução. Ele pausa sozinho com tela cheia, tela bloqueada ou tela apagada. Cada tema pode trocar o seu por outro efeito, por uma imagem sua ou por um **vídeo ou GIF**. O vídeo é convertido uma vez para a resolução da tela, sem tarjas, quadros repetidos nem áudio, e toca decodificado pela GPU.
 - **Vidro de verdade**: o desfoque atrás dos painéis é do próprio Hyprland, e o tema ajusta também as bordas das janelas.
 - **Leve por padrão**: cada serviço só coleta dados enquanto alguém mostra. Um modo offline desliga tudo o que usa a internet.
 
@@ -59,7 +59,7 @@ A barra tem quatro estilos: **faixa** (o padrão), **ilha** (só a hora, e expan
 
 ### Papel de parede
 
-Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualquer efeito animado (nas cores daquele tema) ou uma imagem do computador, escolhida num navegador com miniaturas.
+Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualquer efeito animado (nas cores daquele tema) ou uma imagem, vídeo (MP4, WebM, MKV, MOV) ou GIF do computador, escolhido num navegador com miniaturas. O vídeo é preparado uma vez para tocar gastando o mínimo: vai para a resolução da tela, perde as tarjas pretas, os quadros repetidos e o áudio, e é decodificado pela GPU (VA-API). Um vídeo 4K de 47 MB, por exemplo, virou 537 KB e passou a gastar 1% do motor de vídeo da GPU, contra 8% antes. Cada monitor ganha a sua versão: ao conectar um de outra resolução ou proporção, como um ultrawide, a versão dele é feita em segundos, em segundo plano. Enquanto isso, ele toca a mais parecida. Há também a opção de deixar prontas as resoluções mais comuns.
 
 ![Configurações: papel de parede](docs/screenshots/settings-wallpaper.jpg)
 
@@ -103,7 +103,7 @@ Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualque
 | Tópico | Opções |
 | --- | --- |
 | **Aparência** | Tema, contorno nos cartões e velocidade das animações. |
-| **Papel de parede** | Por tema: o próprio, a imagem parada, um efeito animado ou uma imagem sua (com preencher ou inteira). Tem ainda o modo de exibição (automático, animado ou parado), modo e papel por monitor, quadros por segundo, parado na bateria, pausar com janelas e resolução cheia. |
+| **Papel de parede** | Por tema: o próprio, a imagem parada, um efeito animado ou uma imagem, vídeo ou GIF seu (com preencher ou inteira). Tem ainda o modo de exibição (automático, animado ou parado), modo e papel por monitor, quadros por segundo, parado na bateria, pausar com janelas e resolução cheia. |
 | **Monitores** | Disposição arrastando, resolução, taxa de atualização, escala, rotação, espelhar, VRR e cor de 10 bits. Tem "Identificar" e aplicar com confirmação. O arranjo fica salvo por conjunto de monitores e é reaplicado ao conectar. |
 | **Mouse** | Velocidade, aceleração, canhoto, foco das janelas (ao passar o mouse ou ao clicar), rolagem, touchpad (tocar para clicar, arrastar, desligar ao digitar, clique com dedos, botão do meio), **botões mapeados** e velocidade própria por mouse. |
 | **Teclado** | Layouts (até quatro, com variante e atalho para trocar), repetição, Num Lock, teclas especiais (Caps Lock, Compose, trocar Alt e Super) e qualquer opção do xkb, com busca. Também **teclas remapeadas** e **teclas extras e atalhos**. |
@@ -127,6 +127,7 @@ Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualque
   - BlueZ: Bluetooth
   - `brightnessctl`: brilho
   - `nvidia-smi`: GPU NVIDIA; vem com o driver
+  - `ffmpeg` e `qt6-multimedia-ffmpeg`: papel de parede em vídeo ou GIF. Para a GPU decodificar o vídeo, também o driver VA-API (`intel-media-driver` na Intel, `libva-mesa-driver` na AMD) e o `libva-utils`, que o shell usa para detectar o suporte.
 - Serviços na internet, só enquanto a aba correspondente está aberta, e desligáveis pelo modo offline: [Open-Meteo](https://open-meteo.com) (clima) e [LRCLIB](https://lrclib.net) (letras).
 
 O remapeamento de teclas usa o `xkbcli`, que vem com o libxkbcommon, dependência do próprio Hyprland.

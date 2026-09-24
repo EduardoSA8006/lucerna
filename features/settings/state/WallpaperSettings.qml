@@ -5,11 +5,13 @@ import Quickshell
 import Quickshell.Io
 import qs.core.config
 import qs.core.theme
+import qs.services
 
 // View model de Configurações → Papel de parede. Tudo vai para a config; a
 // feature wallpaper lê de lá. O papel é por tema: cada um pode usar o seu
 // próprio, só a imagem dele parada, um dos efeitos animados (nas cores do
-// tema) ou uma imagem do usuário.
+// tema), uma imagem do usuário ou um vídeo/GIF (convertido na escolha para a
+// versão mais leve de tocar naquela tela, em services/VideoWallpapers).
 Singleton {
     id: root
 
@@ -43,7 +45,7 @@ Singleton {
     readonly property string chosenKey: {
         if (chosen.kind === "effect")
             return chosen.shader === themeInfo?.shader ? "theme" : `effect:${chosen.effect}`;
-        if (chosen.kind === "image")
+        if (chosen.kind === "image" || chosen.kind === "video")
             return "image";
         if (chosen.kind === "theme-image")
             return themeInfo?.shader ? "theme-image" : "theme";
@@ -62,19 +64,63 @@ Singleton {
     }
 
     function chooseImage(path: string): void {
+        browsing = false;
+        if (VideoWallpapers.isVideo(path)) {
+            prepareVideo(theme, path);
+            return;
+        }
         const all = Object.assign({}, Config.themeWallpapers ?? {});
         all[theme] = { kind: "image", image: path };
         Config.themeWallpapers = all;
-        browsing = false;
     }
 
-    readonly property bool usesImage: chosen.kind === "image"
+    readonly property bool usesImage: chosen.kind === "image" || chosen.kind === "video"
+    readonly property bool usesVideo: chosen.kind === "video"
     readonly property string image: usesImage ? chosen.static : ""
+    readonly property string sourceName: (usesVideo ? chosen.source ?? "" : image).replace(/^.*\//, "")
+
+    // Vídeo ou GIF: o tema guarda só o original; cada tela ganha a sua versão
+    // (feita pelo wallpaper). Aqui já se pedem as das telas conectadas, para o
+    // vídeo ficar pronto mesmo num tema que não é o ativo.
+    function prepareVideo(themeId: string, path: string): void {
+        const all = Object.assign({}, Config.themeWallpapers ?? {});
+        all[themeId] = { kind: "video", source: path };
+        Config.themeWallpapers = all;
+        const seen = {};
+        for (const screen of Quickshell.screens) {
+            const ratio = screen.devicePixelRatio || 1;
+            const target = { width: Math.round(screen.width * ratio), height: Math.round(screen.height * ratio), crop: Config.wallpaperFill !== "fit", fps: Config.wallpaperFps };
+            const key = VideoWallpapers.keyOf(target);
+            if (seen[key])
+                continue;
+            seen[key] = true;
+            VideoWallpapers.request(path, target, false);
+        }
+    }
+
+    readonly property string videoSource: usesVideo ? chosen.source ?? "" : ""
+    readonly property bool converting: videoSource !== "" && VideoWallpapers.isPreparing(videoSource)
+    readonly property real convertProgress: VideoWallpapers.progress
+    readonly property string videoError: videoSource ? VideoWallpapers.errors[videoSource] ?? "" : ""
+    // Versões prontas do vídeo do tema ("2560 × 1080"), para mostrar.
+    readonly property var readySizes: Object.keys((Config.videoVariants ?? {})[videoSource] ?? {}).map(k => VideoWallpapers.parseKey(k)).filter(t => t).map(t => `${t.width} × ${t.height}`).filter((v, i, all) => all.indexOf(v) === i)
+    readonly property int pendingCount: VideoWallpapers.queue.filter(j => j.source === videoSource).length + (VideoWallpapers.current?.source === videoSource ? 1 : 0)
+
+    function setPrecache(on: bool): void {
+        Config.wallpaperVideoPrecache = on;
+    }
+
+    readonly property bool hardwareDecode: VideoWallpapers.hardwareDecode
+    readonly property bool probed: VideoWallpapers.probed
+    readonly property bool canConvert: VideoWallpapers.ffmpeg
 
     // Seletor de imagens
     property bool browsing: false
     property string folder: Config.wallpaperFolder || places[0]?.path || Quickshell.env("HOME")
-    readonly property var imageFilters: ["*.jpg", "*.jpeg", "*.png", "*.webp", "*.JPG", "*.JPEG", "*.PNG", "*.WEBP"]
+    readonly property var imageFilters: {
+        const exts = ["jpg", "jpeg", "png", "webp"].concat(VideoWallpapers.ffmpeg ? VideoWallpapers.extensions : []);
+        return exts.map(e => `*.${e}`).concat(exts.map(e => `*.${e.toUpperCase()}`));
+    }
 
     function openFolder(path: string): void {
         folder = path;

@@ -47,7 +47,7 @@
     "wallpaper": {
         "static": "wallpapers/luar.jpg",
         "shader": "shaders/luar.qsb",
-        "fps": 30
+        "fps": 20
     },
     "hyprland": {
         "activeBorder": "#9ec1ff",
