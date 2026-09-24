@@ -91,7 +91,7 @@ OverlayPanel {
                 Grid {
                     id: grid
 
-                    columns: Math.min(4, Math.max(1, ThemeSwitcherState.themes.length))
+                    columns: Math.min(5, Math.max(1, ThemeSwitcherState.themes.length))
                     spacing: ThemeManager.spacing.normal
                     focus: true
 

@@ -1,0 +1,72 @@
+{
+    "name": "Gruvbox Dark",
+    "description": "Retrô de terminal: marrom quente, laranja e amarelo, com contraste confortável.",
+    "dark": true,
+    "colors": {
+        "base": "#282828",
+        "surface": "#3c3836",
+        "raised": "#504945",
+        "border": "#665c54",
+        "text": "#ebdbb2",
+        "textMuted": "#d5c4a1",
+        "textFaint": "#928374",
+        "accent": "#fe8019",
+        "accentText": "#1d2021",
+        "danger": "#fb4934",
+        "success": "#b8bb26",
+        "warning": "#fabd2f",
+        "track": "#504945"
+    },
+    "font": {
+        "sans": "Rubik",
+        "mono": "CaskaydiaCove Nerd Font",
+        "icon": "Material Symbols Rounded",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 8,
+        "normal": 14,
+        "large": 22
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "scale": 1
+    },
+    "bar": {
+        "height": 44
+    },
+    "wallpaper": {
+        "static": "wallpapers/gruvbox-dark.jpg",
+        "shader": "shaders/brasas.qsb",
+        "fps": 20
+    },
+    "hyprland": {
+        "activeBorder": "#fe8019",
+        "inactiveBorder": "#665c54",
+        "borderSize": 2,
+        "rounding": 12,
+        "blurSize": 6,
+        "blurPasses": 2
+    },
+    "transparency": {
+        "enabled": true,
+        "base": 0.85,
+        "layers": 0.45
+    },
+    "surfaces": {
+        "outline": false
+    },
+    "fonts": [
+        "fonts/Rubik[wght].ttf"
+    ]
+}

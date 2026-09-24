@@ -32,11 +32,11 @@ Com um shell próprio, só roda o que foi escrito, e cada decisão visual e de c
 
 ## Identidade visual
 
-O Lucerna terá vários temas pré-configurados, trocáveis a qualquer momento por um painel de seleção rápida. O tema padrão é o **Nebulosa**, inspirado no Caelestia: lilás sobre grafite, cartões sólidos e a fonte Rubik. O **Lamparina** segue a ideia do nome: fundo escuro e profundo com um único acento âmbar, como a chama de uma lamparina.
+O Lucerna terá vários temas pré-configurados, trocáveis a qualquer momento por um painel de seleção rápida. O tema padrão é o **Catppuccin Mocha**: pastel escuro, malva sobre grafite azulado, cartões sólidos e a fonte Rubik.
 
 - **Tema como dado:** cada tema é um arquivo em `themes/` com cores, fontes, raios, espaçamentos e wallpaper. Criar um tema novo é adicionar um arquivo, sem tocar em código.
 - **Um ponto de verdade:** um `ThemeManager` (singleton) carrega o tema ativo e expõe os tokens (cores, fontes, raios, espaçamentos, durações de animação e altura da barra); nenhum componente usa cor, fonte ou espaçamento fixo. As dimensões estruturais de cada painel, como a largura do launcher, ficam no próprio componente.
-- **Temas embutidos:** Nebulosa (padrão, inspirado no Caelestia: o esquema Catppuccin Mocha do Material 3 e a fonte Rubik), Lamparina (âmbar), Luar (azul frio), Brasa (vermelho-alaranjado) e Pergaminho (claro). Os wallpapers são gerados por `dev/wallpapers.py`.
+- **Temas embutidos:** os dez esquemas mais populares, nas paletas oficiais: Catppuccin Mocha (padrão), Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green. Cada um tem um papel estático e um efeito animado que combinam com ele. Os arquivos dos temas e os papéis estáticos são gerados por `dev/themes.py`, a partir das paletas.
 - **Cartões:** sólidos e sem contorno, destacados pelo tom (como no Material 3), com raio de 22 px. O contorno é um token do tema (`surfaces.outline`) e pode ser ligado nas configurações.
 - **Fontes do tema:** um tema pode trazer fontes em `themes/fonts/`, carregadas pelo `FontLoader` sem instalar nada no sistema.
 - **Troca ao vivo:** ao escolher um tema no painel, toda a interface muda na hora, com transição suave, e a escolha fica salva para a próxima sessão.
@@ -128,7 +128,7 @@ lucerna/
 │   ├── osd/
 │   └── powerMenu/
 ├── themes/
-│   ├── nebulosa.json           # um arquivo por tema (o padrão)
+│   ├── catppuccin-mocha.json   # um arquivo por tema (o padrão)
 │   └── wallpapers/
 └── dev/                        # ambiente de teste (não é carregado pelo shell)
     ├── Dockerfile
@@ -146,7 +146,7 @@ qs -c lucerna ipc call sidebar open wifi        # bluetooth, sound, notification
 qs -c lucerna ipc call dashboard open weather   # overview, media, performance, weather
 qs -c lucerna ipc call session lock
 qs -c lucerna ipc call brightness up            # up, down, set <0-100>
-qs -c lucerna ipc call theme set luar           # get, list
+qs -c lucerna ipc call theme set nord           # get, list
 qs -c lucerna ipc call notifications clear      # toggleDnd, count
 ```
 

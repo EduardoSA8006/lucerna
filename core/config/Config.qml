@@ -89,7 +89,7 @@ Singleton {
         JsonAdapter {
             id: adapter
 
-            property string theme: "nebulosa"
+            property string theme: "catppuccin-mocha"
             property bool doNotDisturb: false
             property string dashboardTab: "overview"
             // { name, latitude, longitude } da cidade escolhida na aba Clima

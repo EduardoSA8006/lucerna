@@ -1,0 +1,72 @@
+{
+    "name": "Everforest",
+    "description": "Natural e calmo: verde de floresta e marrom de terra, fácil para os olhos.",
+    "dark": true,
+    "colors": {
+        "base": "#2d353b",
+        "surface": "#343f44",
+        "raised": "#3d484d",
+        "border": "#4f585e",
+        "text": "#d3c6aa",
+        "textMuted": "#9da9a0",
+        "textFaint": "#7a8478",
+        "accent": "#a7c080",
+        "accentText": "#232a2e",
+        "danger": "#e67e80",
+        "success": "#83c092",
+        "warning": "#dbbc7f",
+        "track": "#475258"
+    },
+    "font": {
+        "sans": "Rubik",
+        "mono": "CaskaydiaCove Nerd Font",
+        "icon": "Material Symbols Rounded",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 8,
+        "normal": 14,
+        "large": 22
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "scale": 1
+    },
+    "bar": {
+        "height": 44
+    },
+    "wallpaper": {
+        "static": "wallpapers/everforest.jpg",
+        "shader": "shaders/vagalumes.qsb",
+        "fps": 20
+    },
+    "hyprland": {
+        "activeBorder": "#a7c080",
+        "inactiveBorder": "#4f585e",
+        "borderSize": 2,
+        "rounding": 12,
+        "blurSize": 6,
+        "blurPasses": 2
+    },
+    "transparency": {
+        "enabled": true,
+        "base": 0.85,
+        "layers": 0.45
+    },
+    "surfaces": {
+        "outline": false
+    },
+    "fonts": [
+        "fonts/Rubik[wght].ttf"
+    ]
+}

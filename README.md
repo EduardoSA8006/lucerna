@@ -13,7 +13,8 @@ Barra, painel superior, central lateral, launcher, notificações, tela de bloqu
 - **Remapeamento real de teclas**, em qualquer programa e inclusive para modificadores (Caps Lock → Esc, Alt Gr → Super). O Lucerna gera o keymap, confere se ele compila e só então o entrega ao Hyprland.
 - **Monitores arrastando**: a disposição se monta num canvas com encaixe magnético. Cada monitor tem resolução, taxa, escala, rotação, espelhamento, VRR e 10 bits. Aplicar pede confirmação em todas as telas e, sem resposta em 15 s, volta ao anterior.
 - **Painéis que convivem**: o painel superior e a central lateral ficam abertos juntos, desviam um do outro e não cobrem a barra.
-- **Papel de parede animado e leve**: cada tema tem um efeito em shader (aurora, brasas, chama, luar, papel), nas cores do tema, a 30 fps e em meia resolução. Ele pausa sozinho com tela cheia, tela bloqueada ou tela apagada. Cada tema pode trocar o seu por outro efeito, por uma imagem sua ou por um **vídeo ou GIF**. O vídeo é convertido uma vez para a resolução da tela, sem tarjas, quadros repetidos nem áudio, e toca decodificado pela GPU.
+- **Os dez temas mais populares**: Catppuccin Mocha, Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green, nas paletas oficiais, trocáveis ao vivo.
+- **Papel de parede animado e leve**: cada tema tem um efeito em shader que combina com ele (aurora, bokeh, brasas, luar, neve, vaga-lumes, ondas, névoa, chuva digital), nas cores do tema, a 20 fps e em meia resolução. Ele pausa sozinho com tela cheia, tela bloqueada ou tela apagada. Cada tema pode trocar o seu por outro efeito, por uma imagem sua ou por um **vídeo ou GIF**. O vídeo é convertido uma vez para a resolução da tela, sem tarjas, quadros repetidos nem áudio, e toca decodificado pela GPU.
 - **Vidro de verdade**: o desfoque atrás dos painéis é do próprio Hyprland, e o tema ajusta também as bordas das janelas.
 - **Leve por padrão**: cada serviço só coleta dados enquanto alguém mostra. Um modo offline desliga tudo o que usa a internet.
 
@@ -50,8 +51,8 @@ Wi-Fi, Bluetooth, som, avisos, bateria e tela, com as seções do lado de fora. 
 | Launcher | Seletor de temas |
 | --- | --- |
 | ![Launcher](docs/screenshots/launcher.jpg) | ![Seletor de temas](docs/screenshots/themes.jpg) |
-| **Pergaminho (claro)** | **Brasa** |
-| ![Tema Pergaminho](docs/screenshots/theme-pergaminho.jpg) | ![Tema Brasa](docs/screenshots/theme-brasa.jpg) |
+| **Gruvbox Dark** | **Nord** |
+| ![Tema Gruvbox Dark](docs/screenshots/theme-gruvbox.jpg) | ![Tema Nord](docs/screenshots/theme-nord.jpg) |
 
 A barra tem quatro estilos: **faixa** (o padrão), **ilha** (só a hora, e expande com o mouse), **pílula** e **três ilhas**. Pode ficar fixa ou escondida até o mouse encostar no topo.
 
@@ -63,9 +64,11 @@ Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualque
 
 ![Configurações: papel de parede](docs/screenshots/settings-wallpaper.jpg)
 
-| Luar (animado) | Brasas (animado) |
+| Neve (Nord) | Chuva digital (Decay Green) |
 | --- | --- |
-| ![Efeito Luar](docs/screenshots/wallpaper-luar.jpg) | ![Efeito Brasas](docs/screenshots/wallpaper-brasas.jpg) |
+| ![Efeito Neve](docs/screenshots/wallpaper-neve.jpg) | ![Efeito Chuva digital](docs/screenshots/wallpaper-chuva.jpg) |
+
+![Efeito Ondas (Kanagawa)](docs/screenshots/wallpaper-ondas.jpg)
 
 ### Configurações
 
@@ -96,7 +99,7 @@ Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualque
 | **Energia** | Menu (bloquear, suspender, sair, reiniciar, desligar). Avisos de bateria baixa e crítica, ação no nível crítico com prazo para cancelar, troca de perfil na tomada e modo leve na bateria. |
 | **OSD** | Volume e brilho. |
 | **Papel de parede** | Imagem com transição na troca e efeito animado por cima (shader, a 30 fps e em meia resolução). Pausa com app em tela cheia, tela bloqueada ou tela apagada, e opcionalmente com qualquer janela aberta; no automático, fica parado na bateria. Modo e origem por monitor. |
-| **Temas** | Cinco prontos (Nebulosa, Brasa, Lamparina, Luar e Pergaminho), com wallpaper, fontes próprias e bordas do Hyprland. Trocam ao vivo. |
+| **Temas** | Dez prontos, nas paletas oficiais: Catppuccin Mocha (padrão), Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green. Cada um vem com papel estático, efeito animado, fonte própria e bordas do Hyprland. Trocam ao vivo. |
 
 ### Configurações
 
@@ -182,13 +185,13 @@ Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [arg
 
 ## Temas
 
-Cada arquivo em `themes/*.json` é um tema, e o nome do arquivo é o id. Para criar um, copie o `themes/nebulosa.json` (o padrão), mude as cores e o wallpaper: ele aparece no seletor na hora. Além de cores, fontes, raios e espaçamentos, o tema define:
+Cada arquivo em `themes/*.json` é um tema, e o nome do arquivo é o id. Os temas embutidos são gerados por `dev/themes.py` a partir das paletas (o JSON e o papel estático). Para criar um, acrescente a paleta ao script, ou copie o `themes/catppuccin-mocha.json` (o padrão) e mude as cores e o wallpaper: ele aparece no seletor na hora. Além de cores, fontes, raios e espaçamentos, o tema define:
 
 - `transparency`: `enabled`, `base` (opacidade dos painéis) e `layers` (dos cartões dentro deles).
 - `hyprland`: bordas, arredondamento e intensidade do desfoque (`blurSize`, `blurPasses`), aplicados via `hyprctl eval`.
-- `wallpaper`: a imagem (`"wallpapers/luar.jpg"`) ou `{ "static": ..., "shader": "shaders/luar.qsb", "fps": 30 }`. Os efeitos ficam em `themes/shaders/`, com a fonte GLSL ao lado do `.qsb` compilado. `dev/shaders.sh` recompila todos, e isso requer o `qsb`, do pacote `qt6-shadertools`. Todo efeito recebe os mesmos uniforms (`time`, `resolution`, `base`, `surface`, `accent`, `text`), então qualquer tema pode usar qualquer efeito, e um efeito novo entra no catálogo em `themes/shaders/effects.json`.
+- `wallpaper`: a imagem (`"wallpapers/nord.jpg"`) ou `{ "static": ..., "shader": "shaders/neve.qsb", "fps": 20 }`. Os efeitos ficam em `themes/shaders/`, com a fonte GLSL ao lado do `.qsb` compilado. `dev/shaders.sh` recompila todos, e isso requer o `qsb`, do pacote `qt6-shadertools`. Todo efeito recebe os mesmos uniforms (`time`, `resolution`, `base`, `surface`, `accent`, `text`), então qualquer tema pode usar qualquer efeito, e um efeito novo entra no catálogo em `themes/shaders/effects.json`.
 - `animation.scale`: velocidade geral das animações (1 = padrão, 0 = desligadas).
-- `fonts`: fontes que o tema traz em `themes/fonts/`, carregadas pelo shell sem instalar nada no sistema. O Nebulosa traz a Rubik, sob licença OFL.
+- `fonts`: fontes que o tema traz em `themes/fonts/`, carregadas pelo shell sem instalar nada no sistema. Todos os temas embutidos trazem a Rubik, sob licença OFL.
 - `surfaces.outline`: contorno fino nos cartões. O padrão é sem contorno; os cartões se destacam pelo tom.
 - `colors.track`: cor opcional dos trilhos de medidores e sliders.
 

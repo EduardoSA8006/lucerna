@@ -1,7 +1,12 @@
 [
     { "id": "aurora", "name": "Aurora", "description": "Nuvens de nebulosa e estrelas que piscam", "shader": "shaders/aurora.qsb" },
+    { "id": "bokeh", "name": "Bokeh", "description": "Luzes de cidade desfocadas que flutuam", "shader": "shaders/bokeh.qsb" },
     { "id": "brasas", "name": "Brasas", "description": "Calor que sobe do chão e fagulhas", "shader": "shaders/brasas.qsb" },
     { "id": "chama", "name": "Chama", "description": "Um brilho que respira e tremula no escuro", "shader": "shaders/chama.qsb" },
+    { "id": "chuva", "name": "Chuva digital", "description": "Colunas de caracteres caindo, como num terminal", "shader": "shaders/chuva.qsb" },
     { "id": "luar", "name": "Luar", "description": "Lua, estrelas e uma névoa baixa", "shader": "shaders/luar.qsb" },
-    { "id": "papel", "name": "Papel", "description": "Tinta se espalhando devagar sobre o papel", "shader": "shaders/papel.qsb" }
+    { "id": "neve", "name": "Neve", "description": "Flocos caindo em camadas, com vento", "shader": "shaders/neve.qsb" },
+    { "id": "ondas", "name": "Ondas", "description": "Faixas de mar em camadas, como numa gravura japonesa", "shader": "shaders/ondas.qsb" },
+    { "id": "papel", "name": "Névoa", "description": "Manchas que se espalham devagar, como tinta ou fumaça", "shader": "shaders/papel.qsb" },
+    { "id": "vagalumes", "name": "Vaga-lumes", "description": "Luzes que vagam e piscam sobre a mata", "shader": "shaders/vagalumes.qsb" }
 ]

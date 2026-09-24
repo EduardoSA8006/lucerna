@@ -1,0 +1,72 @@
+{
+    "name": "Tokyo Night",
+    "description": "Azul de madrugada com luzes de neon: azul, roxo e ciano, limpo e tecnológico.",
+    "dark": true,
+    "colors": {
+        "base": "#1a1b26",
+        "surface": "#24283b",
+        "raised": "#2f3549",
+        "border": "#414868",
+        "text": "#c0caf5",
+        "textMuted": "#a9b1d6",
+        "textFaint": "#565f89",
+        "accent": "#7aa2f7",
+        "accentText": "#16161e",
+        "danger": "#f7768e",
+        "success": "#9ece6a",
+        "warning": "#e0af68",
+        "track": "#3b4261"
+    },
+    "font": {
+        "sans": "Rubik",
+        "mono": "CaskaydiaCove Nerd Font",
+        "icon": "Material Symbols Rounded",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 8,
+        "normal": 14,
+        "large": 22
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "scale": 1
+    },
+    "bar": {
+        "height": 44
+    },
+    "wallpaper": {
+        "static": "wallpapers/tokyo-night.jpg",
+        "shader": "shaders/bokeh.qsb",
+        "fps": 20
+    },
+    "hyprland": {
+        "activeBorder": "#7aa2f7",
+        "inactiveBorder": "#414868",
+        "borderSize": 2,
+        "rounding": 12,
+        "blurSize": 6,
+        "blurPasses": 2
+    },
+    "transparency": {
+        "enabled": true,
+        "base": 0.85,
+        "layers": 0.45
+    },
+    "surfaces": {
+        "outline": false
+    },
+    "fonts": [
+        "fonts/Rubik[wght].ttf"
+    ]
+}

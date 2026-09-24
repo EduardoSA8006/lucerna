@@ -1,0 +1,72 @@
+{
+    "name": "Kanagawa",
+    "description": "Inspirado na grande onda de Hokusai: azul de tinta, papel envelhecido e dourado.",
+    "dark": true,
+    "colors": {
+        "base": "#1f1f28",
+        "surface": "#2a2a37",
+        "raised": "#363646",
+        "border": "#54546d",
+        "text": "#dcd7ba",
+        "textMuted": "#c8c093",
+        "textFaint": "#727169",
+        "accent": "#7e9cd8",
+        "accentText": "#16161d",
+        "danger": "#e46876",
+        "success": "#98bb6c",
+        "warning": "#e6c384",
+        "track": "#363646"
+    },
+    "font": {
+        "sans": "Rubik",
+        "mono": "CaskaydiaCove Nerd Font",
+        "icon": "Material Symbols Rounded",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 8,
+        "normal": 14,
+        "large": 22
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "scale": 1
+    },
+    "bar": {
+        "height": 44
+    },
+    "wallpaper": {
+        "static": "wallpapers/kanagawa.jpg",
+        "shader": "shaders/ondas.qsb",
+        "fps": 20
+    },
+    "hyprland": {
+        "activeBorder": "#7e9cd8",
+        "inactiveBorder": "#54546d",
+        "borderSize": 2,
+        "rounding": 12,
+        "blurSize": 6,
+        "blurPasses": 2
+    },
+    "transparency": {
+        "enabled": true,
+        "base": 0.85,
+        "layers": 0.45
+    },
+    "surfaces": {
+        "outline": false
+    },
+    "fonts": [
+        "fonts/Rubik[wght].ttf"
+    ]
+}

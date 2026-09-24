@@ -23,7 +23,7 @@ Singleton {
         browsing = false;
     }
 
-    readonly property var themeOptions: ThemeManager.themes.map(t => ({ label: t.name, value: t.id }))
+    readonly property var themeOptions: ThemeManager.themes.map(t => ({ label: t.name, detail: t.id === ThemeManager.current ? "Tema ativo" : "", value: t.id }))
     readonly property var themeInfo: ThemeManager.themes.find(t => t.id === theme) ?? null
     readonly property var colors: themeInfo?.colors ?? {}
     readonly property var chosen: ThemeManager.wallpaperFor(theme)
