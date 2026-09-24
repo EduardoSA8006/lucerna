@@ -90,6 +90,7 @@ Singleton {
     property alias keyboardOptions: adapter.keyboardOptions
     property alias keyRemaps: adapter.keyRemaps
     property alias inputBinds: adapter.inputBinds
+    property alias shellShortcuts: adapter.shellShortcuts
 
     FileView {
         path: Quickshell.statePath("config.json")
@@ -250,6 +251,9 @@ Singleton {
             // Botões e teclas mapeados para ações:
             // [{ trigger, mods, label, action: { id, keys?, command? } }].
             property var inputBinds: []
+            // Atalhos do shell que o usuário mudou: { acao: [{ mods, trigger }] }
+            // (os padrões estão em core/input/ShellShortcuts).
+            property var shellShortcuts: ({})
         }
     }
 }

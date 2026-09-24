@@ -42,7 +42,7 @@ Singleton {
         { id: "bar", icon: Icons.toolbar, label: "Barra", description: "Quando aparece e o que mostra" },
         { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Abas, cartões, clima e privacidade" },
         { id: "power", icon: Icons.bolt, label: "Energia e bateria", description: "Avisos, perfil e modo leve" },
-        { id: "shortcuts", icon: Icons.keyboard, label: "Atalhos", description: "Teclas e comandos" },
+        { id: "shortcuts", icon: Icons.keyboard, label: "Atalhos", description: "As teclas do shell" },
         { id: "about", icon: Icons.info, label: "Sobre", description: "Versões e sistema" }
     ]
     readonly property int currentIndex: Math.max(0, topics.findIndex(t => t.id === Config.settingsTopic))
@@ -406,19 +406,6 @@ Singleton {
     function testNotification(): void {
         Quickshell.execDetached(["notify-send", "-a", "Lucerna", "Notificação de teste", `Ela some em ${Math.round(notificationSeconds)} s.`]);
     }
-
-    // Atalhos (referência; o dev/hyprland.lua usa Alt, o README sugere Super)
-    readonly property var shortcuts: [
-        { keys: "Mod + Espaço", action: "Launcher", command: "panels toggle launcher" },
-        { keys: "Mod + D", action: "Painel superior", command: "panels toggle dashboard" },
-        { keys: "Mod + S", action: "Configurações", command: "panels toggle settings" },
-        { keys: "Mod + N", action: "Avisos (central lateral)", command: "sidebar toggle notifications" },
-        { keys: "Mod + C", action: "Central lateral", command: "sidebar toggle" },
-        { keys: "Mod + T", action: "Seletor de temas", command: "panels toggle themes" },
-        { keys: "Mod + Esc", action: "Menu de energia", command: "panels toggle power" },
-        { keys: "Mod + L", action: "Bloquear a tela", command: "session lock" },
-        { keys: "Brilho ↑ / ↓", action: "Brilho", command: "brightness up / down" }
-    ]
 
     // Sobre
     readonly property var about: [
