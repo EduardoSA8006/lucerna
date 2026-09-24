@@ -68,6 +68,12 @@ Singleton {
     property alias wallpaperFolder: adapter.wallpaperFolder
     property alias videoVariants: adapter.videoVariants
     property alias launcherStyle: adapter.launcherStyle
+    property alias idleEnabled: adapter.idleEnabled
+    property alias idleAC: adapter.idleAC
+    property alias idleBattery: adapter.idleBattery
+    property alias idleMedia: adapter.idleMedia
+    property alias idleFullscreen: adapter.idleFullscreen
+    property alias idleInhibit: adapter.idleInhibit
     property alias launcherFavorites: adapter.launcherFavorites
     property alias launcherUsage: adapter.launcherUsage
     property alias launcherHidden: adapter.launcherHidden
@@ -201,6 +207,16 @@ Singleton {
             // Launcher: "compact" (busca e lista), "full" (categorias, grade e
             // detalhes) ou "grid" (tela cheia, como uma gaveta de apps).
             property string launcherStyle: "compact"
+            // Ociosidade: tempos (em segundos; 0 = nunca) para escurecer,
+            // desligar a tela, bloquear e suspender, na tomada e na bateria.
+            property bool idleEnabled: true
+            property var idleAC: ({ dim: 240, off: 300, lock: 600, suspend: 0 })
+            property var idleBattery: ({ dim: 120, off: 180, lock: 300, suspend: 900 })
+            // Não contar ociosidade com mídia tocando ou app em tela cheia.
+            property bool idleMedia: true
+            property bool idleFullscreen: true
+            // "Não apagar a tela": segura tudo até ser desligado.
+            property bool idleInhibit: false
             // Apps fixados (ids), quantas vezes cada um foi aberto e os ocultos.
             property var launcherFavorites: []
             property var launcherUsage: ({})

@@ -30,6 +30,7 @@ Singleton {
         { id: "appearance", icon: Icons.palette, label: "Aparência", description: "Tema e animações" },
         { id: "wallpaper", icon: Icons.wallpaper, label: "Papel de parede", description: "Por tema, animado ou seu" },
         { id: "displays", icon: Icons.monitor, label: "Monitores", description: "Disposição, resolução e escala" },
+        { id: "idle", icon: "timer", label: "Tela e ociosidade", description: "Escurecer, desligar e bloquear" },
         { id: "mouse", icon: Icons.mouse, label: "Mouse", description: "Ponteiro, rolagem e botões" },
         { id: "keyboard", icon: Icons.keyboard, label: "Teclado", description: "Layouts, teclas e atalhos" },
         { id: "glass", icon: Icons.blur, label: "Transparência e desfoque", description: "O vidro dos painéis" },

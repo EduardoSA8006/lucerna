@@ -83,6 +83,11 @@ Singleton {
         dispatch(`hl.dsp.focus({ workspace = "e${step > 0 ? "+" : "-"}1" })`);
     }
 
+    // Liga ou desliga todas as telas (DPMS).
+    function dpms(on: bool): void {
+        dispatch(`hl.dsp.dpms({ action = "${on ? "on" : "off"}" })`);
+    }
+
     function exit(): void {
         dispatch("hl.dsp.exit()");
     }

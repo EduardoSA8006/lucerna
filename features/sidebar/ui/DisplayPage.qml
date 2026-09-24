@@ -13,7 +13,7 @@ Column {
     }
 
     EmptyState {
-        visible: !PowerState.hasBrightness
+        visible: !PowerState.hasBrightness && !PowerState.idleEnabled
         icon: Icons.brightnessMedium
         text: "Nenhuma tela com brilho ajustável (é preciso o brightnessctl)"
     }
@@ -33,6 +33,22 @@ Column {
                 to: 1
                 value: PowerState.brightness
                 onMoved: v => PowerState.setBrightness(v)
+            }
+        }
+    }
+
+    SettingSection {
+        visible: PowerState.idleEnabled
+        title: "Ociosidade"
+
+        SettingRow {
+            icon: "coffee"
+            title: "Não apagar a tela"
+            description: "Não escurece, não desliga e não bloqueia até você desligar"
+
+            Switch {
+                checked: PowerState.keepAwake
+                onToggled: on => PowerState.setKeepAwake(on)
             }
         }
     }
