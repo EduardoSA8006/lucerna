@@ -88,6 +88,8 @@ Singleton {
     readonly property string speaker: "speaker"
     readonly property string sound: "graphic_eq"
     readonly property string sidebar: "view_sidebar"
+    readonly property string panels: "stacks"
+    readonly property string overlap: "select_window"
     readonly property string sideRight: "right_panel_open"
     readonly property string sideLeft: "left_panel_open"
     readonly property string unlink: "link_off"

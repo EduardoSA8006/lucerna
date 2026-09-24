@@ -21,6 +21,10 @@ Column {
                 anchors.margins: ThemeManager.spacing.large
                 spacing: ThemeManager.spacing.normal
 
+                // Os cartões dividem a linha por igual: sem vão sobrando à direita.
+                readonly property int columns: Math.min(SettingsState.themes.length, Math.max(1, Math.floor((width + spacing) / (110 + spacing))))
+                readonly property real chipWidth: (width - (columns - 1) * spacing) / columns
+
                 Repeater {
                     model: SettingsState.themes
 
@@ -30,7 +34,7 @@ Column {
                         required property var modelData
                         readonly property bool current: modelData.id === SettingsState.theme
 
-                        width: 150
+                        width: themeFlow.chipWidth
                         height: 64
                         radius: ThemeManager.radius.normal
                         pressScale: 0.95

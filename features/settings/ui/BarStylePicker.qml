@@ -9,6 +9,10 @@ Flow {
 
     spacing: ThemeManager.spacing.normal
 
+    // Os cartões dividem a linha por igual: sem vão sobrando à direita.
+    readonly property int columns: Math.min(SettingsState.barStyles.length, Math.max(1, Math.floor((width + spacing) / (130 + spacing))))
+    readonly property real cardWidth: (width - (columns - 1) * spacing) / columns
+
     Repeater {
         model: SettingsState.barStyles
 
@@ -18,7 +22,7 @@ Flow {
             required property var modelData
             readonly property bool current: modelData.id === SettingsState.barStyle
 
-            width: 150
+            width: root.cardWidth
             height: 118
             radius: ThemeManager.radius.normal + 2
             pressScale: 0.95

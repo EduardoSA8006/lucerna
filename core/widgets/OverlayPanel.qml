@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import qs.core.panels
 import qs.core.theme
 
 // Janela de sobreposição em tela cheia para painéis (launcher, temas, energia,
@@ -9,12 +10,18 @@ import qs.core.theme
 //
 // O conteúdo vai como filho direto; `progress` (0 → 1) acompanha a animação de
 // abertura para o conteúdo animar junto.
+//
+// Não modal (acompanhante ou base, ver Panels): não escurece nem cobre a tela;
+// só `inputItem` recebe o mouse, então a barra e os outros painéis seguem
+// clicáveis. O clique fora é tratado pelo Panels.
 PanelWindow {
     id: root
 
     required property bool open
     property real dim: ThemeManager.dark ? 0.4 : 0.22
     property string name: "panel"
+    readonly property bool modal: Panels.isModal(name) || !inputItem
+    property Item inputItem: null
     readonly property real progress: shown
     default property alias content: container.data
 
@@ -42,10 +49,23 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     // "lucerna-panel-*" recebe o desfoque do Hyprland (ver ThemeSwitcherState).
     WlrLayershell.namespace: `lucerna-panel-${name}`
-    WlrLayershell.keyboardFocus: open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    // Não modal: teclado "sob demanda", que o Hyprland entrega ao abrir e ao
+    // clicar; mais de um aberto, fica com o último clicado.
+    WlrLayershell.keyboardFocus: modal ? (open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None) : !visible ? WlrKeyboardFocus.None : WlrKeyboardFocus.OnDemand
+    mask: modal ? null : companionMask
+
+    Region {
+        id: companionMask
+
+        item: root.inputItem
+    }
+
+    Component.onCompleted: Panels.register(root)
+    Component.onDestruction: Panels.unregister(root)
 
     Rectangle {
         anchors.fill: parent
+        visible: root.modal
         color: ThemeManager.alpha("#000000", root.dim * root.shown)
     }
 

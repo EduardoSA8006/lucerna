@@ -17,6 +17,9 @@ Singleton {
     readonly property bool open: Panels.isOpen("dashboard")
     readonly property var screen: Hypr.focusedScreen
     readonly property real topOffset: Panels.topInset
+    // Com a central lateral aberta, o painel desvia dela.
+    readonly property real leftInset: Panels.leftInset
+    readonly property real rightInset: Panels.rightInset
 
     // Todas as abas; `tabs` são as visíveis, na ordem escolhida nas configurações.
     readonly property var allTabs: [
@@ -66,12 +69,12 @@ Singleton {
         interval: 500
         onTriggered: {
             if (root.open && !root.pointerInside)
-                Panels.close();
+                Panels.dismiss("dashboard");
         }
     }
 
     function close(): void {
-        Panels.close();
+        Panels.dismiss("dashboard");
     }
 
     function setTab(index: int): void {

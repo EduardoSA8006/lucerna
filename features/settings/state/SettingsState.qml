@@ -22,6 +22,7 @@ Singleton {
         { id: "appearance", icon: Icons.palette, label: "Aparência", description: "Tema e animações" },
         { id: "glass", icon: Icons.blur, label: "Transparência e desfoque", description: "O vidro dos painéis" },
         { id: "notifications", icon: Icons.bell, label: "Notificações", description: "Popups e não perturbe" },
+        { id: "panels", icon: Icons.panels, label: "Painéis", description: "Abrir juntos e sem sobrepor" },
         { id: "sidebar", icon: Icons.sidebar, label: "Central lateral", description: "Lado da tela" },
         { id: "bar", icon: Icons.toolbar, label: "Barra", description: "Quando aparece e o que mostra" },
         { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Abas, cartões, clima e privacidade" },
@@ -33,7 +34,7 @@ Singleton {
     readonly property var current: topics[currentIndex]
 
     function close(): void {
-        Panels.close();
+        Panels.dismiss("settings");
     }
 
     function setTopic(index: int): void {
@@ -345,6 +346,23 @@ Singleton {
 
     function setBarShowDate(on: bool): void {
         Config.barShowDate = on;
+    }
+
+    // Painéis: quais abrem juntos e se desviam uns dos outros.
+    readonly property var companionOptions: [
+        { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Calendário, mídia, desempenho e clima" },
+        { id: "sidebar", icon: Icons.sidebar, label: "Central lateral", description: "Wi-Fi, Bluetooth, som, avisos, bateria e tela" }
+    ]
+    readonly property var panelsTogether: Config.panelsTogether ?? []
+    readonly property bool avoidOverlap: Config.panelsAvoidOverlap
+
+    function setTogether(id: string, on: bool): void {
+        const rest = panelsTogether.filter(n => n !== id);
+        Config.panelsTogether = on ? rest.concat([id]) : rest;
+    }
+
+    function setAvoidOverlap(on: bool): void {
+        Config.panelsAvoidOverlap = on;
     }
 
     // Central lateral

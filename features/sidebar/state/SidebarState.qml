@@ -18,6 +18,8 @@ Singleton {
     readonly property var screen: Hypr.focusedScreen
     readonly property bool onLeft: Config.sidebarSide === "left"
     readonly property real topOffset: Panels.topInset
+    readonly property real drawerWidth: 500
+    readonly property real margin: ThemeManager.spacing.small
 
     readonly property var sections: [
         { id: "wifi", icon: Icons.wifiOn, label: "Wi-Fi" },
@@ -31,7 +33,20 @@ Singleton {
     readonly property string current: sections[currentIndex].id
 
     function close(): void {
-        Panels.close();
+        Panels.dismiss("sidebar");
+    }
+
+    // Avisa o espaço ocupado na borda, para os outros painéis desviarem.
+    Binding {
+        target: Panels
+        property: "leftInset"
+        value: root.open && root.onLeft && Panels.avoidOverlap ? root.drawerWidth + root.margin : 0
+    }
+
+    Binding {
+        target: Panels
+        property: "rightInset"
+        value: root.open && !root.onLeft && Panels.avoidOverlap ? root.drawerWidth + root.margin : 0
     }
 
     function setSection(index: int): void {
