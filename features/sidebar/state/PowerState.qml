@@ -35,12 +35,14 @@ Singleton {
         Battery.setProfile(value);
     }
 
-    // Tela
-    readonly property bool hasBrightness: Brightness.available
-    readonly property real brightness: Brightness.value
+    // Tela: uma entrada por tela com brilho ajustável (a integrada e os
+    // monitores externos por DDC/CI).
+    readonly property bool hasBrightness: Brightness.anyAvailable
+    readonly property var brightnessScreens: Brightness.screens
+    readonly property real brightness: Brightness.shownValue
 
-    function setBrightness(v: real): void {
-        Brightness.set(v);
+    function setBrightness(id: string, v: real): void {
+        Brightness.setScreen(id, v);
     }
 
     // "Não apagar a tela" (a ociosidade fica na feature idle; aqui só o botão).

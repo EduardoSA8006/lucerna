@@ -15,24 +15,33 @@ Column {
     EmptyState {
         visible: !PowerState.hasBrightness && !PowerState.idleEnabled && !PowerState.nightLightAvailable
         icon: Icons.brightnessMedium
-        text: "Nenhuma tela com brilho ajustável (é preciso o brightnessctl)"
+        text: "Nenhuma tela com brilho ajustável (é preciso o brightnessctl; para monitores externos, o ddcutil)"
     }
 
     SettingSection {
         visible: PowerState.hasBrightness
         title: "Brilho"
 
-        SettingRow {
-            wide: true
-            icon: Icons.brightnessMedium
-            title: "Tela integrada"
+        Repeater {
+            model: PowerState.brightnessScreens
 
-            Slider {
-                width: parent.width
-                from: 0.01
-                to: 1
-                value: PowerState.brightness
-                onMoved: v => PowerState.setBrightness(v)
+            delegate: SettingRow {
+                id: screenRow
+
+                required property var modelData
+
+                wide: true
+                icon: modelData.id === "backlight" ? Icons.brightnessMedium : Icons.monitor
+                title: modelData.label
+                description: modelData.output ? `${modelData.output} · pelo DDC/CI` : ""
+
+                Slider {
+                    width: parent.width
+                    from: 0.01
+                    to: 1
+                    value: screenRow.modelData.value
+                    onMoved: v => PowerState.setBrightness(screenRow.modelData.id, v)
+                }
             }
         }
     }
