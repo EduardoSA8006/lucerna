@@ -5,7 +5,7 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 ## Em ordem
 
 1. [x] **Proposta atualizada.** A tabela "Escopo" de `Lucerna — Proposta.md` ainda diz que barra, painel e energia estão por fazer e descreve o launcher como só "abrir aplicativos". Faltam monitores, mouse, teclado, papel de parede animado e vídeo.
-2. [ ] **Launcher: o que hoje só o estilo completo tem.** Fixar nos favoritos e ocultar um app (por clique direito ou atalho) no compacto e na tela cheia. Busca em arquivos e na web também fora do estilo completo (por prefixo ou atalho).
+2. [x] **Launcher: o que hoje só o estilo completo tem.** Fixar nos favoritos e ocultar um app (por clique direito ou atalho) no compacto e na tela cheia. Busca em arquivos e na web também fora do estilo completo (por prefixo ou atalho).
 3. [ ] **Ociosidade e tela.** Desligar a tela e bloquear depois de X minutos, suspender depois de Y, sem depender do `hypridle` (o Quickshell tem `IdleMonitor`). Com exceções: mídia tocando, app em tela cheia e, no modo apresentação, não apagar.
 4. [ ] **Luz noturna.** Temperatura de cor por horário (fixo ou pôr e nascer do sol), na seção Tela da central lateral e nas configurações.
 5. [ ] **Temas claros.** Catppuccin Latte e Rosé Pine Dawn, as versões claras oficiais (hoje nenhum dos dez temas é claro).

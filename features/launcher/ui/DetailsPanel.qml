@@ -122,7 +122,7 @@ Surface {
                 radius: ThemeManager.radius.normal
                 color: ThemeManager.colors.accent
                 pressScale: 0.97
-                opacity: root.item?.kind === "web" && !LauncherState.query.trim() ? 0.45 : 1
+                opacity: root.item?.kind === "web" && !LauncherState.searchText ? 0.45 : 1
                 onClicked: LauncherState.activate(root.item)
 
                 Txt {
@@ -300,21 +300,7 @@ Surface {
                 }
 
                 Repeater {
-                    model: {
-                        if (!root.moreOpen || !root.item)
-                            return [];
-                        const i = root.item;
-                        if (i.kind === "app")
-                            return [
-                                { label: LauncherState.isFavorite(i.id) ? "Tirar dos favoritos" : "Fixar nos favoritos", icon: LauncherState.isFavorite(i.id) ? "star" : "star_outline", run: () => LauncherState.toggleFavorite(i.id) },
-                                { label: "Copiar o comando", icon: "content_copy", run: () => LauncherState.copy(i.entry.execString || i.entry.command.join(" ")) },
-                                { label: "Ocultar do launcher", icon: "visibility_off", run: () => LauncherState.hide(i.id) }
-                            ];
-                        return [
-                            { label: "Abrir a pasta", icon: "folder_open", run: () => LauncherState.openFolder(i) },
-                            { label: "Copiar o caminho", icon: "content_copy", run: () => LauncherState.copy(i.path) }
-                        ];
-                    }
+                    model: root.moreOpen ? LauncherState.optionsFor(root.item) : []
 
                     delegate: Clickable {
                         required property var modelData
