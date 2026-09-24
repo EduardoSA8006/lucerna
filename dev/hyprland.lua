@@ -56,3 +56,7 @@ for i = 1, 5 do
 end
 hl.bind(mod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+
+-- Arranjo de monitores salvo pelo Lucerna (Configurações → Monitores →
+-- "Usar o arranjo desde o login"). Sem o arquivo, não faz nada.
+pcall(dofile, os.getenv("HOME") .. "/.config/hypr/lucerna-monitors.lua")

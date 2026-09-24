@@ -350,4 +350,22 @@ Singleton {
             root.identify();
         }
     }
+
+    // Desde o login: o arranjo vai também para um arquivo que o hyprland.lua inclui.
+    readonly property bool atLogin: Config.monitorsAtLogin
+    readonly property bool loginIncluded: Monitors.loginIncluded
+    readonly property string includeLine: Monitors.includeLine
+
+    function setAtLogin(on: bool): void {
+        Config.monitorsAtLogin = on;
+        Monitors.checkLoginIncluded();
+    }
+
+    function checkLogin(): void {
+        Monitors.checkLoginIncluded();
+    }
+
+    function copyIncludeLine(): void {
+        Quickshell.clipboardText = includeLine;
+    }
 }
