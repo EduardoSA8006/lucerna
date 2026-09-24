@@ -15,11 +15,20 @@ Singleton {
     id: root
 
     readonly property bool open: Panels.isOpen("settings")
-    readonly property var screen: Hypr.focusedScreen
+    // Fica no monitor onde abriu (mudar o arranjo move o foco); se ele sumir,
+    // vai para o que tem foco.
+    property var openedOn: null
+    readonly property var screen: openedOn && Quickshell.screens.includes(openedOn) ? openedOn : Hypr.focusedScreen
+
+    onOpenChanged: {
+        if (open)
+            openedOn = Hypr.focusedScreen;
+    }
 
     // Tópicos da barra lateral. `soon` marca os que ainda não têm opções.
     readonly property var topics: [
         { id: "appearance", icon: Icons.palette, label: "Aparência", description: "Tema e animações" },
+        { id: "displays", icon: Icons.monitor, label: "Monitores", description: "Disposição, resolução e escala" },
         { id: "glass", icon: Icons.blur, label: "Transparência e desfoque", description: "O vidro dos painéis" },
         { id: "notifications", icon: Icons.bell, label: "Notificações", description: "Popups e não perturbe" },
         { id: "panels", icon: Icons.panels, label: "Painéis", description: "Abrir juntos e sem sobrepor" },

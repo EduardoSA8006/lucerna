@@ -1,0 +1,143 @@
+pragma Singleton
+
+import QtQuick
+import Quickshell
+import Quickshell.Hyprland
+import Quickshell.Io
+
+// Monitores do Hyprland: o que está conectado (ativo ou não), com os modos que
+// cada um aceita, e a aplicação de um arranjo via hl.monitor. Um arranjo é
+// uma lista de specs, uma por monitor:
+//   { name, enabled, width, height, refresh, x, y, scale, transform, vrr,
+//     tenBit, mirror }
+// Aplicar manda sempre todos os monitores com posição explícita: um que fique
+// em "auto" é rearranjado pelo Hyprland quando outro muda.
+Singleton {
+    id: root
+
+    // Monitores na ordem do Hyprland (por id), já normalizados:
+    //   { name, key, label, description, enabled, width, height, refresh, x, y,
+    //     scale, transform, vrr, tenBit, mirror, focused, modes: [{ width, height, refresh }] }
+    property var monitors: []
+    // Identifica o conjunto conectado (independe da ordem e das portas).
+    readonly property string setup: monitors.map(m => m.key).sort().join(" | ")
+
+    // Chave estável de um monitor: fabricante, modelo e série; sem isso, a porta.
+    function keyOf(raw: var): string {
+        const parts = [raw.make, raw.model, raw.serial].filter(p => p);
+        return parts.length ? parts.join(" ") : raw.name;
+    }
+
+    function parseMode(text: string): var {
+        const m = /^(\d+)x(\d+)@([\d.]+)/.exec(text);
+        return m ? { width: +m[1], height: +m[2], refresh: +m[3] } : null;
+    }
+
+    // `names`: id → nome (o mirrorOf do Hyprland vem pelo id).
+    function normalize(raw: var, names: var): var {
+        const modes = (raw.availableModes ?? []).map(parseMode).filter(m => m);
+        const current = { width: raw.width, height: raw.height, refresh: Math.round(raw.refreshRate * 100) / 100 };
+        if (!modes.some(m => m.width === current.width && m.height === current.height && Math.abs(m.refresh - current.refresh) < 0.5))
+            modes.unshift(current);
+        const label = [raw.make, raw.model].filter(p => p).join(" ");
+        return {
+            name: raw.name,
+            key: keyOf(raw),
+            label: label || raw.name,
+            description: raw.description ?? "",
+            enabled: !raw.disabled,
+            width: current.width,
+            height: current.height,
+            refresh: current.refresh,
+            x: raw.x,
+            y: raw.y,
+            scale: Math.round(raw.scale * 100) / 100,
+            transform: raw.transform % 4,
+            vrr: raw.vrr ? 1 : 0,
+            tenBit: /2101010/.test(raw.currentFormat ?? ""),
+            mirror: raw.mirrorOf && raw.mirrorOf !== "none" ? (names[raw.mirrorOf] ?? raw.mirrorOf) : "",
+            focused: raw.focused,
+            modes: modes
+        };
+    }
+
+    // Tamanho na área de trabalho (em pixels lógicos): gira com a rotação e
+    // encolhe com a escala.
+    function logicalSize(spec: var): var {
+        const turned = spec.transform % 2 === 1;
+        return {
+            width: Math.round((turned ? spec.height : spec.width) / spec.scale),
+            height: Math.round((turned ? spec.width : spec.height) / spec.scale)
+        };
+    }
+
+    function refresh(): void {
+        reader.running = true;
+    }
+
+    function luaFor(spec: var): string {
+        if (!spec.enabled)
+            return `hl.monitor({ output = ${JSON.stringify(spec.name)}, disabled = true })`;
+        // O Hyprland mescla as regras de um monitor: "disabled" e "mirror" vão
+        // sempre, senão um valor antigo continua valendo.
+        const fields = [
+            `output = ${JSON.stringify(spec.name)}`,
+            `disabled = false`,
+            `mode = "${spec.width}x${spec.height}@${spec.refresh}"`,
+            `position = "${Math.round(spec.x)}x${Math.round(spec.y)}"`,
+            `scale = ${spec.scale}`,
+            `transform = ${spec.transform}`,
+            `vrr = ${spec.vrr}`,
+            `bitdepth = ${spec.tenBit ? 10 : 8}`,
+            `mirror = ${JSON.stringify(spec.mirror ?? "")}`
+        ];
+        return `hl.monitor({ ${fields.join(", ")} })`;
+    }
+
+    // Código Lua de um arranjo inteiro (também serve para gravar num arquivo).
+    function lua(specs: var): string {
+        return specs.map(luaFor).join("\n");
+    }
+
+    function apply(specs: var): void {
+        if (!specs.length)
+            return;
+        Quickshell.execDetached(["hyprctl", "eval", lua(specs)]);
+        settle.restart();
+    }
+
+    // O Hyprland leva um instante para reconfigurar as saídas.
+    Timer {
+        id: settle
+
+        interval: 600
+        onTriggered: root.refresh()
+    }
+
+    Process {
+        id: reader
+
+        running: true
+        command: ["hyprctl", "monitors", "all", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const list = JSON.parse(text).sort((a, b) => a.id - b.id);
+                    const names = {};
+                    for (const m of list)
+                        names[String(m.id)] = m.name;
+                    root.monitors = list.map(m => root.normalize(m, names));
+                } catch (e) {}
+            }
+        }
+    }
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (["monitoradded", "monitoraddedv2", "monitorremoved", "monitorremovedv2", "configreloaded"].includes(event.name))
+                settle.restart();
+        }
+    }
+}
