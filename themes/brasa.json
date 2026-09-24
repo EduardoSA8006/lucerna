@@ -47,7 +47,7 @@
     "wallpaper": {
         "static": "wallpapers/brasa.jpg",
         "shader": "shaders/brasas.qsb",
-        "fps": 30
+        "fps": 20
     },
     "hyprland": {
         "activeBorder": "#ff6b3d",

@@ -67,33 +67,90 @@ Column {
                     }
                 }
 
-                // Imagem do usuário
+                // Imagem, vídeo ou GIF do usuário
                 WallpaperOption {
+                    id: own
+
                     width: options.cardWidth
-                    image: WallpaperSettings.image
+                    image: WallpaperSettings.converting ? "" : WallpaperSettings.image
                     colors: WallpaperSettings.colors
-                    label: WallpaperSettings.usesImage ? "Sua imagem" : "Escolher uma imagem"
-                    detail: WallpaperSettings.usesImage ? WallpaperSettings.image.replace(/^.*\//, "") : "Do computador"
-                    selected: WallpaperSettings.usesImage
-                    onClicked: WallpaperSettings.browsing = !WallpaperSettings.browsing
+                    label: WallpaperSettings.converting ? "Preparando o vídeo…" : WallpaperSettings.usesVideo ? "Seu vídeo" : WallpaperSettings.usesImage ? "Sua imagem" : "Imagem ou vídeo"
+                    detail: WallpaperSettings.converting ? `${Math.round(WallpaperSettings.convertProgress * 100)}%` : WallpaperSettings.usesImage ? WallpaperSettings.sourceName : WallpaperSettings.canConvert ? "Imagem, vídeo ou GIF" : "Do computador"
+                    selected: WallpaperSettings.usesImage || WallpaperSettings.converting
+                    onClicked: {
+                        if (!WallpaperSettings.converting)
+                            WallpaperSettings.browsing = !WallpaperSettings.browsing;
+                    }
 
                     Icon {
-                        visible: !WallpaperSettings.usesImage
+                        visible: !WallpaperSettings.usesImage && !WallpaperSettings.converting
                         x: (parent.width - width) / 2
                         y: (parent.width * 9 / 16 + 12 - height) / 2
                         icon: "add_photo_alternate"
                         size: 30
                         color: ThemeManager.colors.accent
                     }
+
+                    // Progresso da conversão
+                    Rectangle {
+                        visible: WallpaperSettings.converting
+                        x: 18
+                        y: parent.width * 9 / 16 / 2
+                        width: parent.width - 36
+                        height: 6
+                        radius: 3
+                        color: ThemeManager.colors.track
+
+                        Rectangle {
+                            width: parent.width * WallpaperSettings.convertProgress
+                            height: parent.height
+                            radius: 3
+                            color: ThemeManager.colors.accent
+
+                            Behavior on width { Anim { type: Anim.Effects } }
+                        }
+                    }
+
+                    Rectangle {
+                        visible: WallpaperSettings.usesVideo && !WallpaperSettings.converting
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.margins: 12
+                        width: videoBadge.implicitWidth + 12
+                        height: 20
+                        radius: 10
+                        color: ThemeManager.alpha("#000000", 0.45)
+
+                        Txt {
+                            id: videoBadge
+
+                            anchors.centerIn: parent
+                            text: "Vídeo"
+                            color: "#ffffff"
+                            font.pixelSize: ThemeManager.font.small - 1
+                        }
+                    }
                 }
             }
+        }
+
+        Txt {
+            x: ThemeManager.spacing.large
+            width: parent.width - x * 2
+            bottomPadding: ThemeManager.spacing.normal
+            visible: text !== ""
+            wrapMode: Text.Wrap
+            text: WallpaperSettings.videoError ? `Não deu para usar o vídeo: ${WallpaperSettings.videoError}` : WallpaperSettings.usesVideo && WallpaperSettings.probed && !WallpaperSettings.hardwareDecode ? "Esta GPU não decodifica vídeo por hardware (falta o VA-API ou o driver dele): o vídeo roda na CPU e gasta mais. O arquivo já foi preparado para ficar o mais leve possível assim." : ""
+            color: WallpaperSettings.videoError ? ThemeManager.colors.danger : ThemeManager.colors.textMuted
+            font.pixelSize: ThemeManager.font.small + 1
         }
 
         SettingRow {
             visible: WallpaperSettings.usesImage
             wide: true
             icon: Icons.resolution
-            title: "Ajuste da imagem"
+            title: WallpaperSettings.usesVideo ? "Ajuste do vídeo" : "Ajuste da imagem"
+            description: !WallpaperSettings.usesVideo ? "" : WallpaperSettings.readySizes.length ? `Pronto para ${WallpaperSettings.readySizes.join(", ")}${WallpaperSettings.pendingCount ? ` · preparando mais ${WallpaperSettings.pendingCount}` : ""}. Cada tela ganha a sua versão` : "Preparando a versão de cada tela"
 
             SegmentedControl {
                 width: parent.width
@@ -169,7 +226,7 @@ Column {
             wide: true
             icon: Icons.refreshRate
             title: "Quadros por segundo"
-            description: "Os efeitos são lentos: 30 já fica suave, e menos gasta menos"
+            description: "Os efeitos são lentos: 30 já fica suave, e menos gasta menos. Vale também para os vídeos (limite ao converter)"
 
             SegmentedControl {
                 width: parent.width
@@ -199,6 +256,17 @@ Column {
             Switch {
                 checked: Config.wallpaperStrict
                 onToggled: on => WallpaperSettings.setStrict(on)
+            }
+        }
+
+        SettingRow {
+            icon: Icons.monitor
+            title: "Preparar vídeos para outras telas"
+            description: "Deixa os vídeos prontos também para as resoluções mais comuns (1080p, 1440p, 4K, ultrawide 21:9 e 16:10), na tomada e sem pressa. Desligado, a versão de uma tela nova é feita quando ela aparece, em segundos"
+
+            Switch {
+                checked: Config.wallpaperVideoPrecache
+                onToggled: on => WallpaperSettings.setPrecache(on)
             }
         }
 

@@ -14,29 +14,34 @@ layout(std140, binding = 0) uniform buf {
     vec4 text;
 };
 
+layout(binding = 1) uniform sampler2D noiseTex;
+
 float hash(vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
     p += dot(p, p + 45.32);
     return fract(p.x * p.y);
 }
 
+// Ruído de valor lido de uma textura de ruído (256×256, repetida): o filtro
+// bilinear da GPU faz a interpolação, e a curva suave vai na coordenada. Uma
+// leitura de textura por oitava, em vez de quatro hashes com várias contas.
 float noise(vec2 p) {
     vec2 i = floor(p);
     vec2 f = fract(p);
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
-               mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+    f = f * f * (3.0 - 2.0 * f);
+    return texture(noiseTex, (i + f + 0.5) / 256.0).r;
 }
 
+// Quatro oitavas: a quinta mal aparece em névoa e brilho ampliados.
 float fbm(vec2 p) {
     float v = 0.0;
     float a = 0.5;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
         v += a * noise(p);
         p = p * 2.03 + vec2(17.1, 9.2);
         a *= 0.5;
     }
-    return v;
+    return v / 0.9375;
 }
 
 // Coordenadas centradas, com a proporção da tela (x de -aspect/2 a aspect/2)

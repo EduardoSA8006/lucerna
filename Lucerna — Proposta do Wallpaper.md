@@ -8,6 +8,28 @@ Sep 23, 2026 · @Eduardo Alves
 > - **Os shaders são compilados só para GLSL de desktop e SPIR-V.** A variante GLSL ES sai com `mediump`, e GPUs que calculam `mediump` em 16 bits (como as Intel integradas) desenham os degradês em faixas.
 >
 > Os efeitos, o catálogo (`themes/shaders/effects.json`) e o trecho comum de uniforms (`common.glsl`) são compilados por `dev/shaders.sh`.
+>
+> **Vídeo e GIF entraram** (antes fora do escopo, mais abaixo), porque a decodificação por hardware tira quase todo o custo que motivava deixá-los de fora. Um vídeo (MP4, WebM, MKV, MOV) ou GIF escolhido é convertido uma vez, por `services/scripts/video-wallpaper.sh`, para a versão mais barata de tocar naquela tela:
+>
+> - resolução do maior monitor e, se for preencher, já recortada na proporção dele (vídeo menor que a tela não é ampliado no arquivo);
+> - tarjas pretas detectadas (`cropdetect`) e cortadas;
+> - quadros por segundo limitados e quadros repetidos removidos (`mpdecimate`, com taxa variável);
+> - H.264 sem áudio, com `-tune fastdecode` se a GPU não tiver VA-API.
+>
+> **Uma versão por tela.** O tema guarda só o vídeo original. Cada monitor toca a versão feita para a sua resolução, proporção, ajuste e fps, e telas iguais dividem a mesma versão. Um monitor novo (ou resolução, rotação, ajuste e fps novos) pede a versão que falta a uma fila, que converte uma de cada vez com prioridade baixa. Enquanto ela não fica pronta, toca a versão mais parecida (mesmo ajuste, proporção e tamanho mais próximos), então nunca há tela vazia. Como cada versão é recortada a partir do original, um ultrawide 21:9 recebe a faixa larga do vídeo e um monitor em pé, a vertical. Opcionalmente ("Preparar vídeos para outras telas", desligada por padrão), a fila também prepara 1080p, 1440p, 4K, 21:9 e 16:10 na tomada, com prioridade mínima e dois núcleos. Cada vídeo guarda no máximo oito versões, e as de vídeos que nenhum tema usa mais são apagadas.
+>
+> A saída fica em cache e toca pelo Qt Multimedia (FFmpeg, com VA-API), com as mesmas regras de pausa. Pausado por mais de dois minutos, o decodificador é liberado. A camada de vídeo é carregada à parte: sem o Qt Multimedia, fica a capa (o primeiro quadro).
+>
+> **Custo medido** (Intel UHD de 11ª geração, tela de 1600×900, Hyprland aninhado; "3D" é o uso extra do motor 3D da GPU sobre a base, e "vídeo", o do motor de vídeo):
+>
+> | Papel | CPU do shell | Memória extra | GPU 3D | GPU vídeo |
+> | --- | --- | --- | --- | --- |
+> | Parado | 0,5% | — | — | 0% |
+> | Efeito Aurora, 20 fps | ~2% | ~0 | +12 pontos | 0% |
+> | Vídeo 4K original (89 Mbps), sem converter | 4,7% | +278 MB | +20 pontos | 7,9% |
+> | O mesmo vídeo convertido (1600×900, 537 KB) | 3,5% | +56 MB | +15 pontos | 1,1% |
+>
+> Os efeitos também usam uma textura de ruído (`themes/shaders/noise.png`) em vez de calcular o ruído por pixel: uma leitura de textura por oitava. Isso cortou o custo da Aurora na GPU pela metade.
 
 ## Visão geral
 

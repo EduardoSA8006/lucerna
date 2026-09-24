@@ -50,18 +50,19 @@ Singleton {
         Config.wallpaperMonitors = all;
     }
 
-    // Se o efeito aparece (em vez da imagem parada): depende do modo, de o papel
-    // ter efeito e, no auto, de estar na tomada.
+    // Se o animado (efeito ou vídeo) aparece, em vez da imagem parada: depende
+    // do modo, de o papel ser animado e, no auto, de estar na tomada.
     function showsEffect(screen: var): bool {
         const m = mode(screen);
-        if (m === "static" || !source(screen).shader)
+        const s = source(screen);
+        if (m === "static" || (!s.shader && s.kind !== "video"))
             return false;
         if (m === "auto" && Config.wallpaperBatteryStatic && Battery.available && Battery.onBattery)
             return false;
         return true;
     }
 
-    // Se o efeito deve rodar agora. Pausado, o último quadro fica na tela e o
+    // Se o animado deve rodar agora. Pausado, o último quadro fica na tela e o
     // custo cai a zero (nada redesenha). Tela bloqueada, app em tela cheia ou
     // tela apagada pausam; no modo estrito, qualquer janela no workspace também.
     function shouldAnimate(screen: var): bool {
@@ -73,6 +74,196 @@ Singleton {
             return false;
         return true;
     }
+
+    // Vídeos: cada tela toca a versão feita para ela (resolução, proporção,
+    // ajuste e fps). Enquanto ela não fica pronta, toca a mais parecida.
+    readonly property var variants: Config.videoVariants ?? {}
+
+    function targetFor(screen: var): var {
+        const ratio = screen?.devicePixelRatio || 1;
+        return {
+            width: Math.round((screen?.width ?? 1920) * ratio),
+            height: Math.round((screen?.height ?? 1080) * ratio),
+            crop: Config.wallpaperFill !== "fit",
+            fps: Config.wallpaperFps
+        };
+    }
+
+    // A versão mais parecida com a tela: mesma forma de ajustar, proporção
+    // mais próxima e, entre essas, o tamanho mais próximo (maior é melhor que menor).
+    function closest(list: var, target: var): var {
+        let best = null;
+        let bestScore = Infinity;
+        for (const key of Object.keys(list)) {
+            const t = VideoWallpapers.parseKey(key);
+            if (!t)
+                continue;
+            const aspect = Math.abs(Math.log((t.width / t.height) / (target.width / target.height)));
+            const size = Math.log((t.width * t.height) / (target.width * target.height));
+            const score = (t.crop === target.crop ? 0 : 10) + aspect * 4 + (size < 0 ? -size * 1.5 : size * 0.5);
+            if (score < bestScore) {
+                bestScore = score;
+                best = list[key];
+            }
+        }
+        return best;
+    }
+
+    function videoFor(screen: var): string {
+        const s = source(screen);
+        if (s.kind !== "video")
+            return "";
+        const list = variants[s.source] ?? {};
+        const target = targetFor(screen);
+        return (list[VideoWallpapers.keyOf(target)] ?? closest(list, target))?.video ?? "";
+    }
+
+    // Resoluções comuns, para a preparação antecipada (opcional).
+    readonly property var commonTargets: [[1920, 1080], [2560, 1440], [3840, 2160], [2560, 1080], [3440, 1440], [1920, 1200], [2560, 1600]]
+
+    // Vídeos que algum tema usa.
+    readonly property var videoSources: Object.values(Config.themeWallpapers ?? {}).filter(c => c?.kind === "video" && c.source).map(c => c.source)
+
+    // Pede o que falta: a versão de cada tela que mostra vídeo e, com a
+    // preparação antecipada ligada e na tomada, as das resoluções comuns.
+    function ensure(): void {
+        if (!VideoWallpapers.ffmpeg)
+            return;
+        const now = Date.now();
+        const touched = {};
+        for (const screen of Quickshell.screens) {
+            const s = source(screen);
+            if (s.kind !== "video")
+                continue;
+            const target = targetFor(screen);
+            const key = VideoWallpapers.keyOf(target);
+            if ((variants[s.source] ?? {})[key])
+                (touched[s.source] = touched[s.source] ?? []).push(key);
+            else
+                VideoWallpapers.request(s.source, target, false);
+        }
+        if (Config.wallpaperVideoPrecache && !(Battery.available && Battery.onBattery)) {
+            for (const src of videoSources) {
+                for (const [w, h] of commonTargets) {
+                    const target = { width: w, height: h, crop: Config.wallpaperFill !== "fit", fps: Config.wallpaperFps };
+                    if (!(variants[src] ?? {})[VideoWallpapers.keyOf(target)])
+                        VideoWallpapers.request(src, target, true);
+                }
+            }
+        }
+        // Marca como usadas as versões à mostra (para a limpeza).
+        if (Object.keys(touched).length) {
+            const all = Object.assign({}, variants);
+            for (const src of Object.keys(touched)) {
+                all[src] = Object.assign({}, all[src]);
+                for (const key of touched[src])
+                    all[src][key] = Object.assign({}, all[src][key], { used: now });
+            }
+            Config.videoVariants = all;
+        }
+    }
+
+    readonly property int maxVariants: 8
+
+    // Guarda a versão pronta; cada vídeo fica com no máximo oito, saindo as
+    // usadas há mais tempo.
+    function store(src: string, key: string, video: string, poster: string): void {
+        const all = Object.assign({}, variants);
+        const list = Object.assign({}, all[src] ?? {});
+        list[key] = { video, poster, used: Date.now() };
+        const keys = Object.keys(list).sort((a, b) => (list[b].used ?? 0) - (list[a].used ?? 0));
+        const drop = keys.slice(maxVariants);
+        VideoWallpapers.remove(drop.reduce((files, k) => files.concat([list[k].video, list[k].poster]), []));
+        for (const k of drop)
+            delete list[k];
+        all[src] = list;
+        Config.videoVariants = all;
+    }
+
+    // Vídeos que nenhum tema usa mais saem do cache (e da fila).
+    function cleanup(): void {
+        const all = Object.assign({}, variants);
+        let changed = false;
+        for (const src of Object.keys(all)) {
+            if (videoSources.includes(src))
+                continue;
+            VideoWallpapers.remove(Object.values(all[src]).reduce((files, v) => files.concat([v.video, v.poster]), []));
+            VideoWallpapers.forget(src);
+            delete all[src];
+            changed = true;
+        }
+        if (changed)
+            Config.videoVariants = all;
+    }
+
+    Connections {
+        target: VideoWallpapers
+
+        function onReady(source, key, video, poster) {
+            root.store(source, key, video, poster);
+        }
+
+        function onFfmpegChanged() {
+            ensureDelay.restart();
+        }
+    }
+
+    // O que pode pedir versões novas: telas, papéis, ajuste, fps, bateria.
+    Timer {
+        id: ensureDelay
+
+        interval: 400
+        onTriggered: {
+            root.cleanup();
+            root.ensure();
+        }
+    }
+
+    Connections {
+        target: Quickshell
+
+        function onScreensChanged() {
+            ensureDelay.restart();
+        }
+    }
+
+    Connections {
+        target: Config
+
+        function onThemeWallpapersChanged() {
+            ensureDelay.restart();
+        }
+
+        function onWallpaperFillChanged() {
+            ensureDelay.restart();
+        }
+
+        function onWallpaperFpsChanged() {
+            ensureDelay.restart();
+        }
+
+        function onWallpaperVideoPrecacheChanged() {
+            ensureDelay.restart();
+        }
+
+        function onWallpaperMonitorsChanged() {
+            ensureDelay.restart();
+        }
+
+        function onThemeChanged() {
+            ensureDelay.restart();
+        }
+    }
+
+    Connections {
+        target: Battery
+
+        function onOnBatteryChanged() {
+            ensureDelay.restart();
+        }
+    }
+
+    Component.onCompleted: ensureDelay.restart()
 
     readonly property int fps: Math.max(5, Math.min(60, Config.wallpaperFps))
     readonly property bool fullRes: Config.wallpaperFullRes

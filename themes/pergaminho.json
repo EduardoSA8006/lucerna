@@ -47,7 +47,7 @@
     "wallpaper": {
         "static": "wallpapers/pergaminho.jpg",
         "shader": "shaders/papel.qsb",
-        "fps": 30
+        "fps": 20
     },
     "hyprland": {
         "activeBorder": "#b8641b",
