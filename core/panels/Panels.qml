@@ -118,13 +118,18 @@ Singleton {
         }
     }
 
+    // Só fecha se nada mudou desde que o grab caiu: um painel aberto nesse
+    // meio-tempo não é fechado por um clique fora que aconteceu antes dele.
     Timer {
         id: clearedCheck
 
         property real at: 0
+        property string snapshot: ""
 
         interval: 250
         onTriggered: {
+            if (root.opened.join(" ") !== snapshot)
+                return;
             if (root.anyOpen && Math.abs(root.lastDisturb - at) < 1000) {
                 root.rearming = true;
                 Qt.callLater(() => root.rearming = false);
@@ -135,10 +140,16 @@ Singleton {
     }
 
     HyprlandFocusGrab {
+        id: grab
+
         active: root.anyOpen && !root.modalOpen && !root.rearming
         windows: root.surfaces
         onCleared: {
+            // Desativar o grab (fechar o último painel) também avisa; não é clique fora.
+            if (!grab.active || !root.anyOpen)
+                return;
             clearedCheck.at = Date.now();
+            clearedCheck.snapshot = root.opened.join(" ");
             clearedCheck.restart();
         }
     }

@@ -44,7 +44,11 @@
     "bar": {
         "height": 44
     },
-    "wallpaper": "wallpapers/luar.jpg",
+    "wallpaper": {
+        "static": "wallpapers/luar.jpg",
+        "shader": "shaders/luar.qsb",
+        "fps": 30
+    },
     "hyprland": {
         "activeBorder": "#9ec1ff",
         "inactiveBorder": "#273044",

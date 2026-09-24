@@ -28,6 +28,7 @@ Singleton {
     // Tópicos da barra lateral. `soon` marca os que ainda não têm opções.
     readonly property var topics: [
         { id: "appearance", icon: Icons.palette, label: "Aparência", description: "Tema e animações" },
+        { id: "wallpaper", icon: Icons.wallpaper, label: "Papel de parede", description: "Por tema, animado ou seu" },
         { id: "displays", icon: Icons.monitor, label: "Monitores", description: "Disposição, resolução e escala" },
         { id: "mouse", icon: Icons.mouse, label: "Mouse", description: "Ponteiro, rolagem e botões" },
         { id: "keyboard", icon: Icons.keyboard, label: "Teclado", description: "Layouts, teclas e atalhos" },

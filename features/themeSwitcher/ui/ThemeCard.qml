@@ -31,7 +31,7 @@ Item {
 
         Image {
             anchors.fill: parent
-            source: card.theme.wallpaper ? `file://${card.theme.wallpaper}` : ""
+            source: ThemeManager.wallpaperFor(card.theme.id).static ? `file://${ThemeManager.wallpaperFor(card.theme.id).static}` : ""
             sourceSize: Qt.size(400, 300)
             fillMode: Image.PreserveAspectCrop
             asynchronous: true

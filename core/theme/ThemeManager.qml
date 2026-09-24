@@ -15,12 +15,16 @@ Singleton {
     readonly property string directory: Quickshell.shellPath("themes")
     readonly property string current: Config.theme
 
-    // Temas disponíveis, para o seletor: { id, name, description, dark, colors, wallpaper }.
+    // Temas disponíveis, para o seletor: { id, name, description, dark, colors,
+    // wallpaper, shader, fps } (wallpaper é a imagem; shader, o animado, se houver).
     property var themes: []
 
     readonly property var data: parse(activeFile.text())
     readonly property bool dark: data.dark ?? true
-    readonly property string wallpaper: resolvePath(data.wallpaper ?? "")
+    // Papel de parede do tema ativo, já com a escolha do usuário (wallpaperFor).
+    readonly property var activeWallpaper: wallpaperFor(current)
+    readonly property string wallpaper: activeWallpaper.static
+    readonly property string wallpaperShader: activeWallpaper.shader
     readonly property var hyprland: data.hyprland ?? ({})
 
     readonly property QtObject colors: QtObject {
@@ -211,6 +215,41 @@ Singleton {
         return `${directory}/${path}`;
     }
 
+    // O campo "wallpaper" do tema: um caminho (só a imagem) ou
+    // { static, shader, fps }. Caminhos relativos a themes/.
+    function normalizeWallpaper(value: var): var {
+        if (typeof value === "string" || !value)
+            return { static: resolvePath(value ?? ""), shader: "", fps: 30 };
+        return { static: resolvePath(value.static ?? ""), shader: resolvePath(value.shader ?? ""), fps: value.fps ?? 30 };
+    }
+
+    // Efeitos animados prontos (themes/shaders/effects.json), usáveis por
+    // qualquer tema: as cores vêm do tema que os usa.
+    readonly property var effects: parse(effectsFile.text() || "[]").map(e => ({ id: e.id, name: e.name, description: e.description ?? "", shader: resolvePath(e.shader) }))
+
+    // Papel de parede de um tema: o do próprio tema ou o que o usuário escolheu
+    // para ele (Config.themeWallpapers[id]):
+    //   { kind: "theme-image" }            a imagem do tema, parada
+    //   { kind: "effect", effect: "luar" } um efeito animado (nas cores do tema)
+    //   { kind: "image", image: "/..." }   uma imagem do usuário
+    // Devolve { static, shader, fps, kind, custom }.
+    function wallpaperFor(id: string): var {
+        const theme = id === current ? Object.assign({ id }, normalizeWallpaper(data.wallpaper)) : themes.find(t => t.id === id);
+        const own = { static: theme?.static ?? theme?.wallpaper ?? "", shader: theme?.shader ?? "", fps: theme?.fps ?? 30 };
+        const choice = (Config.themeWallpapers ?? {})[id];
+        if (!choice)
+            return Object.assign(own, { kind: "theme", custom: false });
+        if (choice.kind === "theme-image")
+            return { static: own.static, shader: "", fps: own.fps, kind: choice.kind, custom: true };
+        if (choice.kind === "effect") {
+            const effect = effects.find(e => e.id === choice.effect);
+            return { static: own.static, shader: effect?.shader ?? own.shader, fps: own.fps, kind: choice.kind, effect: choice.effect, custom: true };
+        }
+        if (choice.kind === "image")
+            return { static: resolvePath(choice.image ?? "") || own.static, shader: "", fps: own.fps, kind: choice.kind, image: choice.image, custom: true };
+        return Object.assign(own, { kind: "theme", custom: false });
+    }
+
     function rebuildList(): void {
         const list = [];
         for (let i = 0; i < themeFiles.count; i++) {
@@ -218,13 +257,17 @@ Singleton {
             if (!file?.loaded)
                 continue;
             const d = parse(file.text());
+            const wp = normalizeWallpaper(d.wallpaper);
             list.push({
                 id: file.themeId,
                 name: d.name ?? file.themeId,
                 description: d.description ?? "",
                 dark: d.dark ?? true,
                 colors: d.colors ?? {},
-                wallpaper: resolvePath(d.wallpaper ?? "")
+                wallpaper: wp.static,
+                static: wp.static,
+                shader: wp.shader,
+                fps: wp.fps
             });
         }
         list.sort((a, b) => a.id === defaultTheme ? -1 : b.id === defaultTheme ? 1 : a.name.localeCompare(b.name));
@@ -257,6 +300,13 @@ Singleton {
         function list(): string {
             return root.themes.map(t => t.id).join("\n");
         }
+    }
+
+    FileView {
+        id: effectsFile
+
+        path: `${root.directory}/shaders/effects.json`
+        printErrors: false
     }
 
     FileView {

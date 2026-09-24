@@ -1,0 +1,7 @@
+[
+    { "id": "aurora", "name": "Aurora", "description": "Nuvens de nebulosa e estrelas que piscam", "shader": "shaders/aurora.qsb" },
+    { "id": "brasas", "name": "Brasas", "description": "Calor que sobe do chão e fagulhas", "shader": "shaders/brasas.qsb" },
+    { "id": "chama", "name": "Chama", "description": "Um brilho que respira e tremula no escuro", "shader": "shaders/chama.qsb" },
+    { "id": "luar", "name": "Luar", "description": "Lua, estrelas e uma névoa baixa", "shader": "shaders/luar.qsb" },
+    { "id": "papel", "name": "Papel", "description": "Tinta se espalhando devagar sobre o papel", "shader": "shaders/papel.qsb" }
+]

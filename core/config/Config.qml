@@ -57,6 +57,15 @@ Singleton {
     property alias panelsAvoidOverlap: adapter.panelsAvoidOverlap
     property alias monitorSetups: adapter.monitorSetups
     property alias inputOptions: adapter.inputOptions
+    property alias themeWallpapers: adapter.themeWallpapers
+    property alias wallpaperMode: adapter.wallpaperMode
+    property alias wallpaperMonitors: adapter.wallpaperMonitors
+    property alias wallpaperFps: adapter.wallpaperFps
+    property alias wallpaperBatteryStatic: adapter.wallpaperBatteryStatic
+    property alias wallpaperStrict: adapter.wallpaperStrict
+    property alias wallpaperFill: adapter.wallpaperFill
+    property alias wallpaperFullRes: adapter.wallpaperFullRes
+    property alias wallpaperFolder: adapter.wallpaperFolder
     property alias mouseDevices: adapter.mouseDevices
     property alias keyboardLayouts: adapter.keyboardLayouts
     property alias keyboardOptions: adapter.keyboardOptions
@@ -161,6 +170,23 @@ Singleton {
             // Entrada. Só o que foi mudado nas configurações; o resto segue o
             // hyprland.lua. Opções: { "input.sensitivity": 0.2, ... }.
             property var inputOptions: ({})
+            // Papel de parede escolhido por tema (ver ThemeManager.wallpaperFor).
+            property var themeWallpapers: ({})
+            // "auto" (animado se o papel tiver efeito), "animated" ou "static".
+            property string wallpaperMode: "auto"
+            // Por monitor: { "HDMI-A-1": { mode, source } }; source = id de outro tema.
+            property var wallpaperMonitors: ({})
+            property int wallpaperFps: 30
+            // No modo auto, fora da tomada fica a imagem parada.
+            property bool wallpaperBatteryStatic: true
+            // Pausar também quando há janelas no workspace (sobra pouco à mostra).
+            property bool wallpaperStrict: false
+            // Imagens do usuário: "crop" (preenche cortando) ou "fit" (inteira).
+            property string wallpaperFill: "crop"
+            // Animado em resolução cheia (padrão: metade, ampliada).
+            property bool wallpaperFullRes: false
+            // Última pasta aberta no seletor de imagens.
+            property string wallpaperFolder: ""
             // Velocidade própria por mouse: { nome: { sensitivity, accel_profile } }.
             property var mouseDevices: ({})
             // Layouts [{ layout, variant }] e opções do xkb; null = os do hyprland.lua.
