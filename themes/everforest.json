@@ -47,8 +47,7 @@
     },
     "wallpaper": {
         "static": "wallpapers/everforest.jpg",
-        "shader": "shaders/vagalumes.qsb",
-        "fps": 20
+        "shader": "shaders/vagalumes.qsb"
     },
     "hyprland": {
         "activeBorder": "#a7c080",

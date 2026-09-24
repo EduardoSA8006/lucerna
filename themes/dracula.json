@@ -47,8 +47,7 @@
     },
     "wallpaper": {
         "static": "wallpapers/dracula.jpg",
-        "shader": "shaders/aurora.qsb",
-        "fps": 20
+        "shader": "shaders/aurora.qsb"
     },
     "hyprland": {
         "activeBorder": "#bd93f9",

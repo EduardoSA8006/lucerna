@@ -47,8 +47,7 @@
     },
     "wallpaper": {
         "static": "wallpapers/gruvbox-dark.jpg",
-        "shader": "shaders/brasas.qsb",
-        "fps": 20
+        "shader": "shaders/brasas.qsb"
     },
     "hyprland": {
         "activeBorder": "#fe8019",

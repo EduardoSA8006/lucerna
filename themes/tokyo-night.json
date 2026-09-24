@@ -47,8 +47,7 @@
     },
     "wallpaper": {
         "static": "wallpapers/tokyo-night.jpg",
-        "shader": "shaders/bokeh.qsb",
-        "fps": 20
+        "shader": "shaders/bokeh.qsb"
     },
     "hyprland": {
         "activeBorder": "#7aa2f7",

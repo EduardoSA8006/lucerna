@@ -88,8 +88,7 @@ Singleton {
         Config.themeWallpapers = all;
         const seen = {};
         for (const screen of Quickshell.screens) {
-            const ratio = screen.devicePixelRatio || 1;
-            const target = { width: Math.round(screen.width * ratio), height: Math.round(screen.height * ratio), crop: Config.wallpaperFill !== "fit", fps: Config.wallpaperFps };
+            const target = VideoWallpapers.targetFor(screen, Config.wallpaperFill !== "fit", fps);
             const key = VideoWallpapers.keyOf(target);
             if (seen[key])
                 continue;
@@ -191,8 +190,12 @@ Singleton {
     }
 
     // Economia
-    readonly property int fps: Config.wallpaperFps
-    readonly property var fpsOptions: [15, 24, 30, 60].map(v => ({ label: `${v} fps`, value: v }))
+    // 30 ou 60 (configs antigas com 15 ou 24 contam como 30).
+    readonly property int fps: Config.wallpaperFps >= 45 ? 60 : 30
+    readonly property var fpsOptions: [
+        { label: "30 fps", value: 30 },
+        { label: "60 fps", value: 60 }
+    ]
 
     function setFps(value: int): void {
         Config.wallpaperFps = value;

@@ -37,6 +37,20 @@ Singleton {
         }
     }
 
+    // Alvo da versão de uma tela: pixels reais, recortada (preencher) ou não, e a
+    // taxa pedida, sem passar da do monitor (não se decodificam 60 quadros para
+    // uma tela de 50 Hz).
+    function targetFor(screen: var, crop: bool, fps: int): var {
+        const ratio = screen?.devicePixelRatio || 1;
+        const refresh = Monitors.monitors.find(m => m.name === screen?.name)?.refresh ?? 60;
+        return {
+            width: Math.round((screen?.width ?? 1920) * ratio),
+            height: Math.round((screen?.height ?? 1080) * ratio),
+            crop: crop,
+            fps: Math.max(1, Math.min(fps, Math.round(refresh)))
+        };
+    }
+
     // Chave de uma versão: "2560x1080-c-30" (c = recortada para preencher, f = inteira).
     function keyOf(target: var): string {
         return `${Math.round(target.width)}x${Math.round(target.height)}-${target.crop === false ? "f" : "c"}-${target.fps ?? 30}`;

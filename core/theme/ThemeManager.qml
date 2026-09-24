@@ -16,7 +16,7 @@ Singleton {
     readonly property string current: Config.theme
 
     // Temas disponíveis, para o seletor: { id, name, description, dark, colors,
-    // wallpaper, shader, fps } (wallpaper é a imagem; shader, o animado, se houver).
+    // wallpaper, shader } (wallpaper é a imagem; shader, o animado, se houver).
     property var themes: []
 
     readonly property var data: parse(activeFile.text())
@@ -216,11 +216,12 @@ Singleton {
     }
 
     // O campo "wallpaper" do tema: um caminho (só a imagem) ou
-    // { static, shader, fps }. Caminhos relativos a themes/.
+    // { static, shader }. Caminhos relativos a themes/. A taxa de quadros é do
+    // usuário (Config.wallpaperFps), não do tema.
     function normalizeWallpaper(value: var): var {
         if (typeof value === "string" || !value)
-            return { static: resolvePath(value ?? ""), shader: "", fps: 30 };
-        return { static: resolvePath(value.static ?? ""), shader: resolvePath(value.shader ?? ""), fps: value.fps ?? 30 };
+            return { static: resolvePath(value ?? ""), shader: "" };
+        return { static: resolvePath(value.static ?? ""), shader: resolvePath(value.shader ?? "") };
     }
 
     // Efeitos animados prontos (themes/shaders/effects.json), usáveis por
@@ -235,11 +236,11 @@ Singleton {
     //   { kind: "video", source }          um vídeo ou GIF do usuário; as versões
     //                                      convertidas, uma por tela, ficam em
     //                                      Config.videoVariants[source]
-    // Devolve { static, shader, fps, kind, custom } (e source, no vídeo). Qual
+    // Devolve { static, shader, kind, custom } (e source, no vídeo). Qual
     // versão cada tela toca é decidido pelo wallpaper.
     function wallpaperFor(id: string): var {
         const theme = id === current ? Object.assign({ id }, normalizeWallpaper(data.wallpaper)) : themes.find(t => t.id === id);
-        const own = { static: theme?.static ?? theme?.wallpaper ?? "", shader: theme?.shader ?? "", fps: theme?.fps ?? 30 };
+        const own = { static: theme?.static ?? theme?.wallpaper ?? "", shader: theme?.shader ?? "" };
         const choice = (Config.themeWallpapers ?? {})[id];
         own.video = "";
         if (!choice)
@@ -247,16 +248,16 @@ Singleton {
         if (choice.kind === "video") {
             // Capa: a de qualquer versão pronta; sem nenhuma, a imagem do tema.
             const variants = Object.values((Config.videoVariants ?? {})[choice.source] ?? {});
-            return { static: variants[0]?.poster || own.static, shader: "", video: "", fps: own.fps, kind: choice.kind, source: choice.source, custom: true };
+            return { static: variants[0]?.poster || own.static, shader: "", video: "", kind: choice.kind, source: choice.source, custom: true };
         }
         if (choice.kind === "theme-image")
-            return { static: own.static, shader: "", video: "", fps: own.fps, kind: choice.kind, custom: true };
+            return { static: own.static, shader: "", video: "", kind: choice.kind, custom: true };
         if (choice.kind === "effect") {
             const effect = effects.find(e => e.id === choice.effect);
-            return { static: own.static, shader: effect?.shader ?? own.shader, video: "", fps: own.fps, kind: choice.kind, effect: choice.effect, custom: true };
+            return { static: own.static, shader: effect?.shader ?? own.shader, video: "", kind: choice.kind, effect: choice.effect, custom: true };
         }
         if (choice.kind === "image")
-            return { static: resolvePath(choice.image ?? "") || own.static, shader: "", video: "", fps: own.fps, kind: choice.kind, image: choice.image, custom: true };
+            return { static: resolvePath(choice.image ?? "") || own.static, shader: "", video: "", kind: choice.kind, image: choice.image, custom: true };
         return Object.assign(own, { kind: "theme", custom: false });
     }
 
@@ -276,8 +277,7 @@ Singleton {
                 colors: d.colors ?? {},
                 wallpaper: wp.static,
                 static: wp.static,
-                shader: wp.shader,
-                fps: wp.fps
+                shader: wp.shader
             });
         }
         list.sort((a, b) => a.id === defaultTheme ? -1 : b.id === defaultTheme ? 1 : a.name.localeCompare(b.name));

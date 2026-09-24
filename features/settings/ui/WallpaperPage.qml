@@ -228,7 +228,7 @@ Column {
             wide: true
             icon: Icons.refreshRate
             title: "Quadros por segundo"
-            description: "Os efeitos são lentos: 30 já fica suave, e menos gasta menos. Vale também para os vídeos (limite ao converter)"
+            description: "60 é mais fluido e custa cerca do dobro na GPU nos efeitos. Na bateria, os efeitos voltam a 30 sozinhos. Nos vídeos é o limite ao converter: um vídeo de 24 fps continua em 24, e nada passa da taxa do monitor"
 
             SegmentedControl {
                 width: parent.width

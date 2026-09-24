@@ -47,8 +47,7 @@
     },
     "wallpaper": {
         "static": "wallpapers/kanagawa.jpg",
-        "shader": "shaders/ondas.qsb",
-        "fps": 20
+        "shader": "shaders/ondas.qsb"
     },
     "hyprland": {
         "activeBorder": "#7e9cd8",

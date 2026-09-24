@@ -47,8 +47,7 @@
     },
     "wallpaper": {
         "static": "wallpapers/catppuccin-mocha.jpg",
-        "shader": "shaders/aurora.qsb",
-        "fps": 20
+        "shader": "shaders/aurora.qsb"
     },
     "hyprland": {
         "activeBorder": "#cba6f7",

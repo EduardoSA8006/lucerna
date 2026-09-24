@@ -47,8 +47,7 @@
     },
     "wallpaper": {
         "static": "wallpapers/rose-pine.jpg",
-        "shader": "shaders/luar.qsb",
-        "fps": 20
+        "shader": "shaders/luar.qsb"
     },
     "hyprland": {
         "activeBorder": "#c4a7e7",

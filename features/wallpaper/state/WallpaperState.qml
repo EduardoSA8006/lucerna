@@ -79,14 +79,11 @@ Singleton {
     // ajuste e fps). Enquanto ela não fica pronta, toca a mais parecida.
     readonly property var variants: Config.videoVariants ?? {}
 
+    // Os vídeos mantêm a taxa escolhida também na bateria: decodificados pela
+    // GPU, o custo quase não muda, e trocar de versão na bateria exigiria
+    // converter justo quando não se quer gastar.
     function targetFor(screen: var): var {
-        const ratio = screen?.devicePixelRatio || 1;
-        return {
-            width: Math.round((screen?.width ?? 1920) * ratio),
-            height: Math.round((screen?.height ?? 1080) * ratio),
-            crop: Config.wallpaperFill !== "fit",
-            fps: Config.wallpaperFps
-        };
+        return VideoWallpapers.targetFor(screen, Config.wallpaperFill !== "fit", chosenFps);
     }
 
     // A versão mais parecida com a tela: mesma forma de ajustar, proporção
@@ -145,7 +142,7 @@ Singleton {
         if (Config.wallpaperVideoPrecache && !(Battery.available && Battery.onBattery)) {
             for (const src of videoSources) {
                 for (const [w, h] of commonTargets) {
-                    const target = { width: w, height: h, crop: Config.wallpaperFill !== "fit", fps: Config.wallpaperFps };
+                    const target = { width: w, height: h, crop: Config.wallpaperFill !== "fit", fps: chosenFps };
                     if (!(variants[src] ?? {})[VideoWallpapers.keyOf(target)])
                         VideoWallpapers.request(src, target, true);
                 }
@@ -265,7 +262,16 @@ Singleton {
 
     Component.onCompleted: ensureDelay.restart()
 
-    readonly property int fps: Math.max(5, Math.min(60, Config.wallpaperFps))
+    // Taxa escolhida: 30 ou 60 (configs antigas com 15 ou 24 contam como 30).
+    readonly property int chosenFps: Config.wallpaperFps >= 45 ? 60 : 30
+
+    // Taxa dos efeitos numa tela: a escolhida, 30 na bateria e nunca acima da
+    // do monitor.
+    function effectFps(screen: var): int {
+        const wanted = chosenFps === 60 && Battery.available && Battery.onBattery ? 30 : chosenFps;
+        const refresh = Monitors.monitors.find(m => m.name === screen?.name)?.refresh ?? 60;
+        return Math.max(1, Math.min(wanted, Math.round(refresh)));
+    }
     readonly property bool fullRes: Config.wallpaperFullRes
     readonly property int fill: Config.wallpaperFill === "fit" ? Image.PreserveAspectFit : Image.PreserveAspectCrop
 
