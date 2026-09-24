@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import qs.core.config
+import qs.core.format
 import qs.core.panels
 import qs.core.widgets
 import qs.services
@@ -196,5 +197,21 @@ Singleton {
 
     function sectionOpen(section: string): bool {
         return Panels.isOpen("sidebar") && Config.sidebarSection === section;
+    }
+
+    // Gravação de tela em andamento: o tempo, e parar pela barra.
+    readonly property bool recording: Capture.recording
+    property string recordingTime: "0:00"
+
+    function stopRecording(): void {
+        Capture.stopRecording();
+    }
+
+    Timer {
+        running: root.recording
+        repeat: true
+        triggeredOnStart: true
+        interval: 1000
+        onTriggered: root.recordingTime = Format.clock((Date.now() - Capture.recordingSince) / 1000)
     }
 }
