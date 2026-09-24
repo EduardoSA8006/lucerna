@@ -2,7 +2,7 @@
 
 Sep 23, 2026 · @Eduardo Alves
 
-> **Implementado.** Cada tema tem um efeito animado entre os dez de `themes/shaders/`: Aurora (Catppuccin Mocha e Dracula), Bokeh (Tokyo Night), Brasas (Gruvbox Dark), Luar (Rosé Pine), Neve (Nord), Vaga-lumes (Everforest), Ondas (Kanagawa), Névoa (Matte Black) e Chuva digital (Decay Green); o Chama fica disponível para qualquer tema. A escolha fica em Configurações → Papel de parede. Duas mudanças em relação ao que está abaixo:
+> **Implementado.** Cada tema tem um efeito animado entre os dez de `themes/shaders/`: Aurora (Catppuccin Mocha e Dracula), Bokeh (Tokyo Night), Brasas (Gruvbox Dark), Luar (Rosé Pine), Neve (Nord), Vaga-lumes (Everforest), Ondas (Kanagawa), Névoa (Matte Black e Rosé Pine Dawn), Ondas também no Catppuccin Latte (em tons pastel, nos temas claros) e Chuva digital (Decay Green); o Chama fica disponível para qualquer tema. A escolha fica em Configurações → Papel de parede. Duas mudanças em relação ao que está abaixo:
 >
 > - **Cada tema pode usar outro papel**, escolhido pelo usuário: o próprio, só a imagem dele parada, qualquer um dos efeitos (nas cores do tema) ou uma **imagem do computador**. A escolha fica em `Config.themeWallpapers` e é resolvida por `ThemeManager.wallpaperFor(tema)`. Com isso, um tema já não é a única origem do wallpaper: uma imagem do usuário pode ser um arquivo solto.
 > - **Os shaders são compilados só para GLSL de desktop e SPIR-V.** A variante GLSL ES sai com `mediump`, e GPUs que calculam `mediump` em 16 bits (como as Intel integradas) desenham os degradês em faixas.

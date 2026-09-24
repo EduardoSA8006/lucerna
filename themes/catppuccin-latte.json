@@ -1,0 +1,71 @@
+{
+    "name": "Catppuccin Latte",
+    "description": "A versão clara do Catppuccin: malva e azul vivos sobre um branco-acinzentado suave.",
+    "dark": false,
+    "colors": {
+        "base": "#eff1f5",
+        "surface": "#e6e9ef",
+        "raised": "#dce0e8",
+        "border": "#bcc0cc",
+        "text": "#4c4f69",
+        "textMuted": "#5c5f77",
+        "textFaint": "#8c8fa1",
+        "accent": "#8839ef",
+        "accentText": "#eff1f5",
+        "danger": "#d20f39",
+        "success": "#40a02b",
+        "warning": "#df8e1d",
+        "track": "#ccd0da"
+    },
+    "font": {
+        "sans": "Rubik",
+        "mono": "CaskaydiaCove Nerd Font",
+        "icon": "Material Symbols Rounded",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 8,
+        "normal": 14,
+        "large": 22
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "scale": 1
+    },
+    "bar": {
+        "height": 44
+    },
+    "wallpaper": {
+        "static": "wallpapers/catppuccin-latte.jpg",
+        "shader": "shaders/ondas.qsb"
+    },
+    "hyprland": {
+        "activeBorder": "#8839ef",
+        "inactiveBorder": "#bcc0cc",
+        "borderSize": 2,
+        "rounding": 12,
+        "blurSize": 6,
+        "blurPasses": 2
+    },
+    "transparency": {
+        "enabled": true,
+        "base": 0.85,
+        "layers": 0.45
+    },
+    "surfaces": {
+        "outline": false
+    },
+    "fonts": [
+        "fonts/Rubik[wght].ttf"
+    ]
+}

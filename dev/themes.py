@@ -151,6 +151,34 @@ THEMES = {
         "effect": "chuva",
         "wallpaper": ("#080d0b", [(0.5, 0.5, 0.7, "#10251b", 0.6), (0.5, 0.5, 0.25, "#1a3d2c", 0.35)], 0),
     },
+    "catppuccin-latte": {
+        "name": "Catppuccin Latte",
+        "description": "A versão clara do Catppuccin: malva e azul vivos sobre um branco-acinzentado suave.",
+        "dark": False,
+        "colors": {
+            "base": "#eff1f5", "surface": "#e6e9ef", "raised": "#dce0e8", "border": "#bcc0cc",
+            "text": "#4c4f69", "textMuted": "#5c5f77", "textFaint": "#8c8fa1",
+            "accent": "#8839ef", "accentText": "#eff1f5",
+            "danger": "#d20f39", "success": "#40a02b", "warning": "#df8e1d", "track": "#ccd0da",
+        },
+        "effect": "ondas",
+        "wallpaper": ("#e6e9ef", [(0.2, 0.2, 0.55, "#d6d0f5", 0.6), (0.85, 0.9, 0.55, "#cfe3f5", 0.6),
+                                  (0.6, 0.35, 0.3, "#f3d9ee", 0.35)], 0),
+    },
+    "rose-pine-dawn": {
+        "name": "Rosé Pine Dawn",
+        "description": "O Rosé Pine ao amanhecer: íris, rosa e pinho sobre um creme quente.",
+        "dark": False,
+        "colors": {
+            "base": "#faf4ed", "surface": "#fffaf3", "raised": "#f2e9e1", "border": "#cecacd",
+            "text": "#575279", "textMuted": "#797593", "textFaint": "#9893a5",
+            "accent": "#907aa9", "accentText": "#faf4ed",
+            "danger": "#b4637a", "success": "#286983", "warning": "#ea9d34", "track": "#dfdad9",
+        },
+        "effect": "papel",
+        "wallpaper": ("#f4ede8", [(0.8, 0.18, 0.45, "#efd6d2", 0.6), (0.2, 0.9, 0.5, "#f5e3c8", 0.5),
+                                  (0.5, 0.5, 0.35, "#e6dcec", 0.35)], 0),
+    },
 }
 
 DEFAULT = "catppuccin-mocha"
@@ -200,7 +228,7 @@ def theme_json(tid, t):
     return {
         "name": t["name"],
         "description": t["description"],
-        "dark": True,
+        "dark": t.get("dark", True),
         "colors": c,
         "font": {
             "sans": "Rubik",

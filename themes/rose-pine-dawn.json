@@ -1,0 +1,71 @@
+{
+    "name": "Rosé Pine Dawn",
+    "description": "O Rosé Pine ao amanhecer: íris, rosa e pinho sobre um creme quente.",
+    "dark": false,
+    "colors": {
+        "base": "#faf4ed",
+        "surface": "#fffaf3",
+        "raised": "#f2e9e1",
+        "border": "#cecacd",
+        "text": "#575279",
+        "textMuted": "#797593",
+        "textFaint": "#9893a5",
+        "accent": "#907aa9",
+        "accentText": "#faf4ed",
+        "danger": "#b4637a",
+        "success": "#286983",
+        "warning": "#ea9d34",
+        "track": "#dfdad9"
+    },
+    "font": {
+        "sans": "Rubik",
+        "mono": "CaskaydiaCove Nerd Font",
+        "icon": "Material Symbols Rounded",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 8,
+        "normal": 14,
+        "large": 22
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "scale": 1
+    },
+    "bar": {
+        "height": 44
+    },
+    "wallpaper": {
+        "static": "wallpapers/rose-pine-dawn.jpg",
+        "shader": "shaders/papel.qsb"
+    },
+    "hyprland": {
+        "activeBorder": "#907aa9",
+        "inactiveBorder": "#cecacd",
+        "borderSize": 2,
+        "rounding": 12,
+        "blurSize": 6,
+        "blurPasses": 2
+    },
+    "transparency": {
+        "enabled": true,
+        "base": 0.85,
+        "layers": 0.45
+    },
+    "surfaces": {
+        "outline": false
+    },
+    "fonts": [
+        "fonts/Rubik[wght].ttf"
+    ]
+}

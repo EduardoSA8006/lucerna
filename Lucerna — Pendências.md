@@ -8,7 +8,7 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 2. [x] **Launcher: o que hoje só o estilo completo tem.** Fixar nos favoritos e ocultar um app (por clique direito ou atalho) no compacto e na tela cheia. Busca em arquivos e na web também fora do estilo completo (por prefixo ou atalho).
 3. [x] **Ociosidade e tela.** Desligar a tela e bloquear depois de X minutos, suspender depois de Y, sem depender do `hypridle` (o Quickshell tem `IdleMonitor`). Com exceções: mídia tocando, app em tela cheia e, no modo apresentação, não apagar.
 4. [x] **Luz noturna.** Temperatura de cor por horário (fixo ou pôr e nascer do sol), na seção Tela da central lateral e nas configurações.
-5. [ ] **Temas claros.** Catppuccin Latte e Rosé Pine Dawn, as versões claras oficiais (hoje nenhum dos dez temas é claro).
+5. [x] **Temas claros.** Catppuccin Latte e Rosé Pine Dawn, as versões claras oficiais.
 6. [ ] **Atalhos editáveis.** A página Atalhos das configurações só informa; os atalhos do shell continuam no `hyprland.lua`. Passar a editar ali, reaproveitando os binds da aba Teclado.
 7. [ ] **Monitores no login.** O arranjo salvo só vale quando o Lucerna inicia, e no login o `hyprland.lua` aparece antes. Opção de gravar o arranjo num arquivo que o `hyprland.lua` inclui.
 8. [ ] **Histórico da área de transferência**, no launcher.
@@ -17,6 +17,10 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 11. [ ] **Brilho de monitores externos** por DDC/CI.
 12. [ ] **Instalação e distribuição:** script de instalação (link, trecho do `hyprland.lua`, atalhos padrão), pacote no AUR e verificação no CI (`qmllint`).
 13. [ ] **Plugins próprios**, na ordem de `Lucerna — Plugins Próprios.md`: `lucerna-sysinfo`, depois `lucerna-spectrum`, depois os demais.
+
+## Depois
+
+- [ ] Aurora, Brasas, Chama e Vaga-lumes somam luz ao fundo e, num tema claro, estouram para branco. Adaptá-los como o Ondas (que já tem versão clara). Os efeitos próprios dos temas claros (Ondas e Névoa) estão bons.
 
 ## Verificar com hardware e entrada reais
 
