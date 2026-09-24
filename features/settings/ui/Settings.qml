@@ -313,6 +313,7 @@ OverlayPanel {
                             displays: displaysPage,
                             wallpaper: wallpaperPage,
                             mouse: mousePage,
+                            idle: idlePage,
                             keyboard: keyboardPage,
                             shortcuts: shortcutsPage,
                             about: aboutPage
@@ -365,6 +366,12 @@ OverlayPanel {
         id: glassPage
 
         GlassPage {}
+    }
+
+    Component {
+        id: idlePage
+
+        IdlePage {}
     }
 
     Component {

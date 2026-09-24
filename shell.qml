@@ -4,6 +4,7 @@ import qs.features.bar.ui
 import qs.features.dashboard.ui
 import qs.features.displays.ui
 import qs.features.energy.ui
+import qs.features.idle.ui
 import qs.features.input.ui
 import qs.features.launcher.ui
 import qs.features.lockscreen.ui
@@ -21,6 +22,7 @@ ShellRoot {
     Dashboard {}
     Displays {}
     Energy {}
+    Idle {}
     Input {}
     Launcher {}
     NotificationPopups {}

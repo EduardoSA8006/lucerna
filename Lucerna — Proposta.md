@@ -57,7 +57,7 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Painel superior | Desce do topo: visão geral (usuário com atalhos para configurações e energia, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima. Abas reordenáveis; pode ficar aberto junto com a central lateral |
 | Central lateral | Cartão na altura da tela, na borda direita ou esquerda (configurável): trilho de seções (Wi-Fi, Bluetooth, som, avisos, bateria, tela) e o conteúdo de cada uma, como redes disponíveis com senha, dispositivos para parear, saída e entrada de áudio e perfil de energia |
 | Launcher | Três estilos: **compacto** (padrão; busca e lista curta de apps e ações), **completo** (categorias de aplicativos, arquivos por tipo e web, favoritos, grade e detalhes do app: ações do `.desktop`, descrição, versão e desenvolvedor) e **tela cheia** (gaveta de apps por categoria). Apps ordenados por uso |
-| Configurações | Tópicos à esquerda e opções à direita: aparência, papel de parede, monitores, mouse, teclado, transparência e desfoque, notificações, painéis, central lateral, launcher, barra, painel superior, energia e bateria, atalhos e sobre |
+| Configurações | Tópicos à esquerda e opções à direita: aparência, papel de parede, monitores, tela e ociosidade, mouse, teclado, transparência e desfoque, notificações, painéis, central lateral, launcher, barra, painel superior, energia e bateria, atalhos e sobre |
 | Monitores | Disposição arrastando num canvas (encaixe nas bordas, sempre num bloco só) e, por monitor, resolução, taxa, escala, rotação, espelhamento, VRR e 10 bits. Aplicar pede confirmação em todas as telas e volta sozinho em 15 s. Um arranjo salvo por conjunto de monitores, reaplicado ao conectar |
 | Mouse e teclado | Velocidade, aceleração, rolagem, touchpad e velocidade por mouse; layouts, repetição e opções do xkb. Botões extras do mouse e teclas extras mapeados para ações (painéis, mídia, janelas, enviar atalho, rodar comando) e teclas remapeadas de verdade (keymap gerado e validado). Só o que muda vai por cima do `hyprland.lua` |
 | Papel de parede | Por tema: o próprio (imagem e efeito animado em shader), só a imagem, qualquer um dos dez efeitos (nas cores do tema), uma imagem ou um vídeo/GIF do usuário. Vídeos convertidos uma vez por tela para tocar pela GPU. 30 ou 60 fps, no ritmo da tela; pausa com tela cheia, bloqueio e tela apagada |
@@ -65,10 +65,11 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Tela de bloqueio | Bloqueio próprio, no visual do tema ativo |
 | Seletor de temas | Painel para trocar rapidamente entre os dez temas |
 | OSD | Indicadores de volume e brilho na tela |
+| Ociosidade | Escurecer, desligar a tela, bloquear e suspender por tempo sem uso (`IdleMonitor`), com tempos na tomada e na bateria. Segura com mídia tocando, tela cheia e "Não apagar a tela". Substitui o `hypridle` |
 | Menu de energia | Bloquear, suspender, reiniciar e desligar |
 | Energia | Sem interface própria: avisos de bateria baixa, crítica, carga completa e carregador; ação no nível crítico; perfil de energia automático; modo leve na bateria (tudo configurável) |
 
-Por enquanto, o controle de ociosidade continua com o `hypridle`; trazê-lo para o shell é uma das pendências (ver [`Lucerna — Pendências.md`](<Lucerna — Pendências.md>)). O shell é específico para o Hyprland; suporte a outros compositores não é objetivo, pelo menos por enquanto.
+O controle de ociosidade é do próprio shell; com ele, o `hypridle` deve ficar desligado. O shell é específico para o Hyprland; suporte a outros compositores não é objetivo, pelo menos por enquanto.
 
 ## Arquitetura
 
@@ -128,6 +129,7 @@ lucerna/
 │   ├── dashboard/
 │   ├── displays/               # reaplica o arranjo de monitores salvo
 │   ├── energy/
+│   ├── idle/                   # escurecer, apagar, bloquear e suspender por ociosidade
 │   ├── input/                  # aplica mouse e teclado; ações dos binds (IPC action)
 │   ├── settings/
 │   ├── launcher/

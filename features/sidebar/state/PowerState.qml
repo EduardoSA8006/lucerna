@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import qs.core.config
 import qs.core.format
 import qs.core.widgets
 import qs.services
@@ -39,5 +40,13 @@ Singleton {
 
     function setBrightness(v: real): void {
         Brightness.set(v);
+    }
+
+    // "Não apagar a tela" (a ociosidade fica na feature idle; aqui só o botão).
+    readonly property bool keepAwake: Config.idleInhibit
+    readonly property bool idleEnabled: Config.idleEnabled
+
+    function setKeepAwake(on: bool): void {
+        Config.idleInhibit = on;
     }
 }
