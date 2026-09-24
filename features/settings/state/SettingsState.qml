@@ -29,6 +29,8 @@ Singleton {
     readonly property var topics: [
         { id: "appearance", icon: Icons.palette, label: "Aparência", description: "Tema e animações" },
         { id: "displays", icon: Icons.monitor, label: "Monitores", description: "Disposição, resolução e escala" },
+        { id: "mouse", icon: Icons.mouse, label: "Mouse", description: "Ponteiro, rolagem e botões" },
+        { id: "keyboard", icon: Icons.keyboard, label: "Teclado", description: "Layouts, teclas e atalhos" },
         { id: "glass", icon: Icons.blur, label: "Transparência e desfoque", description: "O vidro dos painéis" },
         { id: "notifications", icon: Icons.bell, label: "Notificações", description: "Popups e não perturbe" },
         { id: "panels", icon: Icons.panels, label: "Painéis", description: "Abrir juntos e sem sobrepor" },

@@ -11,6 +11,19 @@ Singleton {
     id: root
 
     readonly property bool usingLua: Hyprland.usingLua
+
+    // O hyprland.lua foi recarregado: o que o Lucerna aplica por cima
+    // (monitores, entrada) precisa ser reaplicado.
+    signal configReloaded
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (event.name === "configreloaded")
+                root.configReloaded();
+        }
+    }
     property string version: ""
 
     // Workspaces normais (ids positivos), em ordem.

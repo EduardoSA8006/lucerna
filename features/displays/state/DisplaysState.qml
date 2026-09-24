@@ -5,8 +5,8 @@ import Quickshell
 import qs.core.config
 import qs.services
 
-// Reaplica o arranjo de monitores salvo para o conjunto conectado: ao iniciar
-// e quando um monitor entra ou sai. Sem interface própria; o arranjo se monta
+// Reaplica o arranjo de monitores salvo para o conjunto conectado: ao iniciar,
+// quando um monitor entra ou sai e depois de um reload do hyprland.lua. Sem interface própria; o arranjo se monta
 // em Configurações → Monitores.
 Singleton {
     id: root
@@ -14,6 +14,22 @@ Singleton {
     readonly property string setup: Monitors.setup
 
     onSetupChanged: restore()
+
+    // Um reload do hyprland.lua volta os monitores ao que está no arquivo.
+    Connections {
+        target: Hypr
+
+        function onConfigReloaded() {
+            reloadDelay.restart();
+        }
+    }
+
+    Timer {
+        id: reloadDelay
+
+        interval: 300
+        onTriggered: root.restore()
+    }
 
     function restore(): void {
         const saved = (Config.monitorSetups ?? {})[setup];

@@ -1,0 +1,218 @@
+pragma Singleton
+
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import qs.core.config
+import qs.core.input
+import qs.core.panels
+import qs.services
+
+// Aplica os ajustes de mouse e teclado das configurações por cima do
+// hyprland.lua: opções de entrada, velocidade por mouse, layouts e opções do
+// teclado, teclas remapeadas e botões/teclas mapeados para ações. Reaplica ao
+// iniciar, quando a config muda e depois de um reload do Hyprland.
+// Sem interface própria; tudo se monta em Configurações → Mouse e Teclado.
+Singleton {
+    id: root
+
+    // As opções do arquivo só são conhecidas depois da primeira leitura.
+    readonly property bool ready: Object.keys(Input.options).length > 0
+
+    onReadyChanged: {
+        if (ready)
+            applyAll();
+    }
+
+    function applyAll(): void {
+        applyOptions();
+        applyDevices();
+        applyKeyboard();
+        applyBinds();
+    }
+
+    function applyOptions(): void {
+        Input.setOptions(Config.inputOptions ?? {});
+    }
+
+    function applyDevices(): void {
+        const devices = Config.mouseDevices ?? {};
+        for (const name of Object.keys(devices))
+            Input.setDevice(name, devices[name]);
+    }
+
+    // Layouts do arquivo (quando não foram mudados aqui): "br,us" + ",intl".
+    function fileLayouts(): var {
+        const layouts = String(Input.option("input.kb_layout") ?? "us").split(",");
+        const variants = String(Input.option("input.kb_variant") ?? "").split(",");
+        return layouts.map((l, i) => ({ layout: l.trim(), variant: (variants[i] ?? "").trim() }));
+    }
+
+    function fileOptions(): var {
+        return String(Input.option("input.kb_options") ?? "").split(",").map(o => o.trim()).filter(o => o);
+    }
+
+    // Remapeamentos válidos (uma entrada quebrada na config não derruba o resto).
+    readonly property var remaps: (Config.keyRemaps ?? []).filter(r => r?.from && r?.to?.kind)
+    readonly property bool keyboardChanged: Config.keyboardLayouts !== null || Config.keyboardOptions !== null || remaps.length > 0
+
+    // Sem nada mudado aqui, só lê o keymap do arquivo (para nomear as teclas).
+    function applyKeyboard(): void {
+        if (!ready)
+            return;
+        const layouts = Config.keyboardLayouts ?? fileLayouts();
+        const options = Config.keyboardOptions ?? fileOptions();
+        (keyboardChanged ? Input.setKeyboard : Input.inspectKeyboard)({
+            layouts: layouts.map(l => l.layout).join(","),
+            variants: layouts.map(l => l.variant ?? "").join(","),
+            options: options.join(","),
+            model: String(Input.option("input.kb_model") ?? ""),
+            rules: String(Input.option("input.kb_rules") ?? "")
+        }, remaps);
+    }
+
+    // Um bind do Lucerna: ações do shell passam pelo IPC "action".
+    function bindFor(entry: var): var {
+        const action = InputActions.find(entry.action?.id ?? "");
+        if (!action)
+            return null;
+        const key = (entry.mods ? entry.mods.split(/\s+/).join(" + ") + " + " : "") + entry.trigger;
+        let lua = "hl.dsp.no_op()";
+        if (action.kind === "shell")
+            lua = `hl.dsp.exec_cmd(${Input.luaString(`qs -p ${Quickshell.shellPath("shell.qml")} ipc call action run ${action.id}`)})`;
+        else if (action.kind === "hypr")
+            lua = action.lua;
+        else if (action.kind === "shortcut")
+            lua = `hl.dsp.send_shortcut({ mods = ${Input.luaString(entry.action.mods ?? "")}, key = ${Input.luaString(entry.action.key ?? "")} })`;
+        else if (action.kind === "command")
+            lua = `hl.dsp.exec_cmd(${Input.luaString(entry.action.command ?? "")})`;
+        return { key, lua, repeating: action.repeating ?? false, locked: action.locked ?? false };
+    }
+
+    function applyBinds(): void {
+        Input.setBinds((Config.inputBinds ?? []).map(bindFor).filter(b => b));
+    }
+
+    // Mudanças em sequência (arrastar um slider) viram uma aplicação só.
+    Timer {
+        id: optionsDelay
+
+        interval: 120
+        onTriggered: root.applyOptions()
+    }
+
+    Timer {
+        id: keyboardDelay
+
+        interval: 200
+        onTriggered: root.applyKeyboard()
+    }
+
+    Connections {
+        target: Config
+
+        function onInputOptionsChanged() {
+            optionsDelay.restart();
+        }
+
+        function onMouseDevicesChanged() {
+            root.applyDevices();
+        }
+
+        function onKeyboardLayoutsChanged() {
+            keyboardDelay.restart();
+        }
+
+        function onKeyboardOptionsChanged() {
+            keyboardDelay.restart();
+        }
+
+        function onKeyRemapsChanged() {
+            keyboardDelay.restart();
+        }
+
+        function onInputBindsChanged() {
+            root.applyBinds();
+        }
+    }
+
+    // O reload volta tudo ao hyprland.lua (e tira os binds do Lucerna).
+    Connections {
+        target: Hypr
+
+        function onConfigReloaded() {
+            reloadDelay.restart();
+        }
+    }
+
+    Timer {
+        id: reloadDelay
+
+        interval: 300
+        onTriggered: {
+            Input.binds = [];
+            root.applyAll();
+        }
+    }
+
+    // As ações do shell que os binds chamam.
+    function run(id: string): void {
+        switch (id) {
+        case "launcher":
+        case "dashboard":
+        case "settings":
+        case "themes":
+        case "power":
+            Panels.toggle(id);
+            break;
+        case "sidebar":
+            Panels.toggleSidebar(Config.sidebarSection);
+            break;
+        case "notifications":
+            Panels.toggleSidebar("notifications");
+            break;
+        case "lock":
+            Session.lock();
+            break;
+        case "dnd":
+            Config.doNotDisturb = !Config.doNotDisturb;
+            break;
+        case "play-pause":
+            Media.togglePlaying();
+            break;
+        case "next":
+            Media.next();
+            break;
+        case "previous":
+            Media.previous();
+            break;
+        case "volume-up":
+            Audio.changeVolume(0.05);
+            break;
+        case "volume-down":
+            Audio.changeVolume(-0.05);
+            break;
+        case "mute":
+            Audio.toggleMute();
+            break;
+        case "mic-mute":
+            Audio.toggleMicMute();
+            break;
+        case "brightness-up":
+            Brightness.change(0.05);
+            break;
+        case "brightness-down":
+            Brightness.change(-0.05);
+            break;
+        }
+    }
+
+    IpcHandler {
+        target: "action"
+
+        // Roda uma ação do shell (a lista está em core/input/InputActions).
+        function run(id: string): void {
+            root.run(id);
+        }
+    }
+}
