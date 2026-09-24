@@ -51,6 +51,19 @@ Singleton {
         return `${m}:${s < 10 ? "0" : ""}${s}`;
     }
 
+    // Quanto tempo desde `at` (Date), visto em `now`: "agora", "há 5 min",
+    // "14:03" (hoje) ou "12/09".
+    function since(at: var, now: var): string {
+        const minutes = Math.floor((now - at) / 60000);
+        if (minutes < 1)
+            return "agora";
+        if (minutes < 60)
+            return `há ${minutes} min`;
+        if (at.toDateString() === now.toDateString())
+            return Qt.formatTime(at, "HH:mm");
+        return Qt.formatDate(at, "dd/MM");
+    }
+
     function capitalize(text: string): string {
         return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
     }

@@ -181,6 +181,7 @@ Singleton {
         case "settings":
         case "themes":
         case "power":
+        case "clipboard":
             Panels.toggle(id);
             break;
         case "sidebar":

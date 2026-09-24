@@ -69,7 +69,8 @@ Singleton {
 
         property real startedAt: 0
 
-        command: ["hyprsunset", "-i"]
+        // Sai junto com o shell (sem ficar órfão num reinício).
+        command: ["setpriv", "--pdeathsig", "TERM", "hyprsunset", "-i"]
 
         // O socket leva um instante para aparecer.
         onStarted: {

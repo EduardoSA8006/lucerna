@@ -19,6 +19,7 @@ Singleton {
         { id: "sidebar", group: "Lucerna", label: "Abrir a central lateral", icon: Icons.sidebar, kind: "shell" },
         { id: "notifications", group: "Lucerna", label: "Abrir os avisos", icon: Icons.bell, kind: "shell" },
         { id: "settings", group: "Lucerna", label: "Abrir as configurações", icon: Icons.settings, kind: "shell" },
+        { id: "clipboard", group: "Lucerna", label: "Abrir o histórico da área de transferência", icon: "content_paste", kind: "shell" },
         { id: "themes", group: "Lucerna", label: "Trocar o tema", icon: Icons.palette, kind: "shell" },
         { id: "power", group: "Lucerna", label: "Menu de energia", icon: Icons.power, kind: "shell" },
         { id: "lock", group: "Lucerna", label: "Bloquear a tela", icon: Icons.lock, kind: "shell" },

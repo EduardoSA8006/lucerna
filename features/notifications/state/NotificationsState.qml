@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
 import qs.core.config
+import qs.core.format
 import qs.core.panels
 import qs.core.theme
 import qs.services
@@ -97,15 +98,7 @@ Singleton {
 
     // "agora", "há 5 min", "14:03" ou "12/09"
     function timeLabel(notification: var): string {
-        const at = Notifications.timeOf(notification);
-        const minutes = Math.floor((clock.date - at) / 60000);
-        if (minutes < 1)
-            return "agora";
-        if (minutes < 60)
-            return `há ${minutes} min`;
-        if (at.toDateString() === clock.date.toDateString())
-            return Qt.formatTime(at, "HH:mm");
-        return Qt.formatDate(at, "dd/MM");
+        return Format.since(Notifications.timeOf(notification), clock.date);
     }
 
     // Imagem da notificação (foto, capa) ou ícone do app; "" se nenhum.
