@@ -62,7 +62,7 @@ PanelWindow {
 
         sourceComponent: EffectView {
             shader: window.wallpaper.shader
-            fps: Math.min(WallpaperState.fps, window.wallpaper.fps ?? 30)
+            fps: WallpaperState.effectFps(window.targetScreen)
             running: WallpaperState.shouldAnimate(window.targetScreen)
         }
     }

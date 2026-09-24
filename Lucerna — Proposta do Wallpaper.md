@@ -25,9 +25,12 @@ Sep 23, 2026 · @Eduardo Alves
 > | Papel | CPU do shell | Memória extra | GPU 3D | GPU vídeo |
 > | --- | --- | --- | --- | --- |
 > | Parado | 0,5% | — | — | 0% |
-> | Efeito Aurora, 20 fps | ~2% | ~0 | +12 pontos | 0% |
+> | Efeito Aurora, 30 fps | 2,4% | ~0 | +16 pontos | 0% |
+> | Efeito Aurora, 60 fps | 4,3% | ~0 | +26 pontos | 0% |
 > | Vídeo 4K original (89 Mbps), sem converter | 4,7% | +278 MB | +20 pontos | 7,9% |
 > | O mesmo vídeo convertido (1600×900, 537 KB) | 3,5% | +56 MB | +15 pontos | 1,1% |
+>
+> **30 ou 60 fps.** A taxa é do usuário (Configurações → Papel de parede), e não do tema. Os efeitos seguem os quadros da própria tela (`FrameAnimation`), não um timer: a 60 fps num monitor de 60 Hz, um quadro por ciclo; a 30, um a cada dois; acima de 60 Hz, pulam ciclos. Nos ciclos pulados nada muda na cena, e o Qt não redesenha, então 30 fps custa o mesmo de antes. Medido: 30 fps dá um quadro a cada 31–33 ms, e 60 fps, a cada 15–17 ms, sem saltos. Na bateria, 60 cai para 30 nos efeitos. Nos vídeos, a taxa é o limite da conversão (um vídeo de 24 fps continua em 24), nunca acima da do monitor, e a versão de 60 continua valendo na bateria: decodificada pela GPU, ela custa pouco mais (vídeo de teste em 1600×900: CPU 7% a 60 fps contra 4% a 30; motor de vídeo 3,6% contra 2,1%).
 >
 > Os efeitos também usam uma textura de ruído (`themes/shaders/noise.png`) em vez de calcular o ruído por pixel: uma leitura de textura por oitava. Isso cortou o custo da Aurora na GPU pela metade.
 
@@ -106,10 +109,10 @@ Ao retomar, a animação continua de onde parou, sem saltos: o tempo do shader s
 
 Quando visível, o animado faz o menor trabalho que mantém o efeito.
 
-- **Taxa de quadros limitada:** 30 fps por padrão, e o tema pode pedir menos (por exemplo, 20). O tempo do shader (`uniform float time`) é avançado por um `Timer` com intervalo de `1000 / fps`, em vez de uma animação do Qt, que seguiria a taxa do monitor.
+- **Taxa de quadros limitada:** 30 fps por padrão, ou 60 (escolha do usuário; 30 na bateria). O tempo do shader (`uniform float time`) é o tempo real decorrido, e o ritmo vem dos quadros da tela (`FrameAnimation`), pulando ciclos para ficar na taxa escolhida.
 - **Resolução reduzida:** o `ShaderEffect` é desenhado com metade da largura e da altura da tela e ampliado com `scale: 2`. Para gradientes, névoa e chamas, a diferença visual é mínima, e o custo cai para cerca de um quarto.
 - **Shaders simples:** poucas operações por pixel, sem texturas grandes nem múltiplos passes. Movimentos lentos e sutis, coerentes com a proposta da Lucerna.
-- **Redesenho só quando necessário:** fora do tique do `Timer`, nada dispara redesenho; pausado, o `Timer` para e o custo é zero.
+- **Redesenho só quando necessário:** nos ciclos pulados, a cena não muda e o Qt não redesenha; pausado, nada anda e o custo é zero.
 - **Memória mínima:** um único shader carregado por monitor, sem guardar quadros em RAM. GIF e vídeo ficam de fora por decodificarem na CPU e ocuparem memória.
 - **GPU integrada:** o shell desenha na GPU que o Hyprland usa para compor. Em notebooks híbridos, deixar a iGPU como primária (`AQ_DRM_DEVICES` com a Intel primeiro) mantém a NVIDIA desligada. No ambiente de desenvolvimento isso já acontece, porque só a GPU Intel é repassada ao container.
 
@@ -126,8 +129,7 @@ O campo `wallpaper` do tema aceita duas formas. Os caminhos são relativos a `th
 ```json
 "wallpaper": {
     "static": "wallpapers/everforest.jpg",
-    "shader": "shaders/vagalumes.qsb",
-    "fps": 20
+    "shader": "shaders/vagalumes.qsb"
 }
 ```
 

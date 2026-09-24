@@ -47,8 +47,7 @@
     },
     "wallpaper": {
         "static": "wallpapers/nord.jpg",
-        "shader": "shaders/neve.qsb",
-        "fps": 20
+        "shader": "shaders/neve.qsb"
     },
     "hyprland": {
         "activeBorder": "#88c0d0",

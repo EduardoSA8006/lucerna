@@ -14,7 +14,7 @@ Barra, painel superior, central lateral, launcher, notificações, tela de bloqu
 - **Monitores arrastando**: a disposição se monta num canvas com encaixe magnético. Cada monitor tem resolução, taxa, escala, rotação, espelhamento, VRR e 10 bits. Aplicar pede confirmação em todas as telas e, sem resposta em 15 s, volta ao anterior.
 - **Painéis que convivem**: o painel superior e a central lateral ficam abertos juntos, desviam um do outro e não cobrem a barra.
 - **Os dez temas mais populares**: Catppuccin Mocha, Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green, nas paletas oficiais, trocáveis ao vivo.
-- **Papel de parede animado e leve**: cada tema tem um efeito em shader que combina com ele (aurora, bokeh, brasas, luar, neve, vaga-lumes, ondas, névoa, chuva digital), nas cores do tema, a 20 fps e em meia resolução. Ele pausa sozinho com tela cheia, tela bloqueada ou tela apagada. Cada tema pode trocar o seu por outro efeito, por uma imagem sua ou por um **vídeo ou GIF**. O vídeo é convertido uma vez para a resolução da tela, sem tarjas, quadros repetidos nem áudio, e toca decodificado pela GPU.
+- **Papel de parede animado e leve**: cada tema tem um efeito em shader que combina com ele (aurora, bokeh, brasas, luar, neve, vaga-lumes, ondas, névoa, chuva digital), nas cores do tema, a 30 ou 60 fps e em meia resolução. Ele pausa sozinho com tela cheia, tela bloqueada ou tela apagada. Cada tema pode trocar o seu por outro efeito, por uma imagem sua ou por um **vídeo ou GIF**. O vídeo é convertido uma vez para a resolução da tela, sem tarjas, quadros repetidos nem áudio, e toca decodificado pela GPU.
 - **Vidro de verdade**: o desfoque atrás dos painéis é do próprio Hyprland, e o tema ajusta também as bordas das janelas.
 - **Leve por padrão**: cada serviço só coleta dados enquanto alguém mostra. Um modo offline desliga tudo o que usa a internet.
 
@@ -98,7 +98,7 @@ Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualque
 | **Tela de bloqueio** | Relógio e senha (PAM). |
 | **Energia** | Menu (bloquear, suspender, sair, reiniciar, desligar). Avisos de bateria baixa e crítica, ação no nível crítico com prazo para cancelar, troca de perfil na tomada e modo leve na bateria. |
 | **OSD** | Volume e brilho. |
-| **Papel de parede** | Imagem com transição na troca e efeito animado por cima (shader, a 30 fps e em meia resolução). Pausa com app em tela cheia, tela bloqueada ou tela apagada, e opcionalmente com qualquer janela aberta; no automático, fica parado na bateria. Modo e origem por monitor. |
+| **Papel de parede** | Imagem com transição na troca e efeito animado por cima (shader, a 30 ou 60 fps, no ritmo da tela, e em meia resolução). Pausa com app em tela cheia, tela bloqueada ou tela apagada, e opcionalmente com qualquer janela aberta; no automático, fica parado na bateria. Modo e origem por monitor. |
 | **Temas** | Dez prontos, nas paletas oficiais: Catppuccin Mocha (padrão), Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green. Cada um vem com papel estático, efeito animado, fonte própria e bordas do Hyprland. Trocam ao vivo. |
 
 ### Configurações
@@ -189,7 +189,7 @@ Cada arquivo em `themes/*.json` é um tema, e o nome do arquivo é o id. Os tema
 
 - `transparency`: `enabled`, `base` (opacidade dos painéis) e `layers` (dos cartões dentro deles).
 - `hyprland`: bordas, arredondamento e intensidade do desfoque (`blurSize`, `blurPasses`), aplicados via `hyprctl eval`.
-- `wallpaper`: a imagem (`"wallpapers/nord.jpg"`) ou `{ "static": ..., "shader": "shaders/neve.qsb", "fps": 20 }`. Os efeitos ficam em `themes/shaders/`, com a fonte GLSL ao lado do `.qsb` compilado. `dev/shaders.sh` recompila todos, e isso requer o `qsb`, do pacote `qt6-shadertools`. Todo efeito recebe os mesmos uniforms (`time`, `resolution`, `base`, `surface`, `accent`, `text`), então qualquer tema pode usar qualquer efeito, e um efeito novo entra no catálogo em `themes/shaders/effects.json`.
+- `wallpaper`: a imagem (`"wallpapers/nord.jpg"`) ou `{ "static": ..., "shader": "shaders/neve.qsb" }` (a taxa de quadros é do usuário, 30 ou 60). Os efeitos ficam em `themes/shaders/`, com a fonte GLSL ao lado do `.qsb` compilado. `dev/shaders.sh` recompila todos, e isso requer o `qsb`, do pacote `qt6-shadertools`. Todo efeito recebe os mesmos uniforms (`time`, `resolution`, `base`, `surface`, `accent`, `text`), então qualquer tema pode usar qualquer efeito, e um efeito novo entra no catálogo em `themes/shaders/effects.json`.
 - `animation.scale`: velocidade geral das animações (1 = padrão, 0 = desligadas).
 - `fonts`: fontes que o tema traz em `themes/fonts/`, carregadas pelo shell sem instalar nada no sistema. Todos os temas embutidos trazem a Rubik, sob licença OFL.
 - `surfaces.outline`: contorno fino nos cartões. O padrão é sem contorno; os cartões se destacam pelo tom.

@@ -47,8 +47,7 @@
     },
     "wallpaper": {
         "static": "wallpapers/decay-green.jpg",
-        "shader": "shaders/chuva.qsb",
-        "fps": 20
+        "shader": "shaders/chuva.qsb"
     },
     "hyprland": {
         "activeBorder": "#78dba9",

@@ -3,8 +3,14 @@ import qs.core.theme
 
 // Um wallpaper animado (shader .qsb de themes/shaders). Os uniforms são os
 // mesmos para todos: time, resolution e as cores base, surface, accent e text.
-// O tempo avança por um Timer na taxa pedida (e não na do monitor), e só
-// enquanto `running`: parado, nada redesenha e o último quadro fica.
+//
+// O ritmo vem dos quadros da própria tela (FrameAnimation), não de um timer:
+// a 60 fps num monitor de 60 Hz, um quadro por ciclo; a 30, um a cada dois;
+// num de 144 Hz, pula ciclos para ficar em 30 ou 60. Um timer solto da tela
+// daria quadros que ficam o dobro do tempo (tremidas). O tempo do efeito é o
+// tempo real decorrido, então o movimento é o mesmo em qualquer taxa. Nos
+// ciclos pulados nada muda na cena, e o Qt não redesenha. Parado
+// (`running` falso), nada anda e o último quadro fica.
 ShaderEffect {
     id: root
 
@@ -38,10 +44,22 @@ ShaderEffect {
     fragmentShader: shader ? `file://${shader}` : ""
     blending: false
 
-    Timer {
-        interval: Math.round(1000 / Math.max(1, root.fps))
-        repeat: true
+    FrameAnimation {
+        id: clock
+
+        // Tempo desde o último quadro desenhado do efeito.
+        property real pending: 0
+
         running: root.running && root.visible && !root.failed
-        onTriggered: root.time += interval / 1000
+        onRunningChanged: pending = 0
+        onTriggered: {
+            // Uma pausa longa (tela bloqueada, janela escondida) não vira um salto.
+            pending += Math.min(frameTime, 0.1);
+            // Folga de 3 ms: um ciclo de 16,7 ms que chega um pouco antes não é pulado.
+            if (pending >= 1 / Math.max(1, root.fps) - 0.003) {
+                root.time += pending;
+                pending = 0;
+            }
+        }
     }
 }

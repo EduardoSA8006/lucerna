@@ -212,7 +212,7 @@ def theme_json(tid, t):
         "spacing": {"tiny": 4, "small": 8, "normal": 12, "large": 20},
         "animation": {"scale": 1},
         "bar": {"height": 44},
-        "wallpaper": {"static": f"wallpapers/{tid}.jpg", "shader": f"shaders/{t['effect']}.qsb", "fps": 20},
+        "wallpaper": {"static": f"wallpapers/{tid}.jpg", "shader": f"shaders/{t['effect']}.qsb"},
         "hyprland": {
             "activeBorder": c["accent"],
             "inactiveBorder": c["border"],

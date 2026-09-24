@@ -63,7 +63,7 @@ Clickable {
 
             sourceComponent: EffectView {
                 shader: root.shader
-                fps: 24
+                fps: 30
                 running: root.hovered || root.selected
                 // Prévia começa num ponto já "andado" do efeito.
                 time: 20

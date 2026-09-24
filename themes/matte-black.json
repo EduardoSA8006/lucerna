@@ -47,8 +47,7 @@
     },
     "wallpaper": {
         "static": "wallpapers/matte-black.jpg",
-        "shader": "shaders/papel.qsb",
-        "fps": 20
+        "shader": "shaders/papel.qsb"
     },
     "hyprland": {
         "activeBorder": "#d0d0d0",

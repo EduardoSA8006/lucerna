@@ -178,6 +178,7 @@ Singleton {
             property string wallpaperMode: "auto"
             // Por monitor: { "HDMI-A-1": { mode, source } }; source = id de outro tema.
             property var wallpaperMonitors: ({})
+            // Quadros por segundo dos animados: 30 ou 60 (60 cai para 30 na bateria).
             property int wallpaperFps: 30
             // No modo auto, fora da tomada fica a imagem parada.
             property bool wallpaperBatteryStatic: true
