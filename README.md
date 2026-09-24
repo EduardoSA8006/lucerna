@@ -104,6 +104,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | **Notificações** | Popups com ações, pausa no mouse e prazo ajustável, não perturbe e a central de avisos. |
 | **Launcher** | Três estilos: compacto (busca e lista), completo (categorias de aplicativos, arquivos, documentos, imagens, músicas, vídeos e web, com favoritos, grade e detalhes: ações do app, descrição, versão e desenvolvedor) e tela cheia (gaveta de apps por categoria). Os apps mais abertos vêm primeiro, com os favoritos na frente. Em todos os estilos: clique direito num item para as opções, `Ctrl+F` fixa ou tira dos favoritos e `Ctrl+H` oculta; no compacto e na tela cheia, `/texto` busca arquivos e `?texto` pesquisa na web. A busca de arquivos usa o `fd` quando há, e, sem busca, mostra os recentes. |
 | **Área de transferência** | Histórico num painel próprio (`Super+V`): textos e imagens, busca, filtro, fixar e apagar. Escolher copia e cola na janela em foco (Ctrl+Shift+V nos terminais). Senhas marcadas pelos gerenciadores ficam de fora. |
+| **Visão geral** | Os workspaces em miniatura (`Super+Tab`), com as janelas no lugar e a imagem de cada uma (também dos workspaces escondidos). Clicar vai para o workspace ou a janela, arrastar uma janela a leva para outro workspace e o botão do meio a fecha. Setas e Enter, ou 1–9. |
 | **Captura de tela** | Painel próprio (`Print`): foto ou vídeo, de uma área (arrastando, com alças), de uma janela (clicando) ou da tela, com espera, cursor e som. A foto vai para a pasta e para a área de transferência, com um aviso que abre o arquivo ou a pasta; a gravação (pela GPU quando dá) mostra o tempo na barra e para ao clicar. Também tela inteira (`Shift+Print`) e janela ativa (`Ctrl+Print`) direto. |
 | **Tela de bloqueio** | Relógio e senha (PAM). |
 | **Energia** | Menu (bloquear, suspender, sair, reiniciar, desligar). Avisos de bateria baixa e crítica, ação no nível crítico com prazo para cancelar, troca de perfil na tomada e modo leve na bateria. |
@@ -181,6 +182,7 @@ Os atalhos do shell vêm prontos e se editam em Configurações → Atalhos:
 | Atalho | Ação |
 | --- | --- |
 | `Super+Espaço` | Launcher |
+| `Super+Tab` | Visão geral dos workspaces |
 | `Super+V` | Histórico da área de transferência |
 | `Print` / `Shift+Print` / `Ctrl+Print` | Captura (painel) / tela inteira / janela ativa |
 | `Super+Print` | Gravar a tela ou parar |
@@ -210,6 +212,7 @@ Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [arg
 | `theme` | `set <id>`, `get`, `list` |
 | `brightness` | `up`, `down`, `set <0-100>` |
 | `monitors` | `identify` |
+| `overview` | `toggle` |
 | `capture` | `open <shot\|record>` (o painel; `""` = o último), `screen`, `window` (direto), `record` (gravar ou parar), `stop` |
 | `clipboard` | `toggle`, `open`, `clear` (menos os fixados), `count` |
 | `nightlight` | `enable <true\|false>` (liga ou desliga a função), `toggle` (agora, até a próxima virada do horário), `temperature <K>`, `status` |

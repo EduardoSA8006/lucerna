@@ -63,6 +63,8 @@ Singleton {
         function onRawEvent(event) {
             if (event.name.startsWith("monitor") || event.name === "dpms")
                 Hyprland.refreshMonitors();
+            if (["openwindow", "closewindow", "movewindow", "movewindowv2", "changefloatingmode", "fullscreen"].includes(event.name))
+                root.windowsChanged();
         }
     }
 
@@ -81,6 +83,31 @@ Singleton {
     // Anda entre os workspaces existentes: step > 0 vai para o próximo.
     function cycleWorkspace(step: int): void {
         dispatch(`hl.dsp.focus({ workspace = "e${step > 0 ? "+" : "-"}1" })`);
+    }
+
+    // Janelas (toplevels do Hyprland). `lastIpcObject` (posição, tamanho,
+    // classe) só vem depois de `refreshToplevels()`.
+    readonly property var toplevels: Hyprland.toplevels.values
+    readonly property string activeAddress: Hyprland.activeToplevel?.address ?? ""
+
+    // Uma janela abriu, fechou ou mudou de lugar.
+    signal windowsChanged()
+
+    function refreshToplevels(): void {
+        Hyprland.refreshToplevels();
+    }
+
+    function focusWindow(address: string): void {
+        dispatch(`hl.dsp.focus({ window = "address:0x${address}" })`);
+    }
+
+    // Move sem ir junto.
+    function moveWindow(address: string, workspaceId: int): void {
+        dispatch(`hl.dsp.window.move({ workspace = ${workspaceId}, window = "address:0x${address}", follow = false })`);
+    }
+
+    function closeWindow(address: string): void {
+        dispatch(`hl.dsp.window.close({ window = "address:0x${address}" })`);
     }
 
     // Liga ou desliga todas as telas (DPMS).
