@@ -92,6 +92,10 @@ Singleton {
     property alias keyRemaps: adapter.keyRemaps
     property alias inputBinds: adapter.inputBinds
     property alias shellShortcuts: adapter.shellShortcuts
+    property alias clipboardEnabled: adapter.clipboardEnabled
+    property alias clipboardLimit: adapter.clipboardLimit
+    property alias clipboardPersist: adapter.clipboardPersist
+    property alias clipboardPaste: adapter.clipboardPaste
 
     FileView {
         path: Quickshell.statePath("config.json")
@@ -257,6 +261,12 @@ Singleton {
             // Atalhos do shell que o usuário mudou: { acao: [{ mods, trigger }] }
             // (os padrões estão em core/input/ShellShortcuts).
             property var shellShortcuts: ({})
+            // Histórico da área de transferência: guardar, quantos, manter ao
+            // reiniciar e colar direto ao escolher.
+            property bool clipboardEnabled: true
+            property int clipboardLimit: 100
+            property bool clipboardPersist: true
+            property bool clipboardPaste: true
         }
     }
 }
