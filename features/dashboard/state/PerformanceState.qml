@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import qs.core.config
 import qs.core.format
 import qs.services
 
@@ -41,6 +42,8 @@ Singleton {
     readonly property var rxHistory: SystemStats.rxHistory
     readonly property var txHistory: SystemStats.txHistory
     readonly property real netScale: Math.max(1024, ...SystemStats.rxHistory, ...SystemStats.txHistory)
+
+    readonly property bool showGpu: Config.showGpu
 
     // GPUs: a mais "interessante" primeiro (dedicada ativa > integrada > dedicada em repouso).
     readonly property var gpus: SystemStats.gpus.map(g => {

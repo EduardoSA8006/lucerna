@@ -163,6 +163,7 @@ Item {
             Surface {
                 Layout.preferredWidth: 300
                 Layout.preferredHeight: 156
+                visible: PerformanceState.showGpu
 
                 Column {
                     anchors.fill: parent

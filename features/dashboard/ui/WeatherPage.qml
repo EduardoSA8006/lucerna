@@ -126,7 +126,7 @@ Item {
 
         Txt {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "Previsão da Open-Meteo"
+            text: WeatherState.offline ? "Modo offline ligado: a busca não funciona" : "Previsão da Open-Meteo"
             faint: true
             font.pixelSize: ThemeManager.font.small
         }
@@ -261,8 +261,8 @@ Item {
                 }
 
                 Txt {
-                    text: WeatherState.loading ? "Atualizando…" : (WeatherState.error || WeatherState.updated)
-                    color: WeatherState.error ? ThemeManager.colors.danger : ThemeManager.colors.textFaint
+                    text: WeatherState.offline ? "Modo offline: sem atualização" : WeatherState.loading ? "Atualizando…" : (WeatherState.error || WeatherState.updated)
+                    color: WeatherState.error && !WeatherState.offline ? ThemeManager.colors.danger : ThemeManager.colors.textFaint
                     font.pixelSize: ThemeManager.font.small
                 }
             }

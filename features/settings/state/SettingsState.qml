@@ -24,7 +24,7 @@ Singleton {
         { id: "notifications", icon: Icons.bell, label: "Notificações", description: "Popups e não perturbe" },
         { id: "sidebar", icon: Icons.sidebar, label: "Central lateral", description: "Lado da tela" },
         { id: "bar", icon: Icons.toolbar, label: "Barra", description: "Quando aparece e o que mostra" },
-        { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Abas e dados", soon: true },
+        { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Abas, cartões, clima e privacidade" },
         { id: "power", icon: Icons.power, label: "Energia", description: "Ações e confirmações", soon: true },
         { id: "shortcuts", icon: Icons.keyboard, label: "Atalhos", description: "Teclas e comandos" },
         { id: "about", icon: Icons.info, label: "Sobre", description: "Versões e sistema" }
@@ -108,6 +108,132 @@ Singleton {
 
     function resetGlass(): void {
         ThemeManager.resetGlass();
+    }
+
+    // Painel superior
+    readonly property var dashboardTabInfo: ({
+        overview: { label: "Painel", icon: Icons.dashboard },
+        media: { label: "Mídia", icon: Icons.media },
+        performance: { label: "Desempenho", icon: Icons.performance },
+        weather: { label: "Clima", icon: Icons.weather }
+    })
+    readonly property var dashboardTabs: {
+        const order = Config.dashboardTabOrder ?? [];
+        const hidden = Config.dashboardTabsHidden ?? [];
+        const ids = Object.keys(dashboardTabInfo).sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
+        return ids.map((id, i) => ({ id: id, label: dashboardTabInfo[id].label, icon: dashboardTabInfo[id].icon, visible: !hidden.includes(id), first: i === 0, last: i === ids.length - 1 }));
+    }
+    readonly property int visibleTabCount: dashboardTabs.filter(t => t.visible).length
+
+    function moveTab(id: string, step: int): void {
+        const ids = dashboardTabs.map(t => t.id);
+        const i = ids.indexOf(id);
+        const j = i + step;
+        if (i < 0 || j < 0 || j >= ids.length)
+            return;
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+        Config.dashboardTabOrder = ids;
+    }
+
+    function setTabVisible(id: string, on: bool): void {
+        const hidden = (Config.dashboardTabsHidden ?? []).filter(h => h !== id);
+        // Pelo menos uma aba fica visível.
+        if (!on && visibleTabCount <= 1)
+            return;
+        Config.dashboardTabsHidden = on ? hidden : [...hidden, id];
+    }
+
+    readonly property string startTab: Config.dashboardStartTab
+    readonly property var startTabOptions: [
+        { label: "A última", value: "last" },
+        ...dashboardTabs.filter(t => t.visible).map(t => ({ label: t.label, value: t.id }))
+    ]
+
+    function setStartTab(value: string): void {
+        Config.dashboardStartTab = value;
+    }
+
+    readonly property bool hoverOpen: Config.dashboardHoverOpen
+    readonly property bool hoverClose: Config.dashboardHoverClose
+
+    function setHoverOpen(on: bool): void {
+        Config.dashboardHoverOpen = on;
+    }
+
+    function setHoverClose(on: bool): void {
+        Config.dashboardHoverClose = on;
+    }
+
+    readonly property var overviewCards: [
+        { id: "user", label: "Usuário", icon: Icons.person, description: "Foto, nome e tempo ligado, com atalhos para configurações e energia" },
+        { id: "clock", label: "Relógio", icon: Icons.uptime, description: "Hora grande e data" },
+        { id: "weather", label: "Clima resumido", icon: Icons.weather, description: "Temperatura e condição da cidade escolhida" },
+        { id: "calendar", label: "Calendário", icon: Icons.calendar, description: "O mês, com o dia de hoje em destaque" },
+        { id: "resources", label: "Recursos", icon: Icons.cpu, description: "CPU, memória e disco" },
+        { id: "media", label: "Mídia", icon: Icons.media, description: "O que está tocando" }
+    ].map(c => Object.assign(c, { visible: !(Config.overviewHidden ?? []).includes(c.id) }))
+
+    function setCardVisible(id: string, on: bool): void {
+        const hidden = (Config.overviewHidden ?? []).filter(h => h !== id);
+        Config.overviewHidden = on ? hidden : [...hidden, id];
+    }
+
+    readonly property int weekStart: Config.weekStart
+
+    function setWeekStart(day: int): void {
+        Config.weekStart = day;
+    }
+
+    readonly property bool lyrics: Config.lyricsEnabled
+    readonly property bool audioPulse: Config.audioPulse
+
+    function setLyrics(on: bool): void {
+        Config.lyricsEnabled = on;
+    }
+
+    function setAudioPulse(on: bool): void {
+        Config.audioPulse = on;
+    }
+
+    readonly property int statsInterval: Config.statsInterval
+    readonly property bool showGpu: Config.showGpu
+
+    function setStatsInterval(ms: int): void {
+        Config.statsInterval = ms;
+    }
+
+    function setShowGpu(on: bool): void {
+        Config.showGpu = on;
+    }
+
+    readonly property string weatherPlace: Config.weatherLocation?.name ?? ""
+    readonly property bool weatherLoading: Weather.loading
+    readonly property string weatherError: Weather.error
+    readonly property string temperatureUnit: Config.temperatureUnit
+    readonly property string windUnit: Config.windUnit
+    readonly property int weatherRefresh: Config.weatherRefresh
+
+    // A busca emite `located`, que o painel superior salva na config.
+    function searchCity(name: string): void {
+        Weather.search(name);
+    }
+
+    function setTemperatureUnit(unit: string): void {
+        Config.temperatureUnit = unit;
+    }
+
+    function setWindUnit(unit: string): void {
+        Config.windUnit = unit;
+    }
+
+    function setWeatherRefresh(minutes: int): void {
+        Config.weatherRefresh = minutes;
+    }
+
+    readonly property bool offline: Config.offline
+
+    function setOffline(on: bool): void {
+        Config.offline = on;
     }
 
     // Barra

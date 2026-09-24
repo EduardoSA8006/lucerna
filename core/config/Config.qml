@@ -24,6 +24,21 @@ Singleton {
     property alias barShowDate: adapter.barShowDate
     property alias barOnEmpty: adapter.barOnEmpty
     property alias barStyle: adapter.barStyle
+    property alias dashboardTabOrder: adapter.dashboardTabOrder
+    property alias dashboardTabsHidden: adapter.dashboardTabsHidden
+    property alias dashboardStartTab: adapter.dashboardStartTab
+    property alias dashboardHoverOpen: adapter.dashboardHoverOpen
+    property alias dashboardHoverClose: adapter.dashboardHoverClose
+    property alias overviewHidden: adapter.overviewHidden
+    property alias weekStart: adapter.weekStart
+    property alias lyricsEnabled: adapter.lyricsEnabled
+    property alias audioPulse: adapter.audioPulse
+    property alias statsInterval: adapter.statsInterval
+    property alias showGpu: adapter.showGpu
+    property alias temperatureUnit: adapter.temperatureUnit
+    property alias windUnit: adapter.windUnit
+    property alias weatherRefresh: adapter.weatherRefresh
+    property alias offline: adapter.offline
     property alias sidebarSide: adapter.sidebarSide
     property alias sidebarSection: adapter.sidebarSection
 
@@ -69,6 +84,30 @@ Singleton {
             // Estilo da barra: "strip" (faixa de ponta a ponta), "island" (ilha que
             // expande), "pill" ou "islands" (três ilhas).
             property string barStyle: "strip"
+
+            // Painel superior
+            property var dashboardTabOrder: ["overview", "media", "performance", "weather"]
+            property var dashboardTabsHidden: []
+            // "last" (a última usada) ou o id de uma aba
+            property string dashboardStartTab: "last"
+            property bool dashboardHoverOpen: false
+            property bool dashboardHoverClose: false
+            // Cartões escondidos da visão geral: user, clock, weather, calendar, resources, media
+            property var overviewHidden: []
+            // Primeiro dia da semana no calendário: 0 domingo, 1 segunda
+            property int weekStart: 0
+            property bool lyricsEnabled: true
+            property bool audioPulse: true
+            // Intervalo da aba Desempenho, em ms
+            property int statsInterval: 2000
+            property bool showGpu: true
+            // "c" ou "f"; "kmh" ou "ms"
+            property string temperatureUnit: "c"
+            property string windUnit: "kmh"
+            // Atualização do clima, em minutos
+            property int weatherRefresh: 30
+            // Desliga tudo o que usa a internet (clima e letras)
+            property bool offline: false
             // Central lateral: "right" ou "left", e a última seção aberta.
             property string sidebarSide: "right"
             property string sidebarSection: "wifi"

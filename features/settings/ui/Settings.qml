@@ -269,6 +269,7 @@ OverlayPanel {
                             glass: glassPage,
                             notifications: notificationsPage,
                             bar: barPage,
+                            dashboard: dashboardPage,
                             sidebar: sidebarPage,
                             shortcuts: shortcutsPage,
                             about: aboutPage
@@ -327,6 +328,12 @@ OverlayPanel {
         id: sidebarPage
 
         SidebarPage {}
+    }
+
+    Component {
+        id: dashboardPage
+
+        DashboardPage {}
     }
 
     Component {
