@@ -54,19 +54,21 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Componente | Função |
 | --- | --- |
 | Barra | Quatro estilos, escolhidos nas configurações: **faixa** (padrão, de ponta a ponta), **ilha** (só a hora; cresce para os lados com o mouse em cima), **pílula** (flutuante, tudo à mostra) e **três ilhas** (workspaces, hora e ações nos cantos). Workspaces, hora e data (abre o painel superior), rede, volume, bateria e avisos. Fixa por padrão, reservando o espaço; com auto-ocultar, aparece ao encostar o mouse no topo, ao trocar de workspace e na área de trabalho vazia (por monitor) |
-| Configurações | Tópicos à esquerda e opções à direita: aparência (tema, animações), transparência e desfoque, notificações, atalhos e sobre; barra, painel e energia ainda por fazer |
-| Painel superior | Desce do topo: visão geral (usuário com atalhos para configurações e energia, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima |
-| Launcher | Abrir aplicativos e ações rápidas |
-| Notificações | Servidor de notificações próprio; popups e a lista na central lateral |
+| Painel superior | Desce do topo: visão geral (usuário com atalhos para configurações e energia, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima. Abas reordenáveis; pode ficar aberto junto com a central lateral |
 | Central lateral | Cartão na altura da tela, na borda direita ou esquerda (configurável): trilho de seções (Wi-Fi, Bluetooth, som, avisos, bateria, tela) e o conteúdo de cada uma, como redes disponíveis com senha, dispositivos para parear, saída e entrada de áudio e perfil de energia |
+| Launcher | Três estilos: **compacto** (padrão; busca e lista curta de apps e ações), **completo** (categorias de aplicativos, arquivos por tipo e web, favoritos, grade e detalhes do app: ações do `.desktop`, descrição, versão e desenvolvedor) e **tela cheia** (gaveta de apps por categoria). Apps ordenados por uso |
+| Configurações | Tópicos à esquerda e opções à direita: aparência, papel de parede, monitores, mouse, teclado, transparência e desfoque, notificações, painéis, central lateral, launcher, barra, painel superior, energia e bateria, atalhos e sobre |
+| Monitores | Disposição arrastando num canvas (encaixe nas bordas, sempre num bloco só) e, por monitor, resolução, taxa, escala, rotação, espelhamento, VRR e 10 bits. Aplicar pede confirmação em todas as telas e volta sozinho em 15 s. Um arranjo salvo por conjunto de monitores, reaplicado ao conectar |
+| Mouse e teclado | Velocidade, aceleração, rolagem, touchpad e velocidade por mouse; layouts, repetição e opções do xkb. Botões extras do mouse e teclas extras mapeados para ações (painéis, mídia, janelas, enviar atalho, rodar comando) e teclas remapeadas de verdade (keymap gerado e validado). Só o que muda vai por cima do `hyprland.lua` |
+| Papel de parede | Por tema: o próprio (imagem e efeito animado em shader), só a imagem, qualquer um dos dez efeitos (nas cores do tema), uma imagem ou um vídeo/GIF do usuário. Vídeos convertidos uma vez por tela para tocar pela GPU. 30 ou 60 fps, no ritmo da tela; pausa com tela cheia, bloqueio e tela apagada |
+| Notificações | Servidor de notificações próprio; popups e a lista na central lateral |
 | Tela de bloqueio | Bloqueio próprio, no visual do tema ativo |
-| Wallpaper | Gerenciamento de papel de parede, vinculado ao tema |
-| Seletor de temas | Painel para trocar rapidamente entre temas pré-configurados |
+| Seletor de temas | Painel para trocar rapidamente entre os dez temas |
 | OSD | Indicadores de volume e brilho na tela |
 | Menu de energia | Bloquear, suspender, reiniciar e desligar |
 | Energia | Sem interface própria: avisos de bateria baixa, crítica, carga completa e carregador; ação no nível crítico; perfil de energia automático; modo leve na bateria (tudo configurável) |
 
-Fora do escopo inicial: o controle de ociosidade continua com `hypridle`. O shell é específico para o Hyprland; suporte a outros compositores não é objetivo, pelo menos por enquanto.
+Por enquanto, o controle de ociosidade continua com o `hypridle`; trazê-lo para o shell é uma das pendências (ver [`Lucerna — Pendências.md`](<Lucerna — Pendências.md>)). O shell é específico para o Hyprland; suporte a outros compositores não é objetivo, pelo menos por enquanto.
 
 ## Arquitetura
 
@@ -92,9 +94,11 @@ O repositório inteiro é a configuração do shell. Fora do código do shell fi
 lucerna/
 ├── shell.qml                   # ponto de entrada, monta as features
 ├── core/
-│   ├── theme/ThemeManager.qml  # carrega o tema ativo e expõe os tokens
-│   ├── panels/Panels.qml       # qual painel está aberto; ponte entre features
-│   ├── widgets/                # botões, ícones, medidores, abas, switch, slider, Anim, painéis base
+│   ├── theme/ThemeManager.qml  # carrega o tema ativo e expõe os tokens; papel de parede por tema
+│   ├── panels/Panels.qml       # quais painéis estão abertos; ponte entre features
+│   ├── widgets/                # botões, ícones, medidores, abas, switch, slider, Select, EffectView, Anim, painéis base
+│   ├── input/InputActions.qml  # o que um botão ou tecla pode fazer, nomes de teclas e botões
+│   ├── launcher/SearchEngines.qml # buscadores da web do launcher
 │   ├── format/Format.qml       # números, tamanhos e tempos em pt-BR
 │   └── config/Config.qml       # preferências persistidas
 ├── services/
@@ -111,13 +115,20 @@ lucerna/
 │   ├── Media.qml               # players MPRIS
 │   ├── Lyrics.qml              # letras sincronizadas (LRCLIB)
 │   ├── Weather.qml             # previsão (Open-Meteo)
-│   └── scripts/gpu-status.sh
+│   ├── Monitors.qml            # monitores e arranjos (hl.monitor)
+│   ├── Input.qml               # opções de entrada, binds e keymap (xkbcli)
+│   ├── VideoWallpapers.qml     # vídeos convertidos por tela, em fila
+│   ├── AppInfo.qml             # versão e desenvolvedor dos apps (pacman, AppStream)
+│   ├── FileSearch.qml          # busca de arquivos do launcher (fd ou find)
+│   └── scripts/                # gpu-status, video-wallpaper, app-info, file-search
 ├── features/
 │   ├── bar/
 │   │   ├── ui/
 │   │   └── state/
 │   ├── dashboard/
+│   ├── displays/               # reaplica o arranjo de monitores salvo
 │   ├── energy/
+│   ├── input/                  # aplica mouse e teclado; ações dos binds (IPC action)
 │   ├── settings/
 │   ├── launcher/
 │   ├── notifications/
@@ -129,11 +140,15 @@ lucerna/
 │   └── powerMenu/
 ├── themes/
 │   ├── catppuccin-mocha.json   # um arquivo por tema (o padrão)
-│   └── wallpapers/
-└── dev/                        # ambiente de teste (não é carregado pelo shell)
+│   ├── wallpapers/             # papéis estáticos
+│   ├── shaders/                # efeitos animados (.frag e .qsb), catálogo e textura de ruído
+│   └── fonts/
+└── dev/                        # ambiente de teste e geradores (não é carregado pelo shell)
     ├── Dockerfile
     ├── hyprland.lua
-    └── run.sh
+    ├── run.sh
+    ├── themes.py               # gera os temas e os papéis estáticos
+    └── shaders.sh              # compila os efeitos
 ```
 
 ## Controle externo
@@ -141,13 +156,17 @@ lucerna/
 Atalhos do Hyprland falam com o shell por `IpcHandler`, sem scripts intermediários:
 
 ```sh
-qs -c lucerna ipc call panels toggle launcher   # launcher, dashboard, settings, sidebar, themes, power
+qs -c lucerna ipc call panels toggle launcher   # launcher, dashboard, settings, sidebar, themes, power (dismiss fecha só um)
 qs -c lucerna ipc call sidebar open wifi        # bluetooth, sound, notifications, battery, display
 qs -c lucerna ipc call dashboard open weather   # overview, media, performance, weather
 qs -c lucerna ipc call session lock
 qs -c lucerna ipc call brightness up            # up, down, set <0-100>
 qs -c lucerna ipc call theme set nord           # get, list
 qs -c lucerna ipc call notifications clear      # toggleDnd, count
+qs -c lucerna ipc call launcher open files ""   # apps, documents, images, music, videos, web
+qs -c lucerna ipc call wallpaper mode animated  # auto, static, toggle; modeFor <monitor> <modo>
+qs -c lucerna ipc call monitors identify
+qs -c lucerna ipc call action run play-pause    # as ações dos botões e teclas mapeados
 ```
 
 O volume não precisa de IPC: os atalhos chamam `wpctl`, e o shell reage à mudança pelo PipeWire.
