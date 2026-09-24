@@ -74,6 +74,12 @@ Singleton {
     property alias idleMedia: adapter.idleMedia
     property alias idleFullscreen: adapter.idleFullscreen
     property alias idleInhibit: adapter.idleInhibit
+    property alias nightLightEnabled: adapter.nightLightEnabled
+    property alias nightLightSchedule: adapter.nightLightSchedule
+    property alias nightLightFrom: adapter.nightLightFrom
+    property alias nightLightTo: adapter.nightLightTo
+    property alias nightLightTemp: adapter.nightLightTemp
+    property alias nightLightOverride: adapter.nightLightOverride
     property alias launcherFavorites: adapter.launcherFavorites
     property alias launcherUsage: adapter.launcherUsage
     property alias launcherHidden: adapter.launcherHidden
@@ -217,6 +223,15 @@ Singleton {
             property bool idleFullscreen: true
             // "Não apagar a tela": segura tudo até ser desligado.
             property bool idleInhibit: false
+            // Luz noturna: "sun" (do pôr ao nascer do sol, pela cidade do
+            // clima), "custom" (de/até, "HH:MM") ou "always". Temperatura em K.
+            property bool nightLightEnabled: false
+            property string nightLightSchedule: "sun"
+            property string nightLightFrom: "20:00"
+            property string nightLightTo: "06:30"
+            property int nightLightTemp: 4000
+            // Ligada ou desligada à mão até a próxima virada: { on, until } (ms).
+            property var nightLightOverride: null
             // Apps fixados (ids), quantas vezes cada um foi aberto e os ocultos.
             property var launcherFavorites: []
             property var launcherUsage: ({})

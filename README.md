@@ -107,6 +107,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | **Energia** | Menu (bloquear, suspender, sair, reiniciar, desligar). Avisos de bateria baixa e crítica, ação no nível crítico com prazo para cancelar, troca de perfil na tomada e modo leve na bateria. |
 | **OSD** | Volume e brilho. |
 | **Ociosidade** | Escurece, desliga a tela, bloqueia e suspende depois de um tempo sem uso, com tempos próprios na tomada e na bateria, sem precisar do `hypridle`. Segura com mídia tocando, com app em tela cheia e com "Não apagar a tela" (na central lateral, para apresentações). |
+| **Luz noturna** | Tela mais quente à noite, do pôr ao nascer do sol (pela cidade do clima, calculado sem rede), num horário fixo ou sempre, entrando e saindo aos poucos. Na central lateral, liga ou desliga até a próxima virada. Usa o `hyprsunset`, que muda a cor no hardware, sem custo para a GPU. |
 | **Papel de parede** | Imagem com transição na troca e efeito animado por cima (shader, a 30 ou 60 fps, no ritmo da tela, e em meia resolução). Pausa com app em tela cheia, tela bloqueada ou tela apagada, e opcionalmente com qualquer janela aberta; no automático, fica parado na bateria. Modo e origem por monitor. |
 | **Temas** | Dez prontos, nas paletas oficiais: Catppuccin Mocha (padrão), Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green. Cada um vem com papel estático, efeito animado, fonte própria e bordas do Hyprland. Trocam ao vivo. |
 
@@ -118,6 +119,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | **Papel de parede** | Por tema: o próprio, a imagem parada, um efeito animado ou uma imagem, vídeo ou GIF seu (com preencher ou inteira). Tem ainda o modo de exibição (automático, animado ou parado), modo e papel por monitor, quadros por segundo, parado na bateria, pausar com janelas e resolução cheia. |
 | **Monitores** | Disposição arrastando, resolução, taxa de atualização, escala, rotação, espelhar, VRR e cor de 10 bits. Tem "Identificar" e aplicar com confirmação. O arranjo fica salvo por conjunto de monitores e é reaplicado ao conectar. |
 | **Tela e ociosidade** | Ligar ou desligar, os tempos de escurecer, desligar a tela, bloquear e suspender (na tomada e na bateria), segurar com mídia ou tela cheia e "Não apagar a tela". Avisa se o `hypridle` estiver rodando. |
+| **Luz noturna** | Ligar, temperatura (com prévia ao ajustar) e horário: pôr do sol, fixo ou sempre. |
 | **Mouse** | Velocidade, aceleração, canhoto, foco das janelas (ao passar o mouse ou ao clicar), rolagem, touchpad (tocar para clicar, arrastar, desligar ao digitar, clique com dedos, botão do meio), **botões mapeados** e velocidade própria por mouse. |
 | **Teclado** | Layouts (até quatro, com variante e atalho para trocar), repetição, Num Lock, teclas especiais (Caps Lock, Compose, trocar Alt e Super) e qualquer opção do xkb, com busca. Também **teclas remapeadas** e **teclas extras e atalhos**. |
 | **Transparência e desfoque** | Opacidade dos painéis e dos cartões e intensidade do desfoque, por cima do tema. |
@@ -141,6 +143,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
   - BlueZ: Bluetooth
   - `brightnessctl`: brilho
   - `nvidia-smi`: GPU NVIDIA; vem com o driver
+  - `hyprsunset`: luz noturna
   - `fd`: busca de arquivos do launcher mais rápida (sem ele, usa o `find`)
   - `ffmpeg` e `qt6-multimedia-ffmpeg`: papel de parede em vídeo ou GIF. Para a GPU decodificar o vídeo, também o driver VA-API (`intel-media-driver` na Intel, `libva-mesa-driver` na AMD) e o `libva-utils`, que o shell usa para detectar o suporte.
 - Serviços na internet, só enquanto a aba correspondente está aberta, e desligáveis pelo modo offline: [Open-Meteo](https://open-meteo.com) (clima) e [LRCLIB](https://lrclib.net) (letras).
@@ -185,13 +188,14 @@ Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [arg
 | `panels` | `open <nome>`, `toggle <nome>`, `dismiss <nome>` (fecha só esse), `close` (fecha todos), `get`. Nomes: `launcher`, `dashboard`, `sidebar`, `settings`, `themes`, `power` |
 | `dashboard` | `open <aba>` (`overview`, `media`, `performance`, `weather`), `toggle` |
 | `sidebar` | `open <seção>`, `toggle <seção>` (`wifi`, `bluetooth`, `sound`, `notifications`, `battery`, `display`; vazio = a última) |
-| `settings` | `open <tópico>` (`appearance`, `wallpaper`, `displays`, `idle`, `launcher`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `sidebar`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |
+| `settings` | `open <tópico>` (`appearance`, `wallpaper`, `displays`, `idle`, `nightlight`, `launcher`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `sidebar`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |
 | `notifications` | `clear`, `toggleDnd`, `count` |
 | `launcher` | `open <categoria> <busca>` (`apps`, `files`, `documents`, `images`, `music`, `videos`, `web`; a busca pode ser `""`), `toggle` |
 | `session` | `lock`, `isLocked` |
 | `theme` | `set <id>`, `get`, `list` |
 | `brightness` | `up`, `down`, `set <0-100>` |
 | `monitors` | `identify` |
+| `nightlight` | `enable <true\|false>` (liga ou desliga a função), `toggle` (agora, até a próxima virada do horário), `temperature <K>`, `status` |
 | `idle` | `inhibit <true\|false>` (não apagar a tela), `toggle`, `status` |
 | `wallpaper` | `mode <auto\|animated\|static\|toggle>`, `modeFor <monitor> <modo>` (`default` volta ao geral), `get` |
 | `action` | `run <id>`: as mesmas ações dos botões e teclas mapeados (`launcher`, `play-pause`, `volume-up`, `lock`…; a lista está em [`core/input/InputActions.qml`](core/input/InputActions.qml)) |
@@ -224,7 +228,7 @@ core/       tema, config, painéis, widgets e o catálogo de ações de entrada
 services/   a conversa com o sistema: Hyprland, PipeWire, UPower, NetworkManager,
             BlueZ, MPRIS, notificações, monitores, entrada, clima…
 features/   uma pasta por parte do shell (bar, dashboard, sidebar, settings,
-            launcher, input, displays, idle…), cada uma com state/ e ui/
+            launcher, input, displays, idle, nightlight…), cada uma com state/ e ui/
 ```
 
 - A `ui` fala com o `state` da própria feature, e o `state` fala com `services` e `core`.

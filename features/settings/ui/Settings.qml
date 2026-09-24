@@ -314,6 +314,7 @@ OverlayPanel {
                             wallpaper: wallpaperPage,
                             mouse: mousePage,
                             idle: idlePage,
+                            nightlight: nightLightPage,
                             keyboard: keyboardPage,
                             shortcuts: shortcutsPage,
                             about: aboutPage
@@ -372,6 +373,12 @@ OverlayPanel {
         id: idlePage
 
         IdlePage {}
+    }
+
+    Component {
+        id: nightLightPage
+
+        NightLightPage {}
     }
 
     Component {
