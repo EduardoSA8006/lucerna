@@ -40,27 +40,15 @@ hl.bind(mod .. " + Q",         hl.dsp.window.close())
 hl.bind(mod .. " + SHIFT + R", hl.dsp.exec_cmd("pkill -x qs; qs -c lucerna"))
 hl.bind(mod .. " + SHIFT + E", hl.dsp.exit())
 
--- Lucerna
-hl.bind(mod .. " + Space",  hl.dsp.exec_cmd(ipc .. "panels toggle launcher"))
-hl.bind(mod .. " + D",      hl.dsp.exec_cmd(ipc .. "panels toggle dashboard"))
-hl.bind(mod .. " + S",      hl.dsp.exec_cmd(ipc .. "panels toggle settings"))
-hl.bind(mod .. " + N",      hl.dsp.exec_cmd(ipc .. "sidebar toggle notifications"))
-hl.bind(mod .. " + C",      hl.dsp.exec_cmd(ipc .. "sidebar toggle \"\""))
-hl.bind(mod .. " + T",      hl.dsp.exec_cmd(ipc .. "panels toggle themes"))
-hl.bind(mod .. " + Escape", hl.dsp.exec_cmd(ipc .. "panels toggle power"))
-hl.bind(mod .. " + L",      hl.dsp.exec_cmd(ipc .. "session lock"))
+-- Os atalhos do Lucerna (painéis, bloqueio, som, mídia e brilho) ficam com o
+-- próprio shell: Configurações → Atalhos. Aqui, só os do Hyprland.
 
--- Volume e brilho (as teclas de mídia costumam ficar com o KDE do host)
+-- Volume e brilho sem teclas de mídia (no host, elas ficam com o KDE)
 hl.bind(mod .. " + Up",    hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { repeating = true })
 hl.bind(mod .. " + Down",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { repeating = true })
 hl.bind(mod .. " + M",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"))
 hl.bind(mod .. " + Right", hl.dsp.exec_cmd(ipc .. "brightness up"),   { repeating = true })
 hl.bind(mod .. " + Left",  hl.dsp.exec_cmd(ipc .. "brightness down"), { repeating = true })
-hl.bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
-hl.bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
-hl.bind("XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true })
-hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd(ipc .. "brightness up"),   { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(ipc .. "brightness down"), { locked = true, repeating = true })
 
 for i = 1, 5 do
     hl.bind(mod .. " + " .. i,         hl.dsp.focus({ workspace = i }))

@@ -9,7 +9,7 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 3. [x] **Ociosidade e tela.** Desligar a tela e bloquear depois de X minutos, suspender depois de Y, sem depender do `hypridle` (o Quickshell tem `IdleMonitor`). Com exceções: mídia tocando, app em tela cheia e, no modo apresentação, não apagar.
 4. [x] **Luz noturna.** Temperatura de cor por horário (fixo ou pôr e nascer do sol), na seção Tela da central lateral e nas configurações.
 5. [x] **Temas claros.** Catppuccin Latte e Rosé Pine Dawn, as versões claras oficiais.
-6. [ ] **Atalhos editáveis.** A página Atalhos das configurações só informa; os atalhos do shell continuam no `hyprland.lua`. Passar a editar ali, reaproveitando os binds da aba Teclado.
+6. [x] **Atalhos editáveis.** A página Atalhos das configurações só informa; os atalhos do shell continuam no `hyprland.lua`. Passar a editar ali, reaproveitando os binds da aba Teclado.
 7. [ ] **Monitores no login.** O arranjo salvo só vale quando o Lucerna inicia, e no login o `hyprland.lua` aparece antes. Opção de gravar o arranjo num arquivo que o `hyprland.lua` inclui.
 8. [ ] **Histórico da área de transferência**, no launcher.
 9. [ ] **Captura de tela e gravação:** área, janela ou tela, com notificação e atalho.
@@ -26,6 +26,7 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 
 No ambiente de teste não dá para simular cliques, e o Hyprland ignora teclado virtual. Estes pontos foram testados só pela lógica (IPC e capturas) e precisam de uma conferência na máquina de verdade:
 
+- [ ] Atalhos: capturar a tecla com o teclado de verdade (o `wtype` manda outro keymap) e os atalhos do shell disparando.
 - [ ] Mouse e teclado: capturar botões e teclas, remapear teclas e os binds dos botões extras.
 - [ ] Monitores: arrastar no canvas; em monitor real, a lista de resoluções, o VRR e a cor de 10 bits.
 - [ ] Papel de parede: pausa com a tela bloqueada e com a tela apagada; o vídeo solta o decodificador depois de 2 min pausado; 60 fps caem para 30 na bateria.

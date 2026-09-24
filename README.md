@@ -130,6 +130,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | **Barra** | Estilo, esconder sozinha, mostrar na área vazia e ao trocar de workspace, data. |
 | **Painel superior** | Abas, abrir e fechar pelo mouse, cartões, semana, letra, pulso do áudio, intervalo do desempenho, GPU, cidade, unidades e **modo offline**. |
 | **Energia e bateria** | Porcentagem na barra, avisos, ação no nível crítico, perfil automático, economia abaixo de um nível e modo leve. |
+| **Atalhos** | As teclas do shell (painéis, bloqueio, som, mídia e brilho): trocar, acrescentar, tirar e voltar ao padrão. Avisa quando a tecla era de outro atalho, da aba Teclado ou do `hyprland.lua`. |
 
 ## Requisitos
 
@@ -163,21 +164,22 @@ No `hyprland.lua`:
 hl.on("hyprland.start", function()
     hl.exec_cmd("qs -c lucerna")
 end)
-
-local ipc = "qs -c lucerna ipc call "
-hl.bind("SUPER + Space",  hl.dsp.exec_cmd(ipc .. "panels toggle launcher"))
-hl.bind("SUPER + D",      hl.dsp.exec_cmd(ipc .. "panels toggle dashboard"))
-hl.bind("SUPER + S",      hl.dsp.exec_cmd(ipc .. "panels toggle settings"))
-hl.bind("SUPER + N",      hl.dsp.exec_cmd(ipc .. "sidebar toggle notifications"))
-hl.bind("SUPER + C",      hl.dsp.exec_cmd(ipc .. "sidebar toggle \"\""))
-hl.bind("SUPER + T",      hl.dsp.exec_cmd(ipc .. "panels toggle themes"))
-hl.bind("SUPER + Escape", hl.dsp.exec_cmd(ipc .. "panels toggle power"))
-hl.bind("SUPER + L",      hl.dsp.exec_cmd(ipc .. "session lock"))
-hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd(ipc .. "brightness up"),   { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(ipc .. "brightness down"), { locked = true, repeating = true })
 ```
 
-O volume pode ficar no `wpctl`, direto nos atalhos: o shell percebe a mudança pelo PipeWire e mostra o OSD. O [`dev/hyprland.lua`](dev/hyprland.lua) tem um exemplo completo. As regras de desfoque dos painéis são aplicadas pelo próprio shell, sem mexer no `hyprland.lua`.
+Os atalhos do shell vêm prontos e se editam em Configurações → Atalhos:
+
+| Atalho | Ação |
+| --- | --- |
+| `Super+Espaço` | Launcher |
+| `Super+D` | Painel superior |
+| `Super+S` | Configurações |
+| `Super+C` / `Super+N` | Central lateral / nos avisos |
+| `Super+T` | Seletor de temas |
+| `Super+Esc` | Menu de energia |
+| `Super+L` | Bloquear a tela |
+| Teclas de volume, mudo, microfone, mídia e brilho | O mesmo, com o OSD |
+
+O shell fica com essas teclas: se o `hyprland.lua` também tiver alguma delas, a dele sai (até o próximo reload). Então tire do `hyprland.lua` os atalhos antigos do Lucerna, se houver. Os do Hyprland (janelas, workspaces) continuam lá; o [`dev/hyprland.lua`](dev/hyprland.lua) tem um exemplo. As regras de desfoque dos painéis são aplicadas pelo próprio shell, sem mexer no `hyprland.lua`.
 
 ## Comandos IPC
 
@@ -256,7 +258,7 @@ No host é preciso Docker, uma sessão Wayland e o usuário no grupo `docker`.
 - Para testar a aba Mídia, a imagem tem `mpv` com `mpv-mpris`: rode `dev/run.sh shell` e depois `mpv --no-video arquivo.mp3`.
 - Para testar monitores, crie saídas virtuais: `hyprctl output create headless`.
 
-Atalhos no Hyprland aninhado (a tecla de mod é `Alt`, para não brigar com o desktop do host):
+Atalhos no Hyprland aninhado (a tecla de mod é `Alt`, para não brigar com o desktop do host; os do shell usam `Alt` também, no lugar de `Super`):
 
 | Atalho | Ação |
 | --- | --- |

@@ -100,6 +100,7 @@ lucerna/
 │   ├── panels/Panels.qml       # quais painéis estão abertos; ponte entre features
 │   ├── widgets/                # botões, ícones, medidores, abas, switch, slider, Select, EffectView, Anim, painéis base
 │   ├── input/InputActions.qml  # o que um botão ou tecla pode fazer, nomes de teclas e botões
+│   ├── input/ShellShortcuts.qml # atalhos do shell: padrões e comparação de combinações
 │   ├── launcher/SearchEngines.qml # buscadores da web do launcher
 │   ├── format/Format.qml       # números, tamanhos e tempos em pt-BR
 │   ├── time/Sun.qml            # nascer e pôr do sol, sem rede
@@ -160,7 +161,7 @@ lucerna/
 
 ## Controle externo
 
-Atalhos do Hyprland falam com o shell por `IpcHandler`, sem scripts intermediários:
+Scripts e outros programas falam com o shell por `IpcHandler`. Os atalhos do shell não precisam: ele mesmo os registra no Hyprland (`hl.bind`), a partir de Configurações → Atalhos, e tira do `hyprland.lua` o que estiver nas mesmas teclas.
 
 ```sh
 qs -c lucerna ipc call panels toggle launcher   # launcher, dashboard, settings, sidebar, themes, power (dismiss fecha só um)
@@ -176,7 +177,7 @@ qs -c lucerna ipc call monitors identify
 qs -c lucerna ipc call action run play-pause    # as ações dos botões e teclas mapeados
 ```
 
-O volume não precisa de IPC: os atalhos chamam `wpctl`, e o shell reage à mudança pelo PipeWire.
+Quem mudar o volume por fora (`wpctl`) também vê o OSD: o shell reage à mudança pelo PipeWire.
 
 ## Serviços externos
 
@@ -226,4 +227,4 @@ hl.on("hyprland.start", function()
 end)
 ```
 
-`dev/hyprland.lua` serve de referência para os atalhos.
+`dev/hyprland.lua` serve de referência para os atalhos do Hyprland (janelas e workspaces); os do shell ficam com ele.

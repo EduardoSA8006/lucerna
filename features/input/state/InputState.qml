@@ -89,8 +89,22 @@ Singleton {
         return { key, lua, repeating: action.repeating ?? false, locked: action.locked ?? false };
     }
 
+    // Os atalhos do shell viram binds como os outros. Uma tecla mapeada na aba
+    // Teclado vence o atalho do shell na mesma tecla.
+    function shellEntries(): var {
+        const own = Config.inputBinds ?? [];
+        const out = [];
+        for (const shortcut of ShellShortcuts.effective(Config.shellShortcuts)) {
+            for (const k of shortcut.keys) {
+                if (!own.some(b => ShellShortcuts.same(b, k)) && !out.some(e => ShellShortcuts.same(e, k)))
+                    out.push({ trigger: k.trigger, mods: ShellShortcuts.normalizeMods(k.mods), action: { id: shortcut.id } });
+            }
+        }
+        return out;
+    }
+
     function applyBinds(): void {
-        Input.setBinds((Config.inputBinds ?? []).map(bindFor).filter(b => b));
+        Input.setBinds(shellEntries().concat(Config.inputBinds ?? []).map(bindFor).filter(b => b));
     }
 
     // Mudanças em sequência (arrastar um slider) viram uma aplicação só.
@@ -132,6 +146,10 @@ Singleton {
         }
 
         function onInputBindsChanged() {
+            root.applyBinds();
+        }
+
+        function onShellShortcutsChanged() {
             root.applyBinds();
         }
     }

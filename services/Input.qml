@@ -91,8 +91,9 @@ Singleton {
     }
 
     // Binds do Lucerna: [{ key: "SUPER + mouse:275", lua: "hl.dsp....", repeating, locked }].
-    // Trocar a lista tira os anteriores; suspender tira todos por um tempo (para
-    // capturar uma tecla ou botão que já está mapeado).
+    // Trocar a lista tira os anteriores e o que o hyprland.lua tiver nas mesmas
+    // teclas (senão a ação rodaria duas vezes); suspender tira todos por um
+    // tempo (para capturar uma tecla ou botão que já está mapeado).
     property var binds: []
     property bool suspended: false
 
@@ -112,7 +113,8 @@ Singleton {
     }
 
     function setBinds(list: var): void {
-        const lua = [unbindLua(binds), suspended ? "" : bindLua(list)].filter(l => l).join("\n");
+        const keys = binds.concat(list).filter((b, i, all) => all.findIndex(o => o.key.toLowerCase() === b.key.toLowerCase()) === i);
+        const lua = [unbindLua(keys), suspended ? "" : bindLua(list)].filter(l => l).join("\n");
         binds = list;
         if (lua)
             evalLua(lua);
@@ -132,6 +134,29 @@ Singleton {
         suspended = false;
         if (binds.length)
             evalLua(bindLua(binds));
+    }
+
+    // Todos os binds ativos no Hyprland (`hyprctl binds -j`), para achar
+    // conflitos: [{ mods: "SUPER SHIFT", key: "Q", mouse }].
+    property var hyprBinds: []
+
+    function refreshHyprBinds(): void {
+        bindsProbe.running = true;
+    }
+
+    Process {
+        id: bindsProbe
+
+        command: ["hyprctl", "binds", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    root.hyprBinds = JSON.parse(text).map(b => ({ modmask: b.modmask, key: b.key, mouse: b.mouse }));
+                } catch (e) {
+                    root.hyprBinds = [];
+                }
+            }
+        }
     }
 
     // Keymap
