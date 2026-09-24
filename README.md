@@ -1,21 +1,128 @@
 # Lucerna
 
-Shell de desktop próprio para o Hyprland, escrito em Quickshell (QML). A proposta completa, com princípios e arquitetura, está em [`Lucerna — Proposta.md`](<Lucerna — Proposta.md>). Os wallpapers animados, ainda por implementar, estão em [`Lucerna — Proposta do Wallpaper.md`](<Lucerna — Proposta do Wallpaper.md>).
+**Um shell de desktop completo para o Hyprland, escrito em Quickshell.**
 
-Tem barra em quatro estilos (faixa, ilha que expande, pílula e três ilhas; fixa ou escondida até o mouse encostar no topo), central lateral (Wi-Fi, Bluetooth, som, avisos, bateria e tela), painel superior (visão geral, mídia com letra sincronizada, desempenho e clima), tela de configurações, launcher, notificações com central lateral, tela de bloqueio, wallpaper, seletor de temas, OSD de volume e brilho e menu de energia. Os ícones são Material Symbols e as animações usam as curvas de movimento do Material 3. Tudo sai de um tema em JSON (`themes/`), trocável ao vivo, e o tema também ajusta as bordas do Hyprland.
+Barra, painel superior, central lateral, launcher, notificações, tela de bloqueio e uma tela de configurações que cobre do tema aos monitores, ao mouse e ao teclado. As animações usam as curvas de movimento do Material 3, e tudo sai de um tema em JSON, trocável ao vivo. Tudo em português.
+
+![Painel superior aberto sobre a área de trabalho](docs/screenshots/hero.jpg)
+
+## Destaques
+
+- **Configurações de verdade, sem editar arquivo**: monitores arrastando, mouse, teclado, barra, painéis, energia, transparência e animações. Só o que você muda vai por cima do `hyprland.lua`, e "Voltar ao hyprland.lua" desfaz.
+- **Botões e teclas mapeáveis**: os botões extras do mouse e as teclas extras do teclado (F13–F24, macro, mídia) podem abrir painéis, controlar a mídia, trocar de workspace, **enviar um atalho de teclado** para a janela ou rodar um comando.
+- **Remapeamento real de teclas**, em qualquer programa e inclusive para modificadores (Caps Lock → Esc, Alt Gr → Super). O Lucerna gera o keymap, confere se ele compila e só então o entrega ao Hyprland.
+- **Monitores arrastando**: a disposição se monta num canvas com encaixe magnético. Cada monitor tem resolução, taxa, escala, rotação, espelhamento, VRR e 10 bits. Aplicar pede confirmação em todas as telas e, sem resposta em 15 s, volta ao anterior.
+- **Painéis que convivem**: o painel superior e a central lateral ficam abertos juntos, desviam um do outro e não cobrem a barra.
+- **Vidro de verdade**: o desfoque atrás dos painéis é do próprio Hyprland, e o tema ajusta também as bordas das janelas.
+- **Leve por padrão**: cada serviço só coleta dados enquanto alguém mostra. Um modo offline desliga tudo o que usa a internet.
+
+## Galeria
+
+### Área de trabalho
+
+A barra em faixa e as janelas com as bordas e o arredondamento que o tema aplica no Hyprland.
+
+![Área de trabalho com a barra e duas janelas](docs/screenshots/desktop.jpg)
+
+### Painel superior
+
+Visão geral, mídia com letra sincronizada, desempenho e clima. Desce de dentro da barra, e a altura acompanha a aba.
+
+| Mídia | Desempenho |
+| --- | --- |
+| ![Aba Mídia](docs/screenshots/dashboard-media.jpg) | ![Aba Desempenho](docs/screenshots/dashboard-performance.jpg) |
+| **Clima** | **Com a central lateral ao lado** |
+| ![Aba Clima](docs/screenshots/dashboard-weather.jpg) | ![Painel superior e central lateral abertos juntos](docs/screenshots/together.jpg) |
+
+### Central lateral e notificações
+
+Wi-Fi, Bluetooth, som, avisos, bateria e tela, com as seções do lado de fora. As notificações chegam em popups e ficam guardadas nos avisos.
+
+| Som | Bateria |
+| --- | --- |
+| ![Central lateral: som](docs/screenshots/sidebar-sound.jpg) | ![Central lateral: bateria](docs/screenshots/sidebar-battery.jpg) |
+| **Popups** | **Avisos** |
+| ![Notificações](docs/screenshots/notifications.jpg) | ![Central de avisos](docs/screenshots/sidebar-notifications.jpg) |
+
+### Launcher, temas e barra
+
+| Launcher | Seletor de temas |
+| --- | --- |
+| ![Launcher](docs/screenshots/launcher.jpg) | ![Seletor de temas](docs/screenshots/themes.jpg) |
+| **Pergaminho (claro)** | **Brasa** |
+| ![Tema Pergaminho](docs/screenshots/theme-pergaminho.jpg) | ![Tema Brasa](docs/screenshots/theme-brasa.jpg) |
+
+A barra tem quatro estilos: **faixa** (o padrão), **ilha** (só a hora, e expande com o mouse), **pílula** e **três ilhas**. Pode ficar fixa ou escondida até o mouse encostar no topo.
+
+![Os quatro estilos da barra](docs/screenshots/bars.png)
+
+### Configurações
+
+| Aparência | Monitores |
+| --- | --- |
+| ![Configurações: aparência](docs/screenshots/settings-appearance.jpg) | ![Configurações: monitores](docs/screenshots/settings-monitors.jpg) |
+| **Teclado** | **Mouse** |
+| ![Configurações: teclado](docs/screenshots/settings-keyboard.jpg) | ![Configurações: mouse](docs/screenshots/settings-mouse.jpg) |
+
+### Bloqueio, energia e OSD
+
+| Tela de bloqueio | Menu de energia |
+| --- | --- |
+| ![Tela de bloqueio](docs/screenshots/lock.jpg) | ![Menu de energia](docs/screenshots/power.jpg) |
+
+![OSD de brilho](docs/screenshots/osd.png)
+
+## O que tem
+
+| Parte | O que faz |
+| --- | --- |
+| **Barra** | Workspaces, hora e data, rede, som, bateria e avisos. Tem quatro estilos e pode ficar fixa ou esconder sozinha. Na área de trabalho vazia fica sempre à mostra, e aparece por um instante ao trocar de workspace. |
+| **Painel superior** | Visão geral (perfil, relógio, calendário, clima, recursos e mídia), mídia com letra sincronizada (LRCLIB) e pulso do áudio na capa, desempenho (CPU, GPU, memória, disco e rede) e clima (Open-Meteo). Abas reordenáveis e opção de abrir ao parar o mouse na hora. |
+| **Central lateral** | Wi-Fi (conectar, com senha), Bluetooth (parear e conectar), som (saídas, entradas e volumes), avisos, bateria (perfil de energia) e brilho. Abre à esquerda ou à direita. |
+| **Notificações** | Popups com ações, pausa no mouse e prazo ajustável, não perturbe e a central de avisos. |
+| **Launcher** | Apps e ações do shell, com busca. |
+| **Tela de bloqueio** | Relógio e senha (PAM). |
+| **Energia** | Menu (bloquear, suspender, sair, reiniciar, desligar). Avisos de bateria baixa e crítica, ação no nível crítico com prazo para cancelar, troca de perfil na tomada e modo leve na bateria. |
+| **OSD** | Volume e brilho. |
+| **Temas** | Cinco prontos (Nebulosa, Brasa, Lamparina, Luar e Pergaminho), com wallpaper, fontes próprias e bordas do Hyprland. Trocam ao vivo. |
+
+### Configurações
+
+| Tópico | Opções |
+| --- | --- |
+| **Aparência** | Tema, contorno nos cartões e velocidade das animações. |
+| **Monitores** | Disposição arrastando, resolução, taxa de atualização, escala, rotação, espelhar, VRR e cor de 10 bits. Tem "Identificar" e aplicar com confirmação. O arranjo fica salvo por conjunto de monitores e é reaplicado ao conectar. |
+| **Mouse** | Velocidade, aceleração, canhoto, foco das janelas (ao passar o mouse ou ao clicar), rolagem, touchpad (tocar para clicar, arrastar, desligar ao digitar, clique com dedos, botão do meio), **botões mapeados** e velocidade própria por mouse. |
+| **Teclado** | Layouts (até quatro, com variante e atalho para trocar), repetição, Num Lock, teclas especiais (Caps Lock, Compose, trocar Alt e Super) e qualquer opção do xkb, com busca. Também **teclas remapeadas** e **teclas extras e atalhos**. |
+| **Transparência e desfoque** | Opacidade dos painéis e dos cartões e intensidade do desfoque, por cima do tema. |
+| **Notificações** | Não perturbe e tempo na tela. |
+| **Painéis** | Quais abrem juntos e se desviam um do outro. |
+| **Central lateral** | Lado da tela. |
+| **Barra** | Estilo, esconder sozinha, mostrar na área vazia e ao trocar de workspace, data. |
+| **Painel superior** | Abas, abrir e fechar pelo mouse, cartões, semana, letra, pulso do áudio, intervalo do desempenho, GPU, cidade, unidades e **modo offline**. |
+| **Energia e bateria** | Porcentagem na barra, avisos, ação no nível crítico, perfil automático, economia abaixo de um nível e modo leve. |
 
 ## Requisitos
 
-- Hyprland 0.56+ com configuração em Lua (`hyprland.lua`)
-- Quickshell 0.3.1+
-- Fonte de ícones: `ttf-material-symbols-variable` (repositório oficial)
-- Opcionais: PipeWire (volume), UPower (bateria), NetworkManager (rede), `brightnessctl` (brilho), `nvidia-smi` (uso da GPU NVIDIA; vem com o driver)
-- Serviços na internet, só enquanto a aba correspondente está aberta: [Open-Meteo](https://open-meteo.com) (clima) e [LRCLIB](https://lrclib.net) (letras)
+- **Hyprland 0.56+**, com a configuração em Lua (`hyprland.lua`)
+- **Quickshell 0.3.1+**
+- **Fonte de ícones**: `ttf-material-symbols-variable` (repositório oficial do Arch)
+- Opcionais, cada um liga uma parte:
+  - PipeWire: volume e mídia
+  - UPower: bateria e perfis de energia
+  - NetworkManager: rede
+  - BlueZ: Bluetooth
+  - `brightnessctl`: brilho
+  - `nvidia-smi`: GPU NVIDIA; vem com o driver
+- Serviços na internet, só enquanto a aba correspondente está aberta, e desligáveis pelo modo offline: [Open-Meteo](https://open-meteo.com) (clima) e [LRCLIB](https://lrclib.net) (letras).
+
+O remapeamento de teclas usa o `xkbcli`, que vem com o libxkbcommon, dependência do próprio Hyprland.
 
 ## Instalação
 
 ```sh
-ln -s "$PWD" ~/.config/quickshell/lucerna
+git clone https://github.com/EduardoSA8006/lucerna
+ln -s "$PWD/lucerna" ~/.config/quickshell/lucerna
 ```
 
 No `hyprland.lua`:
@@ -38,50 +145,63 @@ hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd(ipc .. "brightness up"),   { lo
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(ipc .. "brightness down"), { locked = true, repeating = true })
 ```
 
-O volume é controlado por `wpctl` direto nos atalhos; o shell percebe a mudança pelo PipeWire e mostra o OSD. `dev/hyprland.lua` tem um exemplo completo.
+O volume pode ficar no `wpctl`, direto nos atalhos: o shell percebe a mudança pelo PipeWire e mostra o OSD. O [`dev/hyprland.lua`](dev/hyprland.lua) tem um exemplo completo. As regras de desfoque dos painéis são aplicadas pelo próprio shell, sem mexer no `hyprland.lua`.
 
 ## Comandos IPC
 
+Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [argumentos]`.
+
 | Alvo | Funções |
 | --- | --- |
-| `panels` | `open <nome>`, `close`, `toggle <nome>`, `get` (nomes: `launcher`, `dashboard`, `settings`, `sidebar`, `themes`, `power`) |
-| `settings` | `open <tópico>` (`appearance`, `glass`, `notifications`, `shortcuts`, `about`…) |
+| `panels` | `open <nome>`, `toggle <nome>`, `dismiss <nome>` (fecha só esse), `close` (fecha todos), `get`. Nomes: `launcher`, `dashboard`, `sidebar`, `settings`, `themes`, `power` |
 | `dashboard` | `open <aba>` (`overview`, `media`, `performance`, `weather`), `toggle` |
+| `sidebar` | `open <seção>`, `toggle <seção>` (`wifi`, `bluetooth`, `sound`, `notifications`, `battery`, `display`; vazio = a última) |
+| `settings` | `open <tópico>` (`appearance`, `displays`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `sidebar`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |
+| `notifications` | `clear`, `toggleDnd`, `count` |
 | `session` | `lock`, `isLocked` |
 | `theme` | `set <id>`, `get`, `list` |
 | `brightness` | `up`, `down`, `set <0-100>` |
-| `sidebar` | `open <seção>`, `toggle <seção>` (`wifi`, `bluetooth`, `sound`, `notifications`, `battery`, `display`; vazio = a última) |
-| `notifications` | `clear`, `toggleDnd`, `count` |
+| `monitors` | `identify` |
+| `action` | `run <id>`: as mesmas ações dos botões e teclas mapeados (`launcher`, `play-pause`, `volume-up`, `lock`…; a lista está em [`core/input/InputActions.qml`](core/input/InputActions.qml)) |
+| `battery` | `simulate <0-100> <true\|false>` e `real`, só no ambiente de desenvolvimento |
 
 ## Temas
 
-Cada arquivo em `themes/*.json` é um tema; o nome do arquivo é o id. Além de cores, fontes, raios e espaçamentos, o tema define:
+Cada arquivo em `themes/*.json` é um tema, e o nome do arquivo é o id. Para criar um, copie o `themes/nebulosa.json` (o padrão), mude as cores e o wallpaper: ele aparece no seletor na hora. Além de cores, fontes, raios e espaçamentos, o tema define:
 
-- `transparency`: `enabled`, `base` (opacidade dos painéis) e `layers` (dos cartões dentro deles). O desfoque atrás dos painéis é feito pelo próprio Hyprland: o shell aplica a regra de camada `^lucerna-panel-.*` sozinho, sem precisar mexer no `hyprland.lua`.
+- `transparency`: `enabled`, `base` (opacidade dos painéis) e `layers` (dos cartões dentro deles).
 - `hyprland`: bordas, arredondamento e intensidade do desfoque (`blurSize`, `blurPasses`), aplicados via `hyprctl eval`.
 - `animation.scale`: velocidade geral das animações (1 = padrão, 0 = desligadas).
-- `fonts`: fontes que o tema traz em `themes/fonts/`, carregadas pelo shell sem instalar nada no sistema (o Nebulosa traz a Rubik, licença OFL).
+- `fonts`: fontes que o tema traz em `themes/fonts/`, carregadas pelo shell sem instalar nada no sistema. O Nebulosa traz a Rubik, sob licença OFL.
 - `surfaces.outline`: contorno fino nos cartões. O padrão é sem contorno; os cartões se destacam pelo tom.
 - `colors.track`: cor opcional dos trilhos de medidores e sliders.
 
-Em Configurações → Energia e bateria: porcentagem na barra, avisos de bateria baixa e crítica (níveis ajustáveis), de carga completa e do carregador, ação no nível crítico (suspender, hibernar ou desligar, com 60 s para ligar na tomada e cancelar), troca automática do perfil de energia ao tirar e pôr na tomada, economia abaixo de um nível e o modo leve (sem vidro e com animações curtas na bateria). No ambiente de dev, `qs -c lucerna ipc call battery simulate <0-100> <true|false>` simula a bateria (e `battery real` volta ao normal).
+Transparência, desfoque, contorno e velocidade das animações também se ajustam nas configurações, por cima de qualquer tema. "Restaurar padrões do tema" desfaz.
 
-Em Configurações → Monitores: a disposição se monta arrastando cada monitor no canvas (ao soltar, ele encaixa colado na borda de outro, e o arranjo fica sempre num bloco só) e cada um tem resolução, taxa de atualização, escala, rotação, espelhamento, VRR e cor de 10 bits. "Identificar" mostra o número de cada tela. Nada vale até aplicar; aplicado, uma janela em cada tela pede para manter, e sem resposta em 15 s tudo volta ao anterior. O arranjo confirmado fica salvo para aquele conjunto de monitores e o Lucerna o reaplica ao iniciar e quando um monitor é conectado.
+## Onde ficam as preferências
 
-Em Configurações → Mouse: velocidade, aceleração (adaptativa ou plana), canhoto, foco das janelas (ao passar o mouse ou ao clicar), rolagem natural e velocidade da rolagem, touchpad (tocar para clicar, tocar e arrastar, desligar enquanto digita, clique com dedos, botão do meio com os dois) e velocidade própria por mouse. Os **botões extras** (o do meio, os laterais e os demais que o mouse tiver) são capturados apertando o botão e podem abrir painéis do Lucerna, controlar a mídia, o volume e o brilho, fechar ou flutuar janelas, trocar de workspace, **enviar um atalho de teclado** para a janela (ex.: botão lateral → Ctrl + C) ou rodar um comando, com ou sem Super, Ctrl, Alt e Shift.
+Em `~/.local/state/quickshell/by-shell/<id>/config.json`. Os ajustes de monitores, mouse e teclado guardam **só o que foi mudado**; o resto continua vindo do `hyprland.lua`. O Lucerna reaplica esses ajustes ao iniciar, quando um monitor é conectado e depois de um `hyprctl reload`. O keymap gerado para as teclas remapeadas fica ao lado, em `keymap.xkb`.
 
-Em Configurações → Teclado: layouts (até quatro, com variante e atalho para trocar), espera e velocidade da repetição, Num Lock, teclas especiais (o que o Caps Lock faz, tecla Compose, trocar Alt e Super, os dois Shift ligam o Caps Lock) e qualquer outra opção do xkb, com busca. **Teclas remapeadas** valem em qualquer programa, inclusive para modificadores: o Lucerna gera um keymap com o `xkbcli` (do libxkbcommon), troca a tecla, confere se compila e o entrega ao Hyprland por `kb_file`. **Teclas extras e atalhos** (F13–F24, macro, mídia ou combinações como Super + E) levam às mesmas ações dos botões do mouse.
+## Arquitetura
 
-Só o que é mudado nas configurações é aplicado por cima do `hyprland.lua` (e reaplicado ao iniciar e após um `hyprctl reload`); "Voltar ao hyprland.lua" desfaz. As ações do shell também podem ser chamadas de fora: `qs -c lucerna ipc call action run <id>` (ids em `core/input/InputActions.qml`).
+Organizado por feature, com camadas que só olham para baixo:
 
-Em Configurações → Painel superior: abas (mostrar, esconder e reordenar), aba ao abrir, abrir ao parar o mouse na hora e fechar ao tirar o mouse, cartões da visão geral, primeiro dia da semana, letra e pulso do áudio, intervalo do desempenho e GPU, cidade e unidades do clima, e o **modo offline**, que desliga tudo o que usa a internet.
+```
+core/       tema, config, painéis, widgets e o catálogo de ações de entrada
+services/   a conversa com o sistema: Hyprland, PipeWire, UPower, NetworkManager,
+            BlueZ, MPRIS, notificações, monitores, entrada, clima…
+features/   uma pasta por parte do shell (bar, dashboard, sidebar, settings,
+            launcher, input, displays…), cada uma com state/ e ui/
+```
 
-Pela tela de configurações (`Super+S`), o usuário ajusta transparência, desfoque, contorno dos cartões, velocidade das animações e notificações por cima do tema. Esses ajustes ficam na config (`transparencyOverride`, `blurOverride`, `outlines`, `animationScale`, `notificationTimeout`) e valem para qualquer tema; "Restaurar padrões do tema" os apaga.
- Para criar um, copie `themes/nebulosa.json` (o padrão), mude as cores e o wallpaper, e ele aparece no seletor na hora. As preferências (tema ativo, não perturbe) ficam em `~/.local/state/quickshell/by-shell/<id>/config.json`.
+- A `ui` fala com o `state` da própria feature, e o `state` fala com `services` e `core`.
+- Uma feature não importa outra. Quando precisam conversar, a conversa passa pelo `core`: por exemplo, o `Panels` diz quais painéis estão abertos.
 
-## Testando sem Hyprland
+Os princípios e o desenho completo estão em [`Lucerna — Proposta.md`](<Lucerna — Proposta.md>). Os wallpapers animados, ainda por fazer, estão em [`Lucerna — Proposta do Wallpaper.md`](<Lucerna — Proposta do Wallpaper.md>), e os plugins próprios planejados, em [`Lucerna — Plugins Próprios.md`](<Lucerna — Plugins Próprios.md>).
 
-O shell roda num Hyprland aninhado, num container Docker com Arch, que abre como uma janela na sessão Wayland do host. O repositório é montado em `~/.config/quickshell/lucerna` dentro do container, então o Quickshell recarrega sozinho quando um arquivo muda.
+## Desenvolvimento
+
+O shell roda num Hyprland aninhado, dentro de um container Docker com Arch, que abre como uma janela na sessão Wayland do host. O repositório é montado em `~/.config/quickshell/lucerna` dentro do container, então o Quickshell recarrega sozinho quando um arquivo muda.
 
 ```sh
 dev/run.sh            # constrói a imagem na primeira vez e abre a janela
@@ -90,22 +210,22 @@ dev/run.sh shell      # abre um bash no container em execução
 dev/run.sh log        # segue o log do Quickshell
 ```
 
-Requisitos no host: Docker, uma sessão Wayland e o usuário no grupo `docker`.
+No host é preciso Docker, uma sessão Wayland e o usuário no grupo `docker`.
 
-- Volume, bateria e rede mostram o estado real do host (o PipeWire e o D-Bus do sistema são repassados).
-- Com `LUCERNA_DEV=1`, definido pelo `run.sh`, suspender, reiniciar, desligar e as ações da central lateral (ligar/desligar Wi-Fi e Bluetooth, conectar a redes e dispositivos, perfil de energia) são só simulados: sem isso, chegariam ao host pelo D-Bus. A leitura (redes, dispositivos, bateria) é real.
+- Volume, bateria e rede mostram o estado real do host: o PipeWire e o D-Bus do sistema são repassados ao container.
+- Com `LUCERNA_DEV=1`, definido pelo `run.sh`, as ações que chegariam ao host são só simuladas: suspender, reiniciar e desligar, ligar e desligar Wi-Fi e Bluetooth, conectar a redes e dispositivos, e o perfil de energia. A leitura é real.
 - O brilho é só leitura no container; os ajustes são simulados.
 - A senha da tela de bloqueio no container é `lucerna` (usuário `dev`).
-- O fuso horário vem do host (`/etc/localtime`). A rede na aba Desempenho é a do container, não a do host.
-- Para testar a aba Mídia, a imagem tem `mpv` com `mpv-mpris`: `dev/run.sh shell` e `mpv --no-video arquivo.mp3`.
+- Para testar a aba Mídia, a imagem tem `mpv` com `mpv-mpris`: rode `dev/run.sh shell` e depois `mpv --no-video arquivo.mp3`.
+- Para testar monitores, crie saídas virtuais: `hyprctl output create headless`.
 
-Atalhos no Hyprland aninhado (mod = `Alt`, para não brigar com o KDE):
+Atalhos no Hyprland aninhado (a tecla de mod é `Alt`, para não brigar com o desktop do host):
 
 | Atalho | Ação |
 | --- | --- |
 | `Alt+Space` | Launcher |
 | `Alt+S` | Configurações |
-| `Alt+D` | Painel superior (também clicando no relógio da barra); dentro dele, `Tab`/`Shift+Tab` ou `1`–`4` trocam de aba |
+| `Alt+D` | Painel superior (também clicando na hora da barra). Dentro dele, `Tab`/`Shift+Tab` ou `1`–`4` trocam de aba |
 | `Alt+N` | Central lateral nos avisos |
 | `Alt+C` | Central lateral (última seção) |
 | `Alt+T` | Seletor de temas |
