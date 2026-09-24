@@ -104,6 +104,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | **Notificações** | Popups com ações, pausa no mouse e prazo ajustável, não perturbe e a central de avisos. |
 | **Launcher** | Três estilos: compacto (busca e lista), completo (categorias de aplicativos, arquivos, documentos, imagens, músicas, vídeos e web, com favoritos, grade e detalhes: ações do app, descrição, versão e desenvolvedor) e tela cheia (gaveta de apps por categoria). Os apps mais abertos vêm primeiro, com os favoritos na frente. Em todos os estilos: clique direito num item para as opções, `Ctrl+F` fixa ou tira dos favoritos e `Ctrl+H` oculta; no compacto e na tela cheia, `/texto` busca arquivos e `?texto` pesquisa na web. A busca de arquivos usa o `fd` quando há, e, sem busca, mostra os recentes. |
 | **Área de transferência** | Histórico num painel próprio (`Super+V`): textos e imagens, busca, filtro, fixar e apagar. Escolher copia e cola na janela em foco (Ctrl+Shift+V nos terminais). Senhas marcadas pelos gerenciadores ficam de fora. |
+| **Captura de tela** | Painel próprio (`Print`): foto ou vídeo, de uma área (arrastando, com alças), de uma janela (clicando) ou da tela, com espera, cursor e som. A foto vai para a pasta e para a área de transferência, com um aviso que abre o arquivo ou a pasta; a gravação (pela GPU quando dá) mostra o tempo na barra e para ao clicar. Também tela inteira (`Shift+Print`) e janela ativa (`Ctrl+Print`) direto. |
 | **Tela de bloqueio** | Relógio e senha (PAM). |
 | **Energia** | Menu (bloquear, suspender, sair, reiniciar, desligar). Avisos de bateria baixa e crítica, ação no nível crítico com prazo para cancelar, troca de perfil na tomada e modo leve na bateria. |
 | **OSD** | Volume e brilho. |
@@ -124,6 +125,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | **Mouse** | Velocidade, aceleração, canhoto, foco das janelas (ao passar o mouse ou ao clicar), rolagem, touchpad (tocar para clicar, arrastar, desligar ao digitar, clique com dedos, botão do meio), **botões mapeados** e velocidade própria por mouse. |
 | **Teclado** | Layouts (até quatro, com variante e atalho para trocar), repetição, Num Lock, teclas especiais (Caps Lock, Compose, trocar Alt e Super) e qualquer opção do xkb, com busca. Também **teclas remapeadas** e **teclas extras e atalhos**. |
 | **Área de transferência** | Guardar o histórico, quantos itens, manter ao reiniciar, colar ao escolher e limpar (com ou sem os fixados). |
+| **Captura de tela** | Copiar a foto, cursor, quadros por segundo e som da gravação, e as pastas. |
 | **Transparência e desfoque** | Opacidade dos painéis e dos cartões e intensidade do desfoque, por cima do tema. |
 | **Notificações** | Não perturbe e tempo na tela. |
 | **Painéis** | Quais abrem juntos e se desviam um do outro. |
@@ -148,6 +150,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
   - `nvidia-smi`: GPU NVIDIA; vem com o driver
   - `hyprsunset`: luz noturna
   - `wl-clipboard`: histórico da área de transferência
+  - `grim` e `wf-recorder`: captura de tela e gravação
   - `fd`: busca de arquivos do launcher mais rápida (sem ele, usa o `find`)
   - `ffmpeg` e `qt6-multimedia-ffmpeg`: papel de parede em vídeo ou GIF. Para a GPU decodificar o vídeo, também o driver VA-API (`intel-media-driver` na Intel, `libva-mesa-driver` na AMD) e o `libva-utils`, que o shell usa para detectar o suporte.
 - Serviços na internet, só enquanto a aba correspondente está aberta, e desligáveis pelo modo offline: [Open-Meteo](https://open-meteo.com) (clima) e [LRCLIB](https://lrclib.net) (letras).
@@ -179,6 +182,8 @@ Os atalhos do shell vêm prontos e se editam em Configurações → Atalhos:
 | --- | --- |
 | `Super+Espaço` | Launcher |
 | `Super+V` | Histórico da área de transferência |
+| `Print` / `Shift+Print` / `Ctrl+Print` | Captura (painel) / tela inteira / janela ativa |
+| `Super+Print` | Gravar a tela ou parar |
 | `Super+D` | Painel superior |
 | `Super+S` | Configurações |
 | `Super+C` / `Super+N` | Central lateral / nos avisos |
@@ -198,13 +203,14 @@ Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [arg
 | `panels` | `open <nome>`, `toggle <nome>`, `dismiss <nome>` (fecha só esse), `close` (fecha todos), `get`. Nomes: `launcher`, `dashboard`, `sidebar`, `settings`, `themes`, `power` |
 | `dashboard` | `open <aba>` (`overview`, `media`, `performance`, `weather`), `toggle` |
 | `sidebar` | `open <seção>`, `toggle <seção>` (`wifi`, `bluetooth`, `sound`, `notifications`, `battery`, `display`; vazio = a última) |
-| `settings` | `open <tópico>` (`appearance`, `wallpaper`, `displays`, `idle`, `nightlight`, `launcher`, `clipboard`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `sidebar`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |
+| `settings` | `open <tópico>` (`appearance`, `wallpaper`, `displays`, `idle`, `nightlight`, `launcher`, `clipboard`, `capture`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `sidebar`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |
 | `notifications` | `clear`, `toggleDnd`, `count` |
 | `launcher` | `open <categoria> <busca>` (`apps`, `files`, `documents`, `images`, `music`, `videos`, `web`; a busca pode ser `""`), `toggle` |
 | `session` | `lock`, `isLocked` |
 | `theme` | `set <id>`, `get`, `list` |
 | `brightness` | `up`, `down`, `set <0-100>` |
 | `monitors` | `identify` |
+| `capture` | `open <shot\|record>` (o painel; `""` = o último), `screen`, `window` (direto), `record` (gravar ou parar), `stop` |
 | `clipboard` | `toggle`, `open`, `clear` (menos os fixados), `count` |
 | `nightlight` | `enable <true\|false>` (liga ou desliga a função), `toggle` (agora, até a próxima virada do horário), `temperature <K>`, `status` |
 | `idle` | `inhibit <true\|false>` (não apagar a tela), `toggle`, `status` |

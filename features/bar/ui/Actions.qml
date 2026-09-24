@@ -4,10 +4,60 @@ import qs.core.widgets
 import qs.features.bar.state
 
 // Ações da barra: rede, volume, bateria e avisos. Cada uma abre a seção dela
-// na central lateral.
+// na central lateral. Gravando a tela, aparece antes o tempo, que para ao clicar.
 Row {
     anchors.verticalCenter: parent?.verticalCenter
     spacing: 2
+
+    Clickable {
+        anchors.verticalCenter: parent.verticalCenter
+        visible: BarState.recording
+        width: recRow.implicitWidth + 18
+        height: 28
+        radius: 14
+        color: ThemeManager.colors.danger
+        onClicked: BarState.stopRecording()
+
+        Row {
+            id: recRow
+
+            anchors.centerIn: parent
+            spacing: 5
+
+            Rectangle {
+                anchors.verticalCenter: parent.verticalCenter
+                width: 8
+                height: 8
+                radius: 4
+                color: ThemeManager.colors.accentText
+
+                SequentialAnimation on opacity {
+                    running: BarState.recording
+                    loops: Animation.Infinite
+
+                    NumberAnimation { to: 0.3; duration: 700 }
+                    NumberAnimation { to: 1; duration: 700 }
+                }
+            }
+
+            Txt {
+                anchors.verticalCenter: parent.verticalCenter
+                text: BarState.recordingTime
+                mono: true
+                color: ThemeManager.colors.accentText
+                font.pixelSize: ThemeManager.font.small + 1
+                font.weight: Font.DemiBold
+            }
+
+            Icon {
+                anchors.verticalCenter: parent.verticalCenter
+                icon: "stop"
+                filled: true
+                size: 16
+                color: ThemeManager.colors.accentText
+            }
+        }
+    }
 
     IconButton {
         anchors.verticalCenter: parent.verticalCenter

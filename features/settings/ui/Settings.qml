@@ -316,6 +316,7 @@ OverlayPanel {
                             idle: idlePage,
                             nightlight: nightLightPage,
                             clipboard: clipboardPage,
+                            capture: capturePage,
                             keyboard: keyboardPage,
                             shortcuts: shortcutsPage,
                             about: aboutPage
@@ -374,6 +375,12 @@ OverlayPanel {
         id: idlePage
 
         IdlePage {}
+    }
+
+    Component {
+        id: capturePage
+
+        CapturePage {}
     }
 
     Component {

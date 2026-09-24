@@ -96,6 +96,16 @@ Singleton {
     property alias clipboardLimit: adapter.clipboardLimit
     property alias clipboardPersist: adapter.clipboardPersist
     property alias clipboardPaste: adapter.clipboardPaste
+    property alias captureMode: adapter.captureMode
+    property alias captureTarget: adapter.captureTarget
+    property alias captureArea: adapter.captureArea
+    property alias captureDelay: adapter.captureDelay
+    property alias captureCursor: adapter.captureCursor
+    property alias captureCopy: adapter.captureCopy
+    property alias captureAudio: adapter.captureAudio
+    property alias captureFps: adapter.captureFps
+    property alias captureFolder: adapter.captureFolder
+    property alias recordFolder: adapter.recordFolder
 
     FileView {
         path: Quickshell.statePath("config.json")
@@ -267,6 +277,21 @@ Singleton {
             property int clipboardLimit: 100
             property bool clipboardPersist: true
             property bool clipboardPaste: true
+            // Captura: o último modo ("shot" ou "record"), alvo ("area",
+            // "window", "screen") e área (global); espera em segundos, cursor
+            // na foto, copiar a foto, som da gravação ("none", "system",
+            // "mic"), quadros por segundo e as pastas ("" = a padrão, dentro
+            // de Imagens e Vídeos).
+            property string captureMode: "shot"
+            property string captureTarget: "area"
+            property var captureArea: null
+            property int captureDelay: 0
+            property bool captureCursor: false
+            property bool captureCopy: true
+            property string captureAudio: "none"
+            property int captureFps: 30
+            property string captureFolder: ""
+            property string recordFolder: ""
         }
     }
 }

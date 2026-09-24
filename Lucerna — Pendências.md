@@ -12,7 +12,7 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 6. [x] **Atalhos editáveis.** A página Atalhos das configurações só informa; os atalhos do shell continuam no `hyprland.lua`. Passar a editar ali, reaproveitando os binds da aba Teclado.
 7. [x] **Monitores no login.** O arranjo salvo só vale quando o Lucerna inicia, e no login o `hyprland.lua` aparece antes. Opção de gravar o arranjo num arquivo que o `hyprland.lua` inclui.
 8. [x] **Histórico da área de transferência**, num painel próprio (`Super+V`).
-9. [ ] **Captura de tela e gravação:** área, janela ou tela, com notificação e atalho.
+9. [x] **Captura de tela e gravação:** área, janela ou tela, com notificação e atalho.
 10. [ ] **Visão geral dos workspaces**, com as janelas em miniatura.
 11. [ ] **Brilho de monitores externos** por DDC/CI.
 12. [ ] **Instalação e distribuição:** script de instalação (link, trecho do `hyprland.lua`, atalhos padrão), pacote no AUR e verificação no CI (`qmllint`).
@@ -33,6 +33,7 @@ No ambiente de teste não dá para simular cliques, e o Hyprland ignora teclado 
 - [ ] Papel de parede: pausa com a tela bloqueada e com a tela apagada; o vídeo solta o decodificador depois de 2 min pausado; 60 fps caem para 30 na bateria.
 - [ ] Ociosidade: suspender, segurar com mídia tocando e com tela cheia, e o aviso do `hypridle`.
 - [ ] Luz noturna: a cor mudando de fato (a CTM não aparece no Hyprland aninhado nem em capturas) e a transição suave.
+- [ ] Captura: o som da gravação (sistema e microfone) e a área com escala fracionária ou em outro monitor.
 - [ ] Launcher: navegação pelo teclado nos três estilos, `Ctrl+1…9` nas ações do app e o "Mais opções".
 
 ## Ambiente de teste

@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import qs.features.bar.ui
+import qs.features.capture.ui
 import qs.features.clipboard.ui
 import qs.features.dashboard.ui
 import qs.features.displays.ui
@@ -21,6 +22,7 @@ import qs.features.wallpaper.ui
 ShellRoot {
     Wallpaper {}
     Bar {}
+    CaptureOverlay {}
     Clipboard {}
     Dashboard {}
     Displays {}

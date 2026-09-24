@@ -57,13 +57,14 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Painel superior | Desce do topo: visão geral (usuário com atalhos para configurações e energia, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima. Abas reordenáveis; pode ficar aberto junto com a central lateral |
 | Central lateral | Cartão na altura da tela, na borda direita ou esquerda (configurável): trilho de seções (Wi-Fi, Bluetooth, som, avisos, bateria, tela) e o conteúdo de cada uma, como redes disponíveis com senha, dispositivos para parear, saída e entrada de áudio e perfil de energia |
 | Launcher | Três estilos: **compacto** (padrão; busca e lista curta de apps e ações), **completo** (categorias de aplicativos, arquivos por tipo e web, favoritos, grade e detalhes do app: ações do `.desktop`, descrição, versão e desenvolvedor) e **tela cheia** (gaveta de apps por categoria). Apps ordenados por uso |
-| Configurações | Tópicos à esquerda e opções à direita: aparência, papel de parede, monitores, tela e ociosidade, luz noturna, mouse, teclado, área de transferência, transparência e desfoque, notificações, painéis, central lateral, launcher, barra, painel superior, energia e bateria, atalhos e sobre |
+| Configurações | Tópicos à esquerda e opções à direita: aparência, papel de parede, monitores, tela e ociosidade, luz noturna, mouse, teclado, área de transferência, captura de tela, transparência e desfoque, notificações, painéis, central lateral, launcher, barra, painel superior, energia e bateria, atalhos e sobre |
 | Monitores | Disposição arrastando num canvas (encaixe nas bordas, sempre num bloco só) e, por monitor, resolução, taxa, escala, rotação, espelhamento, VRR e 10 bits. Aplicar pede confirmação em todas as telas e volta sozinho em 15 s. Um arranjo salvo por conjunto de monitores, reaplicado ao conectar. Opcionalmente gravado em `~/.config/hypr/lucerna-monitors.lua`, que o `hyprland.lua` inclui, para valer desde o login |
 | Mouse e teclado | Velocidade, aceleração, rolagem, touchpad e velocidade por mouse; layouts, repetição e opções do xkb. Botões extras do mouse e teclas extras mapeados para ações (painéis, mídia, janelas, enviar atalho, rodar comando) e teclas remapeadas de verdade (keymap gerado e validado). Só o que muda vai por cima do `hyprland.lua` |
 | Luz noturna | Temperatura de cor por horário: do pôr ao nascer do sol (calculado localmente, pela cidade do clima), fixo ou sempre, com rampa de 30 min e "até a próxima virada" pela central lateral. Aplicada pelo `hyprsunset` (CTM do Hyprland) |
 | Papel de parede | Por tema: o próprio (imagem e efeito animado em shader), só a imagem, qualquer um dos dez efeitos (nas cores do tema), uma imagem ou um vídeo/GIF do usuário. Vídeos convertidos uma vez por tela para tocar pela GPU. 30 ou 60 fps, no ritmo da tela; pausa com tela cheia, bloqueio e tela apagada |
 | Notificações | Servidor de notificações próprio; popups e a lista na central lateral |
 | Área de transferência | Histórico próprio (texto e imagem, pelo `wl-paste --watch`), num painel à parte: busca, filtro, fixar, apagar, colar direto; persistente e limitado. Ignora senhas marcadas pelos gerenciadores |
+| Captura de tela | Seleção própria (área com alças, janela, tela), sem `slurp`; foto pelo `grim` e vídeo pelo `wf-recorder` (VA-API quando há), com espera, cursor e som. Aviso com abrir e mostrar na pasta; tempo de gravação na barra |
 | Tela de bloqueio | Bloqueio próprio, no visual do tema ativo |
 | Seletor de temas | Painel para trocar rapidamente entre os doze temas |
 | OSD | Indicadores de volume e brilho na tela |
@@ -122,6 +123,7 @@ lucerna/
 │   ├── Lyrics.qml              # letras sincronizadas (LRCLIB)
 │   ├── Weather.qml             # previsão (Open-Meteo)
 │   ├── Clipboard.qml           # histórico da área de transferência (wl-clipboard)
+│   ├── Capture.qml             # captura (grim), gravação (wf-recorder) e janelas visíveis
 │   ├── NightLight.qml          # temperatura de cor pelo hyprsunset
 │   ├── Monitors.qml            # monitores e arranjos (hl.monitor)
 │   ├── Input.qml               # opções de entrada, binds e keymap (xkbcli)
@@ -131,6 +133,7 @@ lucerna/
 │   └── scripts/                # gpu-status, video-wallpaper, app-info, file-search
 ├── features/
 │   ├── bar/
+│   ├── capture/                # painel de captura e gravação (Print); IPC capture
 │   ├── clipboard/              # painel do histórico (Super+V); IPC clipboard
 │   │   ├── ui/
 │   │   └── state/

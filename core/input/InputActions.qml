@@ -10,7 +10,8 @@ import qs.core.widgets
 Singleton {
     id: root
 
-    // kind: "shell" (roda no Lucerna, via IPC), "hypr" (dispatch do Hyprland),
+    // kind: "shell" (roda no Lucerna, via IPC; `ipc` diz o alvo e a função,
+    // senão é "action run <id>"), "hypr" (dispatch do Hyprland),
     // "shortcut" (envia uma combinação para a janela), "command" (roda um
     // comando), "none" (o botão ou a tecla deixa de fazer qualquer coisa).
     readonly property var actions: [
@@ -20,6 +21,10 @@ Singleton {
         { id: "notifications", group: "Lucerna", label: "Abrir os avisos", icon: Icons.bell, kind: "shell" },
         { id: "settings", group: "Lucerna", label: "Abrir as configurações", icon: Icons.settings, kind: "shell" },
         { id: "clipboard", group: "Lucerna", label: "Abrir o histórico da área de transferência", icon: "content_paste", kind: "shell" },
+        { id: "capture", group: "Captura", label: "Capturar ou gravar a tela", icon: "screenshot_region", kind: "shell" },
+        { id: "capture-screen", group: "Captura", label: "Capturar a tela inteira", icon: "fit_screen", kind: "shell", ipc: "capture screen" },
+        { id: "capture-window", group: "Captura", label: "Capturar a janela ativa", icon: "select_window", kind: "shell", ipc: "capture window" },
+        { id: "record", group: "Captura", label: "Gravar a tela ou parar", icon: "screen_record", kind: "shell", ipc: "capture record" },
         { id: "themes", group: "Lucerna", label: "Trocar o tema", icon: Icons.palette, kind: "shell" },
         { id: "power", group: "Lucerna", label: "Menu de energia", icon: Icons.power, kind: "shell" },
         { id: "lock", group: "Lucerna", label: "Bloquear a tela", icon: Icons.lock, kind: "shell" },

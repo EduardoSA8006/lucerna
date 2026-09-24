@@ -79,7 +79,7 @@ Singleton {
         const key = (entry.mods ? entry.mods.split(/\s+/).join(" + ") + " + " : "") + entry.trigger;
         let lua = "hl.dsp.no_op()";
         if (action.kind === "shell")
-            lua = `hl.dsp.exec_cmd(${Input.luaString(`qs -p ${Quickshell.shellPath("shell.qml")} ipc call action run ${action.id}`)})`;
+            lua = `hl.dsp.exec_cmd(${Input.luaString(`qs -p ${Quickshell.shellPath("shell.qml")} ipc call ${action.ipc ?? `action run ${action.id}`}`)})`;
         else if (action.kind === "hypr")
             lua = action.lua;
         else if (action.kind === "shortcut")
@@ -182,6 +182,7 @@ Singleton {
         case "themes":
         case "power":
         case "clipboard":
+        case "capture":
             Panels.toggle(id);
             break;
         case "sidebar":
