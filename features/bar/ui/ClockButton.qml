@@ -17,7 +17,7 @@ Clickable {
     width: clock.width + ThemeManager.spacing.normal * 2
     height: ThemeManager.barHeight - 8
     radius: height / 2
-    active: BarState.openPanel === "dashboard"
+    active: BarState.dashboardOpen
     activeColor: ThemeManager.alpha(ThemeManager.colors.accent, 0.16)
     onClicked: BarState.togglePanel("dashboard")
     onHoveredChanged: BarState.clockHovered(hovered)

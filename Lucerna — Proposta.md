@@ -82,7 +82,7 @@ A arquitetura é feature-first com separação por camadas. Cada feature vive em
 Regras:
 
 - As dependências só apontam para baixo, e uma feature nunca importa outra.
-- A comunicação entre features passa por `services/` ou `core/`. Exemplo: o botão do launcher na barra chama `Panels.toggle("launcher")` em `core/panels/`, e o launcher reage a `Panels.current`. Um painel aberto fecha o anterior.
+- A comunicação entre features passa por `services/` ou `core/`. Exemplo: o botão do launcher na barra chama `Panels.toggle("launcher")` em `core/panels/`, e o launcher reage a `Panels.isOpen("launcher")`. Os modais (launcher, temas, energia) abrem sozinhos; o painel superior e a central lateral podem ficar abertos juntos, desviando um do outro (configurável em Configurações → Painéis); abrir as configurações fecha os dois, mas abertos depois eles ficam por cima dela.
 - Toda conversa com o Hyprland fica em `services/Hypr.qml`.
 - Os imports usam o sistema de módulos do Quickshell, em que cada pasta vira um módulo (`import qs.core.theme`, `import qs.features.bar.state`). Por isso os nomes de pasta são identificadores QML válidos: `themeSwitcher`, e não `theme-switcher`.
 

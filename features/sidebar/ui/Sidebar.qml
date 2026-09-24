@@ -6,14 +6,14 @@ import qs.features.sidebar.state
 
 // Central lateral: cartão na altura da tela que entra pela borda (direita ou
 // esquerda, nas configurações). Trilho de seções do lado de fora, conteúdo do
-// lado de dentro. ↑/↓ trocam de seção; Esc ou clique fora fecham.
+// lado de dentro. ↑/↓ trocam de seção; Esc ou clique fora fecham; pode ficar aberta junto com outros painéis.
 OverlayPanel {
     id: panel
 
     name: "sidebar"
     open: SidebarState.open
     screen: SidebarState.screen
-    dim: 0.2
+    inputItem: drawer
     onDismissed: SidebarState.close()
 
     onOpenChanged: {
@@ -22,7 +22,7 @@ OverlayPanel {
     }
 
     readonly property bool onLeft: SidebarState.onLeft
-    readonly property real margin: ThemeManager.spacing.small
+    readonly property real margin: SidebarState.margin
 
     Surface {
         id: drawer
@@ -30,7 +30,7 @@ OverlayPanel {
         readonly property real travel: width + panel.margin + 24
 
         level: 0
-        width: 500
+        width: SidebarState.drawerWidth
         y: SidebarState.topOffset
         height: parent.height - y - panel.margin
         radius: ThemeManager.radius.large + 4

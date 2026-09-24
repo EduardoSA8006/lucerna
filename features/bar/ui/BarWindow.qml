@@ -38,6 +38,10 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "lucerna-panel-bar"
 
+    // Clicar na barra não fecha os painéis acompanhantes.
+    Component.onCompleted: BarState.registerSurface(root)
+    Component.onDestruction: BarState.unregisterSurface(root)
+
     Loader {
         id: layout
 

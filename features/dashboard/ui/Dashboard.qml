@@ -12,7 +12,7 @@ OverlayPanel {
     name: "dashboard"
     open: DashboardState.open
     screen: DashboardState.screen
-    dim: 0.18
+    inputItem: drawer
     onDismissed: DashboardState.close()
 
     onOpenChanged: {
@@ -28,8 +28,14 @@ OverlayPanel {
     Rectangle {
         id: drawer
 
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: 920
+        // Centralizado no espaço que a central lateral deixa livre.
+        readonly property real gap: ThemeManager.spacing.small
+        readonly property real minX: DashboardState.leftInset + gap
+        readonly property real maxRight: parent.width - DashboardState.rightInset - gap
+
+        width: Math.min(920, maxRight - minX)
+        x: Math.max(minX, Math.min((parent.width - width) / 2, maxRight - width))
+        Behavior on x { Anim { type: Anim.Spatial } }
         height: content.height + ThemeManager.spacing.large * 2
         y: DashboardState.topOffset - (1 - panel.progress) * (height + DashboardState.topOffset + 16)
         color: ThemeManager.glass(ThemeManager.colors.base, 0)

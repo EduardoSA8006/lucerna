@@ -5,13 +5,15 @@ import qs.core.widgets
 import qs.features.settings.state
 
 // Tela de configurações: tópicos à esquerda, conteúdo à direita. Setas ↑/↓
-// trocam de tópico; Esc ou clique fora fecham.
+// trocam de tópico; Esc ou clique fora fecham. Abrir fecha o painel superior
+// e a central lateral; abertos depois, eles ficam por cima (ver Panels).
 OverlayPanel {
     id: panel
 
     name: "settings"
     open: SettingsState.open
     screen: SettingsState.screen
+    inputItem: window
     onDismissed: SettingsState.close()
 
     onOpenChanged: {
@@ -91,111 +93,141 @@ OverlayPanel {
                     }
                 }
 
-                Item {
-                    id: topicList
+                // Rola quando a janela fica baixa (telas pequenas).
+                Flickable {
+                    id: topicScroller
 
                     anchors {
                         top: heading.bottom
                         left: parent.left
                         right: parent.right
+                        bottom: hint.top
                         topMargin: ThemeManager.spacing.large
                         leftMargin: ThemeManager.spacing.normal
                         rightMargin: ThemeManager.spacing.normal
+                        bottomMargin: ThemeManager.spacing.small
                     }
-                    height: topics.height
+                    contentHeight: topicList.height
+                    boundsBehavior: Flickable.StopAtBounds
+                    clip: true
 
-                    // Seleção: uma pílula que desliza com mola até o tópico.
-                    Rectangle {
-                        readonly property Item target: topicRows.count > 0 ? topicRows.itemAt(SettingsState.currentIndex) : null
+                    // Mantém o tópico atual à vista ao navegar pelas setas.
+                    readonly property Item currentRow: topicRows.count > 0 ? topicRows.itemAt(SettingsState.currentIndex) : null
+
+                    function reveal(): void {
+                        let y = contentY;
+                        if (currentRow && currentRow.y < y)
+                            y = currentRow.y;
+                        else if (currentRow && currentRow.y + currentRow.height > y + height)
+                            y = currentRow.y + currentRow.height - height;
+                        contentY = Math.max(0, Math.min(y, contentHeight - height));
+                    }
+
+                    onCurrentRowChanged: reveal()
+                    onHeightChanged: reveal()
+                    onContentHeightChanged: reveal()
+
+                    Behavior on contentY { Anim { type: Anim.Spatial } }
+
+                    Item {
+                        id: topicList
 
                         width: parent.width
-                        height: target?.height ?? 52
-                        y: target?.y ?? 0
-                        radius: ThemeManager.radius.normal + 2
-                        color: ThemeManager.alpha(ThemeManager.colors.accent, 0.12)
+                        height: topics.height
 
-                        Behavior on y { Anim { type: Anim.FastSpatial } }
-
+                        // Seleção: uma pílula que desliza com mola até o tópico.
                         Rectangle {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 3
-                            height: parent.height * 0.5
-                            radius: 1.5
-                            color: ThemeManager.colors.accent
+                            readonly property Item target: topicRows.count > 0 ? topicRows.itemAt(SettingsState.currentIndex) : null
+
+                            width: parent.width
+                            height: target?.height ?? 48
+                            y: target?.y ?? 0
+                            radius: ThemeManager.radius.normal + 2
+                            color: ThemeManager.alpha(ThemeManager.colors.accent, 0.12)
+
+                            Behavior on y { Anim { type: Anim.FastSpatial } }
+
+                            Rectangle {
+                                anchors.left: parent.left
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 3
+                                height: parent.height * 0.5
+                                radius: 1.5
+                                color: ThemeManager.colors.accent
+                            }
                         }
-                    }
 
-                    Column {
-                        id: topics
+                        Column {
+                            id: topics
 
-                        width: parent.width
-                        spacing: 2
+                            width: parent.width
+                            spacing: 2
 
-                        Repeater {
-                            id: topicRows
+                            Repeater {
+                                id: topicRows
 
-                            model: SettingsState.topics
+                                model: SettingsState.topics
 
-                            delegate: Clickable {
-                                id: row
+                                delegate: Clickable {
+                                    id: row
 
-                                required property var modelData
-                                required property int index
-                                readonly property bool current: index === SettingsState.currentIndex
+                                    required property var modelData
+                                    required property int index
+                                    readonly property bool current: index === SettingsState.currentIndex
 
-                                width: topics.width
-                                height: 52
-                                radius: ThemeManager.radius.normal + 2
-                                onClicked: SettingsState.setTopic(index)
+                                    width: topics.width
+                                    height: 48
+                                    radius: ThemeManager.radius.normal + 2
+                                    onClicked: SettingsState.setTopic(index)
 
-                                // Ícone num ladrilho: acende (preenche e ganha a cor de acento) quando é o atual.
-                                Rectangle {
-                                    id: tile
+                                    // Ícone num ladrilho: acende (preenche e ganha a cor de acento) quando é o atual.
+                                    Rectangle {
+                                        id: tile
 
-                                    x: ThemeManager.spacing.normal
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: 34
-                                    height: 34
-                                    radius: row.current ? 17 : 10
-                                    color: row.current ? ThemeManager.colors.accent : ThemeManager.alpha(ThemeManager.colors.text, 0.06)
+                                        x: ThemeManager.spacing.normal
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: 34
+                                        height: 34
+                                        radius: row.current ? 17 : 10
+                                        color: row.current ? ThemeManager.colors.accent : ThemeManager.alpha(ThemeManager.colors.text, 0.06)
 
-                                    Behavior on radius { Anim { type: Anim.FastSpatial } }
-                                    Behavior on color { ColorAnim {} }
-
-                                    Icon {
-                                        anchors.centerIn: parent
-                                        icon: row.modelData.icon
-                                        filled: row.current || row.hovered
-                                        size: 19
-                                        color: row.current ? ThemeManager.colors.accentText : row.modelData.soon ? ThemeManager.colors.textFaint : ThemeManager.colors.textMuted
-                                        scale: row.current ? 1.08 : 1
-
+                                        Behavior on radius { Anim { type: Anim.FastSpatial } }
                                         Behavior on color { ColorAnim {} }
-                                        Behavior on scale { Anim { type: Anim.FastSpatial } }
-                                    }
-                                }
 
-                                Column {
-                                    anchors.left: tile.right
-                                    anchors.leftMargin: ThemeManager.spacing.normal
-                                    anchors.right: parent.right
-                                    anchors.rightMargin: ThemeManager.spacing.small
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 1
+                                        Icon {
+                                            anchors.centerIn: parent
+                                            icon: row.modelData.icon
+                                            filled: row.current || row.hovered
+                                            size: 19
+                                            color: row.current ? ThemeManager.colors.accentText : row.modelData.soon ? ThemeManager.colors.textFaint : ThemeManager.colors.textMuted
+                                            scale: row.current ? 1.08 : 1
 
-                                    Txt {
-                                        width: parent.width
-                                        text: row.modelData.label
-                                        font.weight: row.current ? Font.DemiBold : Font.Normal
-                                        color: row.modelData.soon && !row.current ? ThemeManager.colors.textMuted : ThemeManager.colors.text
+                                            Behavior on color { ColorAnim {} }
+                                            Behavior on scale { Anim { type: Anim.FastSpatial } }
+                                        }
                                     }
 
-                                    Txt {
-                                        width: parent.width
-                                        text: row.modelData.soon ? "Em breve" : row.modelData.description
-                                        faint: true
-                                        font.pixelSize: ThemeManager.font.small
+                                    Column {
+                                        anchors.left: tile.right
+                                        anchors.leftMargin: ThemeManager.spacing.normal
+                                        anchors.right: parent.right
+                                        anchors.rightMargin: ThemeManager.spacing.small
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 1
+
+                                        Txt {
+                                            width: parent.width
+                                            text: row.modelData.label
+                                            font.weight: row.current ? Font.DemiBold : Font.Normal
+                                            color: row.modelData.soon && !row.current ? ThemeManager.colors.textMuted : ThemeManager.colors.text
+                                        }
+
+                                        Txt {
+                                            width: parent.width
+                                            text: row.modelData.soon ? "Em breve" : row.modelData.description
+                                            faint: true
+                                            font.pixelSize: ThemeManager.font.small
+                                        }
                                     }
                                 }
                             }
@@ -204,6 +236,8 @@ OverlayPanel {
                 }
 
                 Txt {
+                    id: hint
+
                     anchors.left: parent.left
                     anchors.bottom: parent.bottom
                     anchors.margins: ThemeManager.spacing.large
@@ -272,6 +306,7 @@ OverlayPanel {
                             dashboard: dashboardPage,
                             power: powerPage,
                             sidebar: sidebarPage,
+                            panels: panelsPage,
                             shortcuts: shortcutsPage,
                             about: aboutPage
                         })[SettingsState.current.id] ?? soonPage
@@ -323,6 +358,12 @@ OverlayPanel {
         id: glassPage
 
         GlassPage {}
+    }
+
+    Component {
+        id: panelsPage
+
+        PanelsPage {}
     }
 
     Component {

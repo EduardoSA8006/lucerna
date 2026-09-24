@@ -53,6 +53,8 @@ Singleton {
     property alias batteryLightMode: adapter.batteryLightMode
     property alias sidebarSide: adapter.sidebarSide
     property alias sidebarSection: adapter.sidebarSection
+    property alias panelsTogether: adapter.panelsTogether
+    property alias panelsAvoidOverlap: adapter.panelsAvoidOverlap
 
     FileView {
         path: Quickshell.statePath("config.json")
@@ -142,6 +144,10 @@ Singleton {
             // Central lateral: "right" ou "left", e a última seção aberta.
             property string sidebarSide: "right"
             property string sidebarSection: "wifi"
+            // Painéis que podem ficar abertos juntos (dashboard, sidebar) e se
+            // desviam um do outro para não se sobrepor.
+            property var panelsTogether: ["dashboard", "sidebar"]
+            property bool panelsAvoidOverlap: true
         }
     }
 }

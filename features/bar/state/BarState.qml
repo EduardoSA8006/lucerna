@@ -20,7 +20,7 @@ Singleton {
     readonly property bool autoHide: Config.barAutoHide
     readonly property string style: Config.barStyle
     readonly property bool showDate: Config.barShowDate
-    readonly property bool panelOpen: Panels.current !== ""
+    readonly property bool panelOpen: Panels.anyOpen
     property var revealedScreen: null
     property bool hovering: false
     property bool peeking: false
@@ -159,7 +159,15 @@ Singleton {
     readonly property string bellIcon: doNotDisturb ? Icons.bellSleep : notificationCount > 0 ? Icons.bellBadge : Icons.bellOutline
 
     // Painéis
-    readonly property string openPanel: Panels.current
+    readonly property bool dashboardOpen: Panels.isOpen("dashboard")
+
+    function registerSurface(window: var): void {
+        Panels.register(window);
+    }
+
+    function unregisterSurface(window: var): void {
+        Panels.unregister(window);
+    }
 
     function togglePanel(name: string): void {
         Panels.toggle(name);
@@ -168,7 +176,7 @@ Singleton {
     // Abrir o painel superior ao parar o mouse sobre a hora (se ligado nas
     // configurações). O atraso evita abrir só porque o mouse passou por ali.
     function clockHovered(on: bool): void {
-        if (on && Config.dashboardHoverOpen && Panels.current === "")
+        if (on && Config.dashboardHoverOpen && !Panels.isOpen("dashboard") && !Panels.modalOpen)
             hoverOpenDelay.restart();
         else
             hoverOpenDelay.stop();

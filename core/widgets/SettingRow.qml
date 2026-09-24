@@ -76,7 +76,10 @@ Item {
 
         anchors.right: parent.right
         anchors.rightMargin: ThemeManager.spacing.large
-        anchors.left: root.wide ? labels.left : undefined
+        // Largo: o controle ocupa o cartão de borda a borda (mesma margem dos
+        // dois lados), não começa alinhado ao texto — senão fica torto à direita.
+        anchors.left: root.wide ? parent.left : undefined
+        anchors.leftMargin: ThemeManager.spacing.large
         anchors.verticalCenter: root.wide ? undefined : parent.verticalCenter
         y: labels.y + labels.height + ThemeManager.spacing.normal
         width: root.wide ? undefined : childrenRect.width
