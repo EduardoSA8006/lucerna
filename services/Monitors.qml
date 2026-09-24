@@ -106,6 +106,34 @@ Singleton {
         settle.restart();
     }
 
+    // Arranjo no login: um arquivo Lua que o hyprland.lua inclui, para o arranjo
+    // valer desde o início da sessão (antes, só depois que o shell sobe).
+    readonly property string configDir: `${Quickshell.env("XDG_CONFIG_HOME") || `${Quickshell.env("HOME")}/.config`}/hypr`
+    readonly property string loginFile: `${configDir}/lucerna-monitors.lua`
+    readonly property string includeLine: `pcall(dofile, os.getenv("HOME") .. "/.config/hypr/lucerna-monitors.lua")`
+    // Algum .lua da pasta do Hyprland já inclui o arquivo?
+    property bool loginIncluded: false
+
+    function writeLoginFile(text: string): void {
+        loginWriter.command = ["sh", "-c", 'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1"', "sh", loginFile, text];
+        loginWriter.running = true;
+    }
+
+    function checkLoginIncluded(): void {
+        includeProbe.running = true;
+    }
+
+    Process {
+        id: loginWriter
+    }
+
+    Process {
+        id: includeProbe
+
+        command: ["sh", "-c", 'grep -rlsF --include="*.lua" "lucerna-monitors.lua" "$1" | grep -vq "/lucerna-monitors.lua$"', "sh", root.configDir]
+        onExited: code => root.loginIncluded = code === 0
+    }
+
     // O Hyprland leva um instante para reconfigurar as saídas.
     Timer {
         id: settle

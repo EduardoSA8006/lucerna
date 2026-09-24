@@ -117,7 +117,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | --- | --- |
 | **Aparência** | Tema, contorno nos cartões e velocidade das animações. |
 | **Papel de parede** | Por tema: o próprio, a imagem parada, um efeito animado ou uma imagem, vídeo ou GIF seu (com preencher ou inteira). Tem ainda o modo de exibição (automático, animado ou parado), modo e papel por monitor, quadros por segundo, parado na bateria, pausar com janelas e resolução cheia. |
-| **Monitores** | Disposição arrastando, resolução, taxa de atualização, escala, rotação, espelhar, VRR e cor de 10 bits. Tem "Identificar" e aplicar com confirmação. O arranjo fica salvo por conjunto de monitores e é reaplicado ao conectar. |
+| **Monitores** | Disposição arrastando, resolução, taxa de atualização, escala, rotação, espelhar, VRR e cor de 10 bits. Tem "Identificar" e aplicar com confirmação. O arranjo fica salvo por conjunto de monitores e é reaplicado ao conectar; com "desde o login", vai também para um arquivo que o `hyprland.lua` inclui, e vale antes de o shell subir. |
 | **Tela e ociosidade** | Ligar ou desligar, os tempos de escurecer, desligar a tela, bloquear e suspender (na tomada e na bateria), segurar com mídia ou tela cheia e "Não apagar a tela". Avisa se o `hypridle` estiver rodando. |
 | **Luz noturna** | Ligar, temperatura (com prévia ao ajustar) e horário: pôr do sol, fixo ou sempre. |
 | **Mouse** | Velocidade, aceleração, canhoto, foco das janelas (ao passar o mouse ou ao clicar), rolagem, touchpad (tocar para clicar, arrastar, desligar ao digitar, clique com dedos, botão do meio), **botões mapeados** e velocidade própria por mouse. |
@@ -164,6 +164,10 @@ No `hyprland.lua`:
 hl.on("hyprland.start", function()
     hl.exec_cmd("qs -c lucerna")
 end)
+
+-- Opcional, no fim: o arranjo de monitores do Lucerna já no login
+-- (Configurações → Monitores → "Usar o arranjo desde o login").
+pcall(dofile, os.getenv("HOME") .. "/.config/hypr/lucerna-monitors.lua")
 ```
 
 Os atalhos do shell vêm prontos e se editam em Configurações → Atalhos:

@@ -14,6 +14,8 @@ Column {
 
     spacing: ThemeManager.spacing.large
 
+    Component.onCompleted: MonitorsState.checkLogin()
+
     SettingSection {
         title: "Disposição"
 
@@ -193,6 +195,69 @@ Column {
             Switch {
                 checked: page.monitor?.tenBit ?? false
                 onToggled: on => MonitorsState.setTenBit(on)
+            }
+        }
+    }
+
+    SettingSection {
+        title: "Início da sessão"
+
+        SettingRow {
+            icon: Icons.monitor
+            title: "Usar o arranjo desde o login"
+            description: "Sem isso, no login vale o hyprland.lua até o Lucerna subir. Grava o arranjo salvo em ~/.config/hypr/lucerna-monitors.lua"
+
+            Switch {
+                checked: MonitorsState.atLogin
+                onToggled: on => MonitorsState.setAtLogin(on)
+            }
+        }
+
+        Column {
+            x: ThemeManager.spacing.large
+            width: parent.width - x * 2
+            visible: MonitorsState.atLogin
+            spacing: ThemeManager.spacing.small
+            bottomPadding: ThemeManager.spacing.large
+
+            Txt {
+                width: parent.width
+                wrapMode: Text.Wrap
+                text: MonitorsState.loginIncluded ? "O hyprland.lua já inclui o arquivo." : "Falta incluir o arquivo no hyprland.lua. Ponha esta linha no fim dele, depois das suas regras de monitor, para valer por cima delas:"
+                color: MonitorsState.loginIncluded ? ThemeManager.colors.success : ThemeManager.colors.warning
+                font.pixelSize: ThemeManager.font.small + 1
+            }
+
+            Row {
+                visible: !MonitorsState.loginIncluded
+                width: parent.width
+                spacing: ThemeManager.spacing.small
+
+                Rectangle {
+                    width: parent.width - copy.width - parent.spacing
+                    height: 40
+                    radius: ThemeManager.radius.small + 2
+                    color: ThemeManager.alpha(ThemeManager.colors.text, 0.06)
+
+                    Txt {
+                        anchors.fill: parent
+                        anchors.leftMargin: ThemeManager.spacing.normal
+                        anchors.rightMargin: ThemeManager.spacing.normal
+                        verticalAlignment: Text.AlignVCenter
+                        text: MonitorsState.includeLine
+                        mono: true
+                        elide: Text.ElideRight
+                        font.pixelSize: ThemeManager.font.small + 1
+                    }
+                }
+
+                TonalButton {
+                    id: copy
+
+                    icon: "content_copy"
+                    text: "Copiar"
+                    onClicked: MonitorsState.copyIncludeLine()
+                }
             }
         }
     }

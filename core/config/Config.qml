@@ -56,6 +56,7 @@ Singleton {
     property alias panelsTogether: adapter.panelsTogether
     property alias panelsAvoidOverlap: adapter.panelsAvoidOverlap
     property alias monitorSetups: adapter.monitorSetups
+    property alias monitorsAtLogin: adapter.monitorsAtLogin
     property alias inputOptions: adapter.inputOptions
     property alias themeWallpapers: adapter.themeWallpapers
     property alias wallpaperMode: adapter.wallpaperMode
@@ -187,6 +188,8 @@ Singleton {
             // Arranjos de monitores salvos, um por conjunto conectado
             // (Monitors.setup): { setup: { chaveDoMonitor: spec } }.
             property var monitorSetups: ({})
+            // Gravar o arranjo num arquivo que o hyprland.lua inclui (vale no login).
+            property bool monitorsAtLogin: false
             // Entrada. Só o que foi mudado nas configurações; o resto segue o
             // hyprland.lua. Opções: { "input.sensitivity": 0.2, ... }.
             property var inputOptions: ({})
