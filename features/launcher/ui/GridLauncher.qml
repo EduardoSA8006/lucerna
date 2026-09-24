@@ -37,8 +37,12 @@ Item {
             y: Math.max(40, parent.height * 0.08)
             width: Math.min(640, parent.width - 80)
             height: 52
-            placeholder: "Buscar aplicativos e ações"
+            placeholder: "Buscar apps e ações  ·  / arquivos  ·  ? web"
             onKey: event => {
+                if (LauncherState.handleShortcut(event)) {
+                    event.accepted = true;
+                    return;
+                }
                 const columns = grid.columns;
                 if (event.key === Qt.Key_Right)
                     LauncherState.move(1);
@@ -136,7 +140,12 @@ Item {
                     radius: ThemeManager.radius.large
                     color: cell.current ? ThemeManager.alpha(ThemeManager.colors.accent, 0.16) : "transparent"
                     pressScale: 0.94
-                    onClicked: LauncherState.activate(cell.modelData)
+                    onClicked: mouse => {
+                        if (mouse.button === Qt.RightButton)
+                            menu.openFor(cell.modelData, mapToItem(root, mouse.x, mouse.y));
+                        else
+                            LauncherState.activate(cell.modelData);
+                    }
                     onHoveredChanged: {
                         if (hovered)
                             LauncherState.select(cell.index);
@@ -188,10 +197,16 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             anchors.bottomMargin: ThemeManager.spacing.large + 8
-            text: "Enter abre  ·  Tab troca a categoria  ·  Esc fecha"
+            text: "Enter abre  ·  Tab troca a categoria  ·  Ctrl+F favorito  ·  Ctrl+H ocultar  ·  clique direito: opções  ·  Esc fecha"
             faint: true
             font.pixelSize: ThemeManager.font.small
         }
+    }
+
+    ItemMenu {
+        id: menu
+
+        anchors.fill: parent
     }
 
     function cycleChip(step: int): void {

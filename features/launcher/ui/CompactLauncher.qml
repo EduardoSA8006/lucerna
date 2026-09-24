@@ -4,7 +4,8 @@ import qs.core.widgets
 import qs.features.launcher.state
 
 // Estilo compacto: o campo de busca e uma lista curta de apps e ações, no alto
-// da tela. Setas navegam, Enter abre.
+// da tela. Setas navegam, Enter abre, clique direito mostra as opções; "/"
+// no começo busca arquivos e "?" pesquisa na web.
 Item {
     id: root
 
@@ -39,7 +40,12 @@ Item {
 
                 width: parent.width
                 height: 44
+                placeholder: "Buscar apps e ações  ·  / arquivos  ·  ? web"
                 onKey: event => {
+                    if (LauncherState.handleShortcut(event)) {
+                        event.accepted = true;
+                        return;
+                    }
                     const count = LauncherState.items.length;
                     if (!count && event.key !== Qt.Key_Return)
                         return;
@@ -95,7 +101,12 @@ Item {
                                 if (hovered)
                                     LauncherState.select(index);
                             }
-                            onClicked: LauncherState.activate(modelData)
+                            onClicked: mouse => {
+                                if (mouse.button === Qt.RightButton)
+                                    menu.openFor(modelData, mapToItem(root, mouse.x, mouse.y));
+                                else
+                                    LauncherState.activate(modelData);
+                            }
                         }
                     }
                 }
@@ -106,9 +117,16 @@ Item {
                 width: parent.width
                 height: 48
                 horizontalAlignment: Text.AlignHCenter
-                text: "Nada encontrado"
+                verticalAlignment: Text.AlignVCenter
+                text: LauncherState.prefixMode === "files" && !LauncherState.searchText ? "Digite o nome do arquivo" : LauncherState.prefixMode === "files" && LauncherState.searchingFiles ? "Procurando…" : "Nada encontrado"
                 faint: true
             }
         }
+    }
+
+    ItemMenu {
+        id: menu
+
+        anchors.fill: parent
     }
 }

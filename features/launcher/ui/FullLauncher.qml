@@ -37,6 +37,10 @@ Item {
             width: details.x - root.pad * 2
             placeholder: LauncherState.category === "web" ? "Pesquisar na web" : LauncherState.fileCategory ? "Buscar arquivos pelo nome" : "Buscar aplicativos e ações"
             onKey: event => {
+                if (LauncherState.handleShortcut(event)) {
+                    event.accepted = true;
+                    return;
+                }
                 const columns = grid.columns;
                 if (event.key === Qt.Key_Right)
                     LauncherState.move(1);
@@ -212,11 +216,15 @@ Item {
                     color: cell.current ? ThemeManager.alpha(ThemeManager.colors.accent, 0.14) : "transparent"
                     border.width: cell.current ? 1 : 0
                     border.color: ThemeManager.alpha(ThemeManager.colors.accent, 0.6)
-                    onClicked: {
-                        if (cell.current)
-                            LauncherState.activate(cell.modelData);
-                        else
+                    onClicked: mouse => {
+                        if (mouse.button === Qt.RightButton) {
                             LauncherState.select(cell.index);
+                            menu.openFor(cell.modelData, mapToItem(root, mouse.x, mouse.y));
+                        } else if (cell.current) {
+                            LauncherState.activate(cell.modelData);
+                        } else {
+                            LauncherState.select(cell.index);
+                        }
                     }
 
                     ItemIcon {
@@ -276,5 +284,11 @@ Item {
             width: root.detailsWidth
             height: window.height - root.pad * 2
         }
+    }
+
+    ItemMenu {
+        id: menu
+
+        anchors.fill: parent
     }
 }
