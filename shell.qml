@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.features.bar.ui
 import qs.features.dashboard.ui
+import qs.features.energy.ui
 import qs.features.launcher.ui
 import qs.features.lockscreen.ui
 import qs.features.notifications.ui
@@ -16,6 +17,7 @@ ShellRoot {
     Wallpaper {}
     Bar {}
     Dashboard {}
+    Energy {}
     Launcher {}
     NotificationPopups {}
     Osd {}

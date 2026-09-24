@@ -64,6 +64,7 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Seletor de temas | Painel para trocar rapidamente entre temas pré-configurados |
 | OSD | Indicadores de volume e brilho na tela |
 | Menu de energia | Bloquear, suspender, reiniciar e desligar |
+| Energia | Sem interface própria: avisos de bateria baixa, crítica, carga completa e carregador; ação no nível crítico; perfil de energia automático; modo leve na bateria (tudo configurável) |
 
 Fora do escopo inicial: o controle de ociosidade continua com `hypridle`. O shell é específico para o Hyprland; suporte a outros compositores não é objetivo, pelo menos por enquanto.
 
@@ -116,6 +117,7 @@ lucerna/
 │   │   ├── ui/
 │   │   └── state/
 │   ├── dashboard/
+│   ├── energy/
 │   ├── settings/
 │   ├── launcher/
 │   ├── notifications/

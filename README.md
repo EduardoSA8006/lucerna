@@ -64,6 +64,8 @@ Cada arquivo em `themes/*.json` é um tema; o nome do arquivo é o id. Além de 
 - `surfaces.outline`: contorno fino nos cartões. O padrão é sem contorno; os cartões se destacam pelo tom.
 - `colors.track`: cor opcional dos trilhos de medidores e sliders.
 
+Em Configurações → Energia e bateria: porcentagem na barra, avisos de bateria baixa e crítica (níveis ajustáveis), de carga completa e do carregador, ação no nível crítico (suspender, hibernar ou desligar, com 60 s para ligar na tomada e cancelar), troca automática do perfil de energia ao tirar e pôr na tomada, economia abaixo de um nível e o modo leve (sem vidro e com animações curtas na bateria). No ambiente de dev, `qs -c lucerna ipc call battery simulate <0-100> <true|false>` simula a bateria (e `battery real` volta ao normal).
+
 Em Configurações → Painel superior: abas (mostrar, esconder e reordenar), aba ao abrir, abrir ao parar o mouse na hora e fechar ao tirar o mouse, cartões da visão geral, primeiro dia da semana, letra e pulso do áudio, intervalo do desempenho e GPU, cidade e unidades do clima, e o **modo offline**, que desliga tudo o que usa a internet.
 
 Pela tela de configurações (`Super+S`), o usuário ajusta transparência, desfoque, contorno dos cartões, velocidade das animações e notificações por cima do tema. Esses ajustes ficam na config (`transparencyOverride`, `blurOverride`, `outlines`, `animationScale`, `notificationTimeout`) e valem para qualquer tema; "Restaurar padrões do tema" os apaga.

@@ -270,6 +270,7 @@ OverlayPanel {
                             notifications: notificationsPage,
                             bar: barPage,
                             dashboard: dashboardPage,
+                            power: powerPage,
                             sidebar: sidebarPage,
                             shortcuts: shortcutsPage,
                             about: aboutPage
@@ -328,6 +329,12 @@ OverlayPanel {
         id: sidebarPage
 
         SidebarPage {}
+    }
+
+    Component {
+        id: powerPage
+
+        PowerPage {}
     }
 
     Component {

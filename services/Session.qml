@@ -39,6 +39,11 @@ Singleton {
         run(["systemctl", "reboot"], "Reiniciar");
     }
 
+    function hibernate(): void {
+        lock();
+        run(["systemctl", "hibernate"], "Hibernar");
+    }
+
     function poweroff(): void {
         run(["systemctl", "poweroff"], "Desligar");
     }

@@ -39,6 +39,18 @@ Singleton {
     property alias windUnit: adapter.windUnit
     property alias weatherRefresh: adapter.weatherRefresh
     property alias offline: adapter.offline
+    property alias batteryShowPercent: adapter.batteryShowPercent
+    property alias batteryLowLevel: adapter.batteryLowLevel
+    property alias batteryCriticalLevel: adapter.batteryCriticalLevel
+    property alias batteryNotifyFull: adapter.batteryNotifyFull
+    property alias batteryNotifyPlug: adapter.batteryNotifyPlug
+    property alias batteryCriticalAction: adapter.batteryCriticalAction
+    property alias autoProfile: adapter.autoProfile
+    property alias profileOnBattery: adapter.profileOnBattery
+    property alias profileOnAC: adapter.profileOnAC
+    property alias saverBelowEnabled: adapter.saverBelowEnabled
+    property alias saverBelow: adapter.saverBelow
+    property alias batteryLightMode: adapter.batteryLightMode
     property alias sidebarSide: adapter.sidebarSide
     property alias sidebarSection: adapter.sidebarSection
 
@@ -108,6 +120,25 @@ Singleton {
             property int weatherRefresh: 30
             // Desliga tudo o que usa a internet (clima e letras)
             property bool offline: false
+
+            // Energia e bateria
+            property bool batteryShowPercent: true
+            // Avisos, em %
+            property int batteryLowLevel: 15
+            property int batteryCriticalLevel: 5
+            property bool batteryNotifyFull: false
+            property bool batteryNotifyPlug: false
+            // No nível crítico: "none", "suspend", "hibernate" ou "poweroff"
+            property string batteryCriticalAction: "none"
+            // Trocar o perfil de energia ao tirar/pôr na tomada (0 economia, 1 equilibrado, 2 desempenho)
+            property bool autoProfile: false
+            property int profileOnBattery: 0
+            property int profileOnAC: 1
+            // Entrar em economia abaixo de um nível, na bateria
+            property bool saverBelowEnabled: false
+            property int saverBelow: 20
+            // Na bateria: sem transparência/desfoque e animações mais rápidas
+            property bool batteryLightMode: false
             // Central lateral: "right" ou "left", e a última seção aberta.
             property string sidebarSide: "right"
             property string sidebarSection: "wifi"

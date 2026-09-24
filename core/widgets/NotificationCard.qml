@@ -53,7 +53,7 @@ Surface {
         id: countdown
 
         running: card.timeout > 0
-        paused: hover.hovered
+        paused: running && hover.hovered
         from: 1
         to: 0
         duration: card.timeout

@@ -25,7 +25,7 @@ Singleton {
         { id: "sidebar", icon: Icons.sidebar, label: "Central lateral", description: "Lado da tela" },
         { id: "bar", icon: Icons.toolbar, label: "Barra", description: "Quando aparece e o que mostra" },
         { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Abas, cartões, clima e privacidade" },
-        { id: "power", icon: Icons.power, label: "Energia", description: "Ações e confirmações", soon: true },
+        { id: "power", icon: Icons.bolt, label: "Energia e bateria", description: "Avisos, perfil e modo leve" },
         { id: "shortcuts", icon: Icons.keyboard, label: "Atalhos", description: "Teclas e comandos" },
         { id: "about", icon: Icons.info, label: "Sobre", description: "Versões e sistema" }
     ]
@@ -234,6 +234,83 @@ Singleton {
 
     function setOffline(on: bool): void {
         Config.offline = on;
+    }
+
+    // Energia e bateria
+    readonly property bool hasBattery: Battery.available
+    readonly property bool batteryShowPercent: Config.batteryShowPercent
+    readonly property int batteryLowLevel: Config.batteryLowLevel
+    readonly property int batteryCriticalLevel: Config.batteryCriticalLevel
+    readonly property bool batteryNotifyFull: Config.batteryNotifyFull
+    readonly property bool batteryNotifyPlug: Config.batteryNotifyPlug
+    readonly property string batteryCriticalAction: Config.batteryCriticalAction
+    readonly property bool autoProfile: Config.autoProfile
+    readonly property int profileOnBattery: Config.profileOnBattery
+    readonly property int profileOnAC: Config.profileOnAC
+    readonly property bool saverBelowEnabled: Config.saverBelowEnabled
+    readonly property int saverBelow: Config.saverBelow
+    readonly property bool batteryLightMode: Config.batteryLightMode
+    readonly property var profileOptions: [
+        { label: "Economia", value: 0 },
+        { label: "Equilibrado", value: 1 },
+        ...(Battery.hasPerformance ? [{ label: "Desempenho", value: 2 }] : [])
+    ]
+    readonly property var criticalActions: [
+        { label: "Nada", value: "none" },
+        { label: "Suspender", value: "suspend" },
+        { label: "Hibernar", value: "hibernate" },
+        { label: "Desligar", value: "poweroff" }
+    ]
+
+    function setBatteryShowPercent(on: bool): void {
+        Config.batteryShowPercent = on;
+    }
+
+    // O nível crítico fica sempre abaixo do baixo.
+    function setBatteryLowLevel(v: real): void {
+        Config.batteryLowLevel = Math.round(v);
+        if (Config.batteryCriticalLevel >= Config.batteryLowLevel)
+            Config.batteryCriticalLevel = Math.max(1, Config.batteryLowLevel - 1);
+    }
+
+    function setBatteryCriticalLevel(v: real): void {
+        Config.batteryCriticalLevel = Math.min(Math.round(v), Config.batteryLowLevel - 1);
+    }
+
+    function setBatteryNotifyFull(on: bool): void {
+        Config.batteryNotifyFull = on;
+    }
+
+    function setBatteryNotifyPlug(on: bool): void {
+        Config.batteryNotifyPlug = on;
+    }
+
+    function setBatteryCriticalAction(v: string): void {
+        Config.batteryCriticalAction = v;
+    }
+
+    function setAutoProfile(on: bool): void {
+        Config.autoProfile = on;
+    }
+
+    function setProfileOnBattery(v: int): void {
+        Config.profileOnBattery = v;
+    }
+
+    function setProfileOnAC(v: int): void {
+        Config.profileOnAC = v;
+    }
+
+    function setSaverBelowEnabled(on: bool): void {
+        Config.saverBelowEnabled = on;
+    }
+
+    function setSaverBelow(v: real): void {
+        Config.saverBelow = Math.round(v);
+    }
+
+    function setBatteryLightMode(on: bool): void {
+        Config.batteryLightMode = on;
     }
 
     // Barra
