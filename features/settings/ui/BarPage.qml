@@ -8,6 +8,22 @@ Column {
     spacing: ThemeManager.spacing.large
 
     SettingSection {
+        title: "Estilo"
+
+        Item {
+            width: parent.width
+            height: picker.implicitHeight + ThemeManager.spacing.large * 2
+
+            BarStylePicker {
+                id: picker
+
+                anchors.fill: parent
+                anchors.margins: ThemeManager.spacing.large
+            }
+        }
+    }
+
+    SettingSection {
         title: "Visibilidade"
 
         SettingRow {
@@ -37,7 +53,7 @@ Column {
         SettingRow {
             icon: Icons.dashboard
             title: "Aparecer ao trocar de workspace"
-            description: "Mostra a barra por um instante, para ver em qual workspace você está"
+            description: "Mostra a ilha aberta por um instante, para ver em qual workspace você está"
             dimmed: !SettingsState.barAutoHide
 
             Switch {
@@ -54,7 +70,7 @@ Column {
         SettingRow {
             icon: Icons.calendar
             title: "Mostrar a data"
-            description: "Ao lado do relógio. Sem ela, a barra fica mais curta"
+            description: "Embaixo da hora, quando a ilha abre"
 
             Switch {
                 checked: SettingsState.barShowDate

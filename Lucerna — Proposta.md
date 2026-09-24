@@ -53,7 +53,7 @@ O Lucerna cresce por módulos, começando pelo essencial.
 
 | Componente | Função |
 | --- | --- |
-| Barra | Pílula flutuante e centralizada, escondida por padrão: aparece ao encostar o mouse no topo, por um instante ao trocar de workspace e o tempo todo na área de trabalho vazia (por monitor). Workspaces, relógio (abre o painel superior), rede, volume, bateria e notificações. Pode ficar fixa, reservando o espaço |
+| Barra | Quatro estilos, escolhidos nas configurações: **faixa** (padrão, de ponta a ponta), **ilha** (só a hora; cresce para os lados com o mouse em cima), **pílula** (flutuante, tudo à mostra) e **três ilhas** (workspaces, hora e ações nos cantos). Workspaces, hora e data (abre o painel superior), rede, volume, bateria e avisos. Fixa por padrão, reservando o espaço; com auto-ocultar, aparece ao encostar o mouse no topo, ao trocar de workspace e na área de trabalho vazia (por monitor) |
 | Configurações | Tópicos à esquerda e opções à direita: aparência (tema, animações), transparência e desfoque, notificações, atalhos e sobre; barra, painel e energia ainda por fazer |
 | Painel superior | Desce do topo: visão geral (usuário com atalhos para configurações e energia, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima |
 | Launcher | Abrir aplicativos e ações rápidas |

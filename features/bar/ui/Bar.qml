@@ -15,7 +15,7 @@ Variants {
         }
 
         BarWindow {
-            screen: scope.modelData
+            targetScreen: scope.modelData
         }
     }
 }

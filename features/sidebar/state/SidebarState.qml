@@ -17,8 +17,7 @@ Singleton {
     readonly property bool open: Panels.isOpen("sidebar")
     readonly property var screen: Hypr.focusedScreen
     readonly property bool onLeft: Config.sidebarSide === "left"
-    // Distância do topo: colado à borda com a barra escondida; abaixo dela quando fixa.
-    readonly property real topOffset: Config.barAutoHide ? ThemeManager.spacing.small : ThemeManager.barHeight + ThemeManager.spacing.small * 2
+    readonly property real topOffset: Panels.topInset
 
     readonly property var sections: [
         { id: "wifi", icon: Icons.wifiOn, label: "Wi-Fi" },
