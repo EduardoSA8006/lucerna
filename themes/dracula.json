@@ -1,0 +1,72 @@
+{
+    "name": "Dracula",
+    "description": "Alto contraste da madrugada: roxo, rosa e ciano sobre um cinza-azulado escuro.",
+    "dark": true,
+    "colors": {
+        "base": "#282a36",
+        "surface": "#343746",
+        "raised": "#44475a",
+        "border": "#6272a4",
+        "text": "#f8f8f2",
+        "textMuted": "#d6d6e0",
+        "textFaint": "#6272a4",
+        "accent": "#bd93f9",
+        "accentText": "#21222c",
+        "danger": "#ff5555",
+        "success": "#50fa7b",
+        "warning": "#f1fa8c",
+        "track": "#44475a"
+    },
+    "font": {
+        "sans": "Rubik",
+        "mono": "CaskaydiaCove Nerd Font",
+        "icon": "Material Symbols Rounded",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 8,
+        "normal": 14,
+        "large": 22
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "scale": 1
+    },
+    "bar": {
+        "height": 44
+    },
+    "wallpaper": {
+        "static": "wallpapers/dracula.jpg",
+        "shader": "shaders/aurora.qsb",
+        "fps": 20
+    },
+    "hyprland": {
+        "activeBorder": "#bd93f9",
+        "inactiveBorder": "#6272a4",
+        "borderSize": 2,
+        "rounding": 12,
+        "blurSize": 6,
+        "blurPasses": 2
+    },
+    "transparency": {
+        "enabled": true,
+        "base": 0.85,
+        "layers": 0.45
+    },
+    "surfaces": {
+        "outline": false
+    },
+    "fonts": [
+        "fonts/Rubik[wght].ttf"
+    ]
+}

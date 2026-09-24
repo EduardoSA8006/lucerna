@@ -1,0 +1,72 @@
+{
+    "name": "Nord",
+    "description": "Frio e minimalista: azuis de gelo e cinzas do Ártico.",
+    "dark": true,
+    "colors": {
+        "base": "#2e3440",
+        "surface": "#3b4252",
+        "raised": "#434c5e",
+        "border": "#4c566a",
+        "text": "#eceff4",
+        "textMuted": "#d8dee9",
+        "textFaint": "#7b88a1",
+        "accent": "#88c0d0",
+        "accentText": "#2e3440",
+        "danger": "#bf616a",
+        "success": "#a3be8c",
+        "warning": "#ebcb8b",
+        "track": "#4c566a"
+    },
+    "font": {
+        "sans": "Rubik",
+        "mono": "CaskaydiaCove Nerd Font",
+        "icon": "Material Symbols Rounded",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 8,
+        "normal": 14,
+        "large": 22
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "scale": 1
+    },
+    "bar": {
+        "height": 44
+    },
+    "wallpaper": {
+        "static": "wallpapers/nord.jpg",
+        "shader": "shaders/neve.qsb",
+        "fps": 20
+    },
+    "hyprland": {
+        "activeBorder": "#88c0d0",
+        "inactiveBorder": "#4c566a",
+        "borderSize": 2,
+        "rounding": 12,
+        "blurSize": 6,
+        "blurPasses": 2
+    },
+    "transparency": {
+        "enabled": true,
+        "base": 0.85,
+        "layers": 0.45
+    },
+    "surfaces": {
+        "outline": false
+    },
+    "fonts": [
+        "fonts/Rubik[wght].ttf"
+    ]
+}

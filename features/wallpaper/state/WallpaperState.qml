@@ -121,8 +121,8 @@ Singleton {
     // Resoluções comuns, para a preparação antecipada (opcional).
     readonly property var commonTargets: [[1920, 1080], [2560, 1440], [3840, 2160], [2560, 1080], [3440, 1440], [1920, 1200], [2560, 1600]]
 
-    // Vídeos que algum tema usa.
-    readonly property var videoSources: Object.values(Config.themeWallpapers ?? {}).filter(c => c?.kind === "video" && c.source).map(c => c.source)
+    // Vídeos que algum tema (que ainda existe) usa.
+    readonly property var videoSources: Object.keys(Config.themeWallpapers ?? {}).filter(id => ThemeManager.themes.some(t => t.id === id)).map(id => Config.themeWallpapers[id]).filter(c => c?.kind === "video" && c.source).map(c => c.source)
 
     // Pede o que falta: a versão de cada tela que mostra vídeo e, com a
     // preparação antecipada ligada e na tomada, as das resoluções comuns.

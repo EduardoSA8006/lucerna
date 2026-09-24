@@ -23,8 +23,10 @@ Column {
             title: "Papel de parede do tema"
             description: "Cada tema tem o seu. O efeito animado usa as cores do tema"
 
-            SegmentedControl {
+            Select {
                 width: parent.width
+                searchable: true
+                visibleRows: 6
                 options: WallpaperSettings.themeOptions
                 value: WallpaperSettings.theme
                 onSelected: v => {

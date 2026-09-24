@@ -2,7 +2,7 @@
 
 Sep 23, 2026 · @Eduardo Alves
 
-> **Implementado.** Os cinco temas têm um efeito animado (Aurora, Brasas, Chama, Luar e Papel, em `themes/shaders/`), e a escolha fica em Configurações → Papel de parede. Duas mudanças em relação ao que está abaixo:
+> **Implementado.** Cada tema tem um efeito animado entre os dez de `themes/shaders/`: Aurora (Catppuccin Mocha e Dracula), Bokeh (Tokyo Night), Brasas (Gruvbox Dark), Luar (Rosé Pine), Neve (Nord), Vaga-lumes (Everforest), Ondas (Kanagawa), Névoa (Matte Black) e Chuva digital (Decay Green); o Chama fica disponível para qualquer tema. A escolha fica em Configurações → Papel de parede. Duas mudanças em relação ao que está abaixo:
 >
 > - **Cada tema pode usar outro papel**, escolhido pelo usuário: o próprio, só a imagem dele parada, qualquer um dos efeitos (nas cores do tema) ou uma **imagem do computador**. A escolha fica em `Config.themeWallpapers` e é resolvida por `ThemeManager.wallpaperFor(tema)`. Com isso, um tema já não é a única origem do wallpaper: uma imagem do usuário pode ser um arquivo solto.
 > - **Os shaders são compilados só para GLSL de desktop e SPIR-V.** A variante GLSL ES sai com `mediump`, e GPUs que calculam `mediump` em 16 bits (como as Intel integradas) desenham os degradês em faixas.
@@ -72,7 +72,7 @@ Cada tela pode ter um modo e um wallpaper próprios. As escolhas ficam salvas em
 "wallpaper": {
     "monitors": {
         "eDP-1": { "mode": "static" },
-        "HDMI-A-1": { "mode": "animated", "source": "brasa" }
+        "HDMI-A-1": { "mode": "animated", "source": "gruvbox-dark" }
     }
 }
 ```
@@ -115,19 +115,19 @@ Quando visível, o animado faz o menor trabalho que mantém o efeito.
 
 ## Integração com temas e arquitetura
 
-Cada tema declara seu wallpaper, e os shaders recebem as cores do tema ativo como uniforms. Como as cores do `ThemeManager` já são animadas na troca de tema, um mesmo efeito, como a chama da Lamparina, muda de cor sozinho e com transição suave.
+Cada tema declara seu wallpaper, e os shaders recebem as cores do tema ativo como uniforms. Como as cores do `ThemeManager` já são animadas na troca de tema, um mesmo efeito, como os vaga-lumes do Everforest, muda de cor sozinho e com transição suave.
 
 O campo `wallpaper` do tema aceita duas formas. Os caminhos são relativos a `themes/`, como já acontece hoje.
 
 ```json
-"wallpaper": "wallpapers/lamparina.jpg"
+"wallpaper": "wallpapers/everforest.jpg"
 ```
 
 ```json
 "wallpaper": {
-    "static": "wallpapers/lamparina.jpg",
-    "shader": "shaders/chama.qsb",
-    "fps": 30
+    "static": "wallpapers/everforest.jpg",
+    "shader": "shaders/vagalumes.qsb",
+    "fps": 20
 }
 ```
 

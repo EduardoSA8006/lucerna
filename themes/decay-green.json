@@ -1,0 +1,72 @@
+{
+    "name": "Decay Green",
+    "description": "Terminal hacker: verde fósforo sobre quase preto.",
+    "dark": true,
+    "colors": {
+        "base": "#0c1210",
+        "surface": "#131b18",
+        "raised": "#1a2521",
+        "border": "#27372f",
+        "text": "#c6dccf",
+        "textMuted": "#8fae9c",
+        "textFaint": "#5c7a69",
+        "accent": "#78dba9",
+        "accentText": "#08100c",
+        "danger": "#e05f65",
+        "success": "#78dba9",
+        "warning": "#f1cf8a",
+        "track": "#22322b"
+    },
+    "font": {
+        "sans": "Rubik",
+        "mono": "CaskaydiaCove Nerd Font",
+        "icon": "Material Symbols Rounded",
+        "size": {
+            "small": 11,
+            "normal": 13,
+            "large": 16,
+            "huge": 44
+        }
+    },
+    "radius": {
+        "small": 8,
+        "normal": 14,
+        "large": 22
+    },
+    "spacing": {
+        "tiny": 4,
+        "small": 8,
+        "normal": 12,
+        "large": 20
+    },
+    "animation": {
+        "scale": 1
+    },
+    "bar": {
+        "height": 44
+    },
+    "wallpaper": {
+        "static": "wallpapers/decay-green.jpg",
+        "shader": "shaders/chuva.qsb",
+        "fps": 20
+    },
+    "hyprland": {
+        "activeBorder": "#78dba9",
+        "inactiveBorder": "#27372f",
+        "borderSize": 2,
+        "rounding": 12,
+        "blurSize": 6,
+        "blurPasses": 2
+    },
+    "transparency": {
+        "enabled": true,
+        "base": 0.85,
+        "layers": 0.45
+    },
+    "surfaces": {
+        "outline": false
+    },
+    "fonts": [
+        "fonts/Rubik[wght].ttf"
+    ]
+}

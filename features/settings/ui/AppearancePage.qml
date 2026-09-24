@@ -67,8 +67,10 @@ Column {
 
                         Text {
                             anchors.left: parent.left
+                            anchors.right: parent.right
                             anchors.bottom: parent.bottom
                             anchors.margins: 10
+                            elide: Text.ElideRight
                             text: chip.modelData.name
                             color: chip.modelData.colors.text ?? "white"
                             font.family: ThemeManager.font.sans

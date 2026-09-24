@@ -11,7 +11,7 @@ import qs.core.config
 Singleton {
     id: root
 
-    readonly property string defaultTheme: "nebulosa"
+    readonly property string defaultTheme: "catppuccin-mocha"
     readonly property string directory: Quickshell.shellPath("themes")
     readonly property string current: Config.theme
 
