@@ -36,7 +36,7 @@ O Lucerna terá vários temas pré-configurados, trocáveis a qualquer momento p
 
 - **Tema como dado:** cada tema é um arquivo em `themes/` com cores, fontes, raios, espaçamentos e wallpaper. Criar um tema novo é adicionar um arquivo, sem tocar em código.
 - **Um ponto de verdade:** um `ThemeManager` (singleton) carrega o tema ativo e expõe os tokens (cores, fontes, raios, espaçamentos, durações de animação e altura da barra); nenhum componente usa cor, fonte ou espaçamento fixo. As dimensões estruturais de cada painel, como a largura do launcher, ficam no próprio componente.
-- **Temas embutidos:** os dez esquemas mais populares, nas paletas oficiais: Catppuccin Mocha (padrão), Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green. Cada um tem um papel estático e um efeito animado que combinam com ele. Os arquivos dos temas e os papéis estáticos são gerados por `dev/themes.py`, a partir das paletas.
+- **Temas embutidos:** os dez esquemas mais populares, nas paletas oficiais: Catppuccin Mocha (padrão), Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green, mais as versões claras oficiais Catppuccin Latte e Rosé Pine Dawn (`"dark": false`). Cada um tem um papel estático e um efeito animado que combinam com ele. Os arquivos dos temas e os papéis estáticos são gerados por `dev/themes.py`, a partir das paletas.
 - **Cartões:** sólidos e sem contorno, destacados pelo tom (como no Material 3), com raio de 22 px. O contorno é um token do tema (`surfaces.outline`) e pode ser ligado nas configurações.
 - **Fontes do tema:** um tema pode trazer fontes em `themes/fonts/`, carregadas pelo `FontLoader` sem instalar nada no sistema.
 - **Troca ao vivo:** ao escolher um tema no painel, toda a interface muda na hora, com transição suave, e a escolha fica salva para a próxima sessão.
@@ -64,7 +64,7 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Papel de parede | Por tema: o próprio (imagem e efeito animado em shader), só a imagem, qualquer um dos dez efeitos (nas cores do tema), uma imagem ou um vídeo/GIF do usuário. Vídeos convertidos uma vez por tela para tocar pela GPU. 30 ou 60 fps, no ritmo da tela; pausa com tela cheia, bloqueio e tela apagada |
 | Notificações | Servidor de notificações próprio; popups e a lista na central lateral |
 | Tela de bloqueio | Bloqueio próprio, no visual do tema ativo |
-| Seletor de temas | Painel para trocar rapidamente entre os dez temas |
+| Seletor de temas | Painel para trocar rapidamente entre os doze temas |
 | OSD | Indicadores de volume e brilho na tela |
 | Ociosidade | Escurecer, desligar a tela, bloquear e suspender por tempo sem uso (`IdleMonitor`), com tempos na tomada e na bateria. Segura com mídia tocando, tela cheia e "Não apagar a tela". Substitui o `hypridle` |
 | Menu de energia | Bloquear, suspender, reiniciar e desligar |
