@@ -9,6 +9,8 @@ Singleton {
     id: root
 
     property var lines: []
+    // Falso com a letra desligada ou no modo offline: nenhuma busca sai.
+    property bool enabled: true
     property bool loading: false
     property bool synced: false
     property string key: ""
@@ -58,6 +60,11 @@ Singleton {
 
     // Busca a letra da faixa; chamadas repetidas para a mesma faixa não refazem a busca.
     function request(title: string, artist: string, album: string, length: real): void {
+        if (!enabled) {
+            key = "";
+            apply(null);
+            return;
+        }
         const k = `${artist}\u0000${title}`;
         if (k === key)
             return;

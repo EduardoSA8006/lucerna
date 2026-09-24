@@ -164,6 +164,22 @@ Singleton {
         Panels.toggle(name);
     }
 
+    // Abrir o painel superior ao parar o mouse sobre a hora (se ligado nas
+    // configurações). O atraso evita abrir só porque o mouse passou por ali.
+    function clockHovered(on: bool): void {
+        if (on && Config.dashboardHoverOpen && Panels.current === "")
+            hoverOpenDelay.restart();
+        else
+            hoverOpenDelay.stop();
+    }
+
+    Timer {
+        id: hoverOpenDelay
+
+        interval: 280
+        onTriggered: Panels.open("dashboard")
+    }
+
     // Abre a central lateral na seção (ou fecha, se já estiver nela).
     function toggleSection(section: string): void {
         Panels.toggleSidebar(section);

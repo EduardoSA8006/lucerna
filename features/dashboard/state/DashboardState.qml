@@ -18,14 +18,57 @@ Singleton {
     readonly property var screen: Hypr.focusedScreen
     readonly property real topOffset: Panels.topInset
 
-    readonly property var tabs: [
+    // Todas as abas; `tabs` são as visíveis, na ordem escolhida nas configurações.
+    readonly property var allTabs: [
         { id: "overview", icon: Icons.dashboard, label: "Painel" },
         { id: "media", icon: Icons.media, label: "Mídia" },
         { id: "performance", icon: Icons.performance, label: "Desempenho" },
         { id: "weather", icon: Icons.weather, label: "Clima" }
     ]
+    readonly property var tabs: {
+        const order = Config.dashboardTabOrder ?? [];
+        const hidden = Config.dashboardTabsHidden ?? [];
+        const sorted = allTabs.slice().sort((a, b) => (order.indexOf(a.id) + 1 || 99) - (order.indexOf(b.id) + 1 || 99));
+        const visible = sorted.filter(t => !hidden.includes(t.id));
+        return visible.length ? visible : [allTabs[0]];
+    }
     readonly property int currentIndex: Math.max(0, tabs.findIndex(t => t.id === Config.dashboardTab))
     readonly property string current: tabs[currentIndex].id
+
+    // Ao abrir: a última aba usada ou uma fixa.
+    onOpenChanged: {
+        if (open && Config.dashboardStartTab !== "last" && tabs.some(t => t.id === Config.dashboardStartTab))
+            Config.dashboardTab = Config.dashboardStartTab;
+        if (!open) {
+            pointerInside = false;
+            pointerEntered = false;
+        }
+    }
+
+    // Fechar ao tirar o mouse: só depois de o mouse ter entrado no painel
+    // (com a barra fixa ele abre abaixo do cursor, que está na hora).
+    property bool pointerInside: false
+    property bool pointerEntered: false
+
+    function setPointerInside(inside: bool): void {
+        pointerInside = inside;
+        if (inside) {
+            pointerEntered = true;
+            leaveDelay.stop();
+        } else if (open && pointerEntered && Config.dashboardHoverClose) {
+            leaveDelay.restart();
+        }
+    }
+
+    Timer {
+        id: leaveDelay
+
+        interval: 500
+        onTriggered: {
+            if (root.open && !root.pointerInside)
+                Panels.close();
+        }
+    }
 
     function close(): void {
         Panels.close();
@@ -53,6 +96,36 @@ Singleton {
     }
 
     Binding {
+        target: SystemStats
+        property: "interval"
+        value: Config.statsInterval
+    }
+
+    Binding {
+        target: SystemStats
+        property: "gpuEnabled"
+        value: Config.showGpu
+    }
+
+    Binding {
+        target: Weather
+        property: "online"
+        value: !Config.offline
+    }
+
+    Binding {
+        target: Weather
+        property: "refreshInterval"
+        value: Config.weatherRefresh * 60 * 1000
+    }
+
+    Binding {
+        target: Lyrics
+        property: "enabled"
+        value: Config.lyricsEnabled && !Config.offline
+    }
+
+    Binding {
         target: Media
         property: "trackPosition"
         value: root.isShowing("overview") || root.isShowing("media")
@@ -61,7 +134,7 @@ Singleton {
     Binding {
         target: Audio
         property: "monitorPeak"
-        value: root.isShowing("media")
+        value: root.isShowing("media") && Config.audioPulse
     }
 
     Binding {

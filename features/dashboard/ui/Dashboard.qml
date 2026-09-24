@@ -20,8 +20,8 @@ OverlayPanel {
             content.forceActiveFocus();
     }
 
-    readonly property var pageItems: [overview, media, performance, weather]
     readonly property int index: DashboardState.currentIndex
+    readonly property Item currentPage: pageRepeater.count > index ? pageRepeater.itemAt(index) : null
 
     // Cartão flutuante que desce do topo da tela com mola (abaixo da barra,
     // quando ela está fixa).
@@ -36,6 +36,11 @@ OverlayPanel {
         radius: ThemeManager.radius.large
         border.width: ThemeManager.outlines ? 1 : 0
         border.color: ThemeManager.colors.border
+
+        // Para "fechar ao tirar o mouse".
+        HoverHandler {
+            onHoveredChanged: DashboardState.setPointerInside(hovered)
+        }
 
         FocusScope {
             id: content
@@ -56,7 +61,7 @@ OverlayPanel {
                     DashboardState.setTab(panel.index + 1);
                 else if (event.key === Qt.Key_Backtab)
                     DashboardState.setTab(panel.index - 1);
-                else if (event.key >= Qt.Key_1 && event.key <= Qt.Key_4)
+                else if (event.key >= Qt.Key_1 && event.key < Qt.Key_1 + DashboardState.tabs.length)
                     DashboardState.setTab(event.key - Qt.Key_1);
                 else
                     return;
@@ -78,12 +83,13 @@ OverlayPanel {
                 anchors.top: tabs.bottom
                 anchors.topMargin: ThemeManager.spacing.normal
                 width: parent.width
-                height: panel.pageItems[panel.index].implicitHeight
+                height: panel.currentPage?.item?.implicitHeight ?? 0
                 clip: true
 
                 Behavior on height { Anim { type: Anim.Spatial } }
 
 
+                // As páginas seguem a ordem e a visibilidade das abas.
                 Row {
                     id: pagesRow
 
@@ -91,31 +97,49 @@ OverlayPanel {
 
                     Behavior on x { Anim { type: Anim.Spatial } }
 
-                    OverviewPage {
-                        id: overview
+                    Repeater {
+                        id: pageRepeater
 
-                        width: pages.width
-                    }
+                        model: DashboardState.tabs
 
-                    MediaPage {
-                        id: media
+                        delegate: Loader {
+                            required property var modelData
 
-                        width: pages.width
-                    }
-
-                    PerformancePage {
-                        id: performance
-
-                        width: pages.width
-                    }
-
-                    WeatherPage {
-                        id: weather
-
-                        width: pages.width
+                            width: pages.width
+                            sourceComponent: ({
+                                overview: overviewPage,
+                                media: mediaPage,
+                                performance: performancePage,
+                                weather: weatherPage
+                            })[modelData.id]
+                        }
                     }
                 }
             }
         }
+    }
+
+    Component {
+        id: overviewPage
+
+        OverviewPage {}
+    }
+
+    Component {
+        id: mediaPage
+
+        MediaPage {}
+    }
+
+    Component {
+        id: performancePage
+
+        PerformancePage {}
+    }
+
+    Component {
+        id: weatherPage
+
+        WeatherPage {}
     }
 }

@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import qs.core.config
 import qs.core.format
 import qs.services
 
@@ -24,13 +25,15 @@ Singleton {
     readonly property real pulse: Math.min(1, Audio.peak * 1.6)
 
     // Letra
+    readonly property bool lyricsEnabled: Config.lyricsEnabled
+    readonly property bool offline: Config.offline
     readonly property var lyrics: Lyrics.lines
     readonly property bool lyricsLoading: Lyrics.loading
     readonly property bool lyricsSynced: Lyrics.synced
     readonly property int currentLine: Lyrics.lineAt(Media.position + 0.3)
 
     // Busca a letra quando a faixa muda e a aba está visível.
-    readonly property string trackKey: DashboardState.isShowing("media") ? `${Media.artist}|${Media.title}` : ""
+    readonly property string trackKey: DashboardState.isShowing("media") && Lyrics.enabled ? `${Media.artist}|${Media.title}` : ""
     onTrackKeyChanged: {
         if (trackKey)
             Lyrics.request(Media.title, Media.artist, Media.album, Media.length);

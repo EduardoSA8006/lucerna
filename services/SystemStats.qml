@@ -12,6 +12,13 @@ Singleton {
 
     property bool active: false
     property int interval: 2000
+    // A GPU pode ser desligada (nem a consulta leve ao estado da placa roda).
+    property bool gpuEnabled: true
+
+    onGpuEnabledChanged: {
+        if (!gpuEnabled)
+            gpus = [];
+    }
     readonly property int historyLength: 30
 
     // CPU
@@ -65,7 +72,7 @@ Singleton {
             tempFile.reload();
         if (!df.running)
             df.running = true;
-        if (!gpuProbe.running)
+        if (gpuEnabled && !gpuProbe.running)
             gpuProbe.running = true;
     }
 

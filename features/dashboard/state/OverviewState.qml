@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.core.config
 import qs.core.format
 import qs.core.panels
 import qs.core.widgets
@@ -13,6 +14,13 @@ Singleton {
     id: root
 
     readonly property var locale: Qt.locale("pt_BR")
+
+    // Cartões visíveis (escolhidos nas configurações).
+    readonly property var hidden: Config.overviewHidden ?? []
+
+    function shows(card: string): bool {
+        return !hidden.includes(card);
+    }
 
     // Usuário e sistema
     readonly property string user: Quickshell.env("USER") || "você"
@@ -47,10 +55,12 @@ Singleton {
     property int monthOffset: 0
     readonly property var shownMonth: new Date(clock.date.getFullYear(), clock.date.getMonth() + monthOffset, 1)
     readonly property string monthTitle: Format.capitalize(shownMonth.toLocaleDateString(locale, "MMMM 'de' yyyy"))
-    readonly property var weekdayInitials: [0, 1, 2, 3, 4, 5, 6].map(d => locale.dayName(d, Locale.NarrowFormat).toUpperCase())
+    readonly property int weekStart: Config.weekStart
+    readonly property var weekdayInitials: [0, 1, 2, 3, 4, 5, 6].map(i => locale.dayName((i + weekStart) % 7, Locale.NarrowFormat).toUpperCase())
     readonly property var calendarDays: {
         const first = shownMonth;
-        const start = new Date(first.getFullYear(), first.getMonth(), 1 - first.getDay());
+        const lead = (first.getDay() - weekStart + 7) % 7;
+        const start = new Date(first.getFullYear(), first.getMonth(), 1 - lead);
         const today = clock.date.toDateString();
         return Array.from({ length: 42 }, (_, i) => {
             const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
@@ -73,8 +83,8 @@ Singleton {
 
     readonly property bool hasWeather: Weather.current !== null
     readonly property string weatherIcon: hasWeather ? Icons.forWeather(Weather.current.code, Weather.current.isDay) : Icons.weather
-    readonly property string weatherTemp: hasWeather ? `${Math.round(Weather.current.temp)}°` : "—"
-    readonly property string weatherText: hasWeather ? WeatherState.describe(Weather.current.code) : (Weather.location ? "Carregando…" : "Escolha a cidade na aba Clima")
+    readonly property string weatherTemp: hasWeather ? WeatherState.temperature(Weather.current.temp) : "—"
+    readonly property string weatherText: Config.offline ? "Modo offline" : hasWeather ? WeatherState.describe(Weather.current.code) : (Weather.location ? "Carregando…" : "Escolha a cidade na aba Clima")
     readonly property string weatherPlace: Weather.location?.name.split(",")[0] ?? ""
 
     readonly property bool hasMedia: Media.available

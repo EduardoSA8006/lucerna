@@ -12,6 +12,8 @@ Singleton {
     // { name, latitude, longitude } ou null
     property var location: null
     property bool active: false
+    // Falso no modo offline: nenhuma requisição sai.
+    property bool online: true
 
     property var current: null      // { temp, feels, humidity, wind, code, isDay, rainChance }
     property var hourly: []         // [{ time: Date, temp, code, isDay }] próximas 12 h
@@ -20,7 +22,7 @@ Singleton {
     property string error: ""
     property var updatedAt: null
 
-    readonly property int refreshInterval: 30 * 60 * 1000
+    property int refreshInterval: 30 * 60 * 1000
 
     signal located(var location)
 
@@ -43,6 +45,10 @@ Singleton {
     function search(name: string): void {
         if (!name.trim())
             return;
+        if (!online) {
+            error = "Modo offline ligado";
+            return;
+        }
         loading = true;
         error = "";
         get(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name.trim())}&count=1&language=pt&format=json`, data => {
@@ -58,7 +64,7 @@ Singleton {
     }
 
     function refresh(): void {
-        if (!location)
+        if (!location || !online)
             return;
         loading = true;
         error = "";
@@ -124,8 +130,14 @@ Singleton {
             refresh();
     }
 
+    onOnlineChanged: {
+        error = "";
+        if (online && active && isStale())
+            refresh();
+    }
+
     Timer {
-        running: root.active && root.location !== null
+        running: root.active && root.online && root.location !== null
         repeat: true
         interval: root.refreshInterval
         onTriggered: root.refresh()

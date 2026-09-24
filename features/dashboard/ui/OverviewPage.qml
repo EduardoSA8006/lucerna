@@ -10,7 +10,14 @@ import qs.features.dashboard.state
 Item {
     id: root
 
-    implicitHeight: layout.implicitHeight
+    implicitHeight: layout.visibleChildren.length ? layout.implicitHeight : 120
+
+    Txt {
+        anchors.centerIn: parent
+        visible: !layout.visibleChildren.length
+        text: "Todos os cartões estão escondidos (Configurações → Painel superior)"
+        faint: true
+    }
 
     RowLayout {
         id: layout
@@ -18,16 +25,19 @@ Item {
         width: parent.width
         spacing: ThemeManager.spacing.normal
 
-        // Coluna 1: usuário + relógio
+        // Coluna 1: usuário + relógio (e clima)
         ColumnLayout {
             Layout.preferredWidth: 270
-            Layout.fillWidth: false
+            Layout.fillWidth: !calendarCard.visible && !column3.visible
+            Layout.fillHeight: true
             Layout.alignment: Qt.AlignTop
+            visible: OverviewState.shows("user") || OverviewState.shows("clock") || OverviewState.shows("weather")
             spacing: ThemeManager.spacing.normal
 
             Surface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 92
+                visible: OverviewState.shows("user")
 
                 Row {
                     anchors.fill: parent
@@ -138,8 +148,11 @@ Item {
             Surface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 196
+                Layout.fillHeight: true
+                visible: OverviewState.shows("clock") || OverviewState.shows("weather")
 
                 Column {
+                    visible: OverviewState.shows("clock")
                     anchors.left: parent.left
                     anchors.top: parent.top
                     anchors.margins: ThemeManager.spacing.large - 4
@@ -162,6 +175,7 @@ Item {
                     anchors.left: parent.left
                     anchors.bottom: parent.bottom
                     anchors.margins: ThemeManager.spacing.large - 4
+                    visible: OverviewState.shows("weather")
                     spacing: ThemeManager.spacing.small
 
                     Icon {
@@ -195,8 +209,13 @@ Item {
 
         // Coluna 2: calendário
         Surface {
+            id: calendarCard
+
             Layout.preferredWidth: 300
+            Layout.preferredHeight: 300
             Layout.fillHeight: true
+            Layout.fillWidth: !column3.visible
+            visible: OverviewState.shows("calendar")
 
             Calendar {
                 anchors.fill: parent
@@ -206,13 +225,19 @@ Item {
 
         // Coluna 3: recursos + mídia
         ColumnLayout {
+            id: column3
+
             Layout.fillWidth: true
+            Layout.fillHeight: true
             Layout.alignment: Qt.AlignTop
+            visible: OverviewState.shows("resources") || OverviewState.shows("media")
             spacing: ThemeManager.spacing.normal
 
             Surface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 150
+                Layout.fillHeight: !OverviewState.shows("media")
+                visible: OverviewState.shows("resources")
 
                 Column {
                     anchors.left: parent.left
@@ -277,6 +302,8 @@ Item {
             Surface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 138
+                Layout.fillHeight: true
+                visible: OverviewState.shows("media")
 
                 Row {
                     anchors.fill: parent

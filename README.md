@@ -64,6 +64,8 @@ Cada arquivo em `themes/*.json` é um tema; o nome do arquivo é o id. Além de 
 - `surfaces.outline`: contorno fino nos cartões. O padrão é sem contorno; os cartões se destacam pelo tom.
 - `colors.track`: cor opcional dos trilhos de medidores e sliders.
 
+Em Configurações → Painel superior: abas (mostrar, esconder e reordenar), aba ao abrir, abrir ao parar o mouse na hora e fechar ao tirar o mouse, cartões da visão geral, primeiro dia da semana, letra e pulso do áudio, intervalo do desempenho e GPU, cidade e unidades do clima, e o **modo offline**, que desliga tudo o que usa a internet.
+
 Pela tela de configurações (`Super+S`), o usuário ajusta transparência, desfoque, contorno dos cartões, velocidade das animações e notificações por cima do tema. Esses ajustes ficam na config (`transparencyOverride`, `blurOverride`, `outlines`, `animationScale`, `notificationTimeout`) e valem para qualquer tema; "Restaurar padrões do tema" os apaga.
  Para criar um, copie `themes/nebulosa.json` (o padrão), mude as cores e o wallpaper, e ele aparece no seletor na hora. As preferências (tema ativo, não perturbe) ficam em `~/.local/state/quickshell/by-shell/<id>/config.json`.
 

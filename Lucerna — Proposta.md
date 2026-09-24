@@ -159,7 +159,9 @@ Dois recursos dependem de internet, e cada um só faz requisições enquanto a a
 | [Open-Meteo](https://open-meteo.com) | Previsão do tempo, busca de cidade | Nome da cidade digitada e as coordenadas dela |
 | [LRCLIB](https://lrclib.net) | Letras sincronizadas | Título, artista, álbum e duração da faixa |
 
-A localização não é descoberta pelo IP (o Caelestia usa o `ip-api.com` para isso): a cidade é digitada uma vez na aba Clima e fica salva na config.
+A localização não é descoberta pelo IP (o Caelestia usa o `ip-api.com` para isso): a cidade é digitada uma vez na aba Clima (ou nas configurações) e fica salva na config.
+
+O **modo offline** (Configurações → Painel superior → Privacidade) desliga os dois de uma vez; a letra também pode ser desligada sozinha.
 
 ## Consumo
 

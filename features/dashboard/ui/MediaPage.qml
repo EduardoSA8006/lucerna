@@ -241,6 +241,7 @@ Item {
         Surface {
             Layout.preferredWidth: 300
             Layout.fillHeight: true
+            visible: MediaState.lyricsEnabled
             clip: true
 
             CardHeader {
@@ -258,7 +259,7 @@ Item {
                 width: parent.width - ThemeManager.spacing.large * 2
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap
-                text: MediaState.lyricsLoading ? "Procurando a letra…" : "Sem letra para esta faixa"
+                text: MediaState.offline ? "Modo offline: a letra não é buscada" : MediaState.lyricsLoading ? "Procurando a letra…" : "Sem letra para esta faixa"
                 faint: true
             }
 

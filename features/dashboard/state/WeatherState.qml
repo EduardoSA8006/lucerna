@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import qs.core.config
 import qs.core.format
 import qs.core.widgets
 import qs.services
@@ -11,6 +12,17 @@ Singleton {
     id: root
 
     readonly property var locale: Qt.locale("pt_BR")
+    readonly property bool offline: Config.offline
+    readonly property bool fahrenheit: Config.temperatureUnit === "f"
+
+    // A Open-Meteo responde em °C e km/h; a conversão é feita aqui.
+    function temperature(celsius: real): string {
+        return `${Math.round(fahrenheit ? celsius * 9 / 5 + 32 : celsius)}°`;
+    }
+
+    function speed(kmh: real): string {
+        return Config.windUnit === "ms" ? `${Format.number(kmh / 3.6, 1)} m/s` : `${Math.round(kmh)} km/h`;
+    }
     readonly property bool hasLocation: Weather.location !== null
     readonly property string place: Weather.location?.name ?? ""
     readonly property bool loading: Weather.loading
@@ -19,18 +31,18 @@ Singleton {
     readonly property bool hasData: c !== null
 
     readonly property string icon: hasData ? Icons.forWeather(c.code, c.isDay) : Icons.weather
-    readonly property string temp: hasData ? `${Math.round(c.temp)}°` : "—"
+    readonly property string temp: hasData ? temperature(c.temp) : "—"
     readonly property string condition: hasData ? describe(c.code) : ""
-    readonly property string feels: hasData ? `Sensação de ${Math.round(c.feels)}°` : ""
+    readonly property string feels: hasData ? `Sensação de ${temperature(c.feels)}` : ""
     readonly property string humidity: hasData ? `${c.humidity}%` : "—"
-    readonly property string wind: hasData ? `${Math.round(c.wind)} km/h` : "—"
+    readonly property string wind: hasData ? speed(c.wind) : "—"
     readonly property string rainChance: hasData ? `${c.rainChance}%` : "—"
     readonly property string updated: Weather.updatedAt ? `Atualizado às ${Qt.formatTime(Weather.updatedAt, "HH:mm")}` : ""
 
     readonly property var hourly: Weather.hourly.map(h => ({
         time: Qt.formatTime(h.time, "HH'h'"),
         icon: Icons.forWeather(h.code, h.isDay),
-        temp: `${Math.round(h.temp)}°`
+        temp: temperature(h.temp)
     }))
 
     // Faixa de temperatura da semana, para desenhar as barras min–max na mesma escala.
@@ -39,8 +51,8 @@ Singleton {
     readonly property var daily: Weather.daily.map((d, i) => ({
         day: i === 0 ? "Hoje" : Format.capitalize(d.date.toLocaleDateString(locale, "ddd").replace(".", "")),
         icon: Icons.forWeather(d.code, true),
-        min: `${Math.round(d.min)}°`,
-        max: `${Math.round(d.max)}°`,
+        min: temperature(d.min),
+        max: temperature(d.max),
         rain: d.rainChance >= 20 ? `${d.rainChance}%` : "",
         from: (d.min - weekMin) / Math.max(1, weekMax - weekMin),
         to: (d.max - weekMin) / Math.max(1, weekMax - weekMin)

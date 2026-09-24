@@ -20,6 +20,7 @@ Clickable {
     active: BarState.openPanel === "dashboard"
     activeColor: ThemeManager.alpha(ThemeManager.colors.accent, 0.16)
     onClicked: BarState.togglePanel("dashboard")
+    onHoveredChanged: BarState.clockHovered(hovered)
 
     Behavior on width { Anim { type: Anim.FastSpatial } }
 
