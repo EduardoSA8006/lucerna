@@ -39,7 +39,7 @@ Row {
     IconButton {
         anchors.verticalCenter: parent.verticalCenter
         icon: BarState.batteryIcon
-        label: `${BarState.batteryPercent}%`
+        label: BarState.batteryShowPercent ? `${BarState.batteryPercent}%` : ""
         visible: BarState.batteryAvailable
         iconSize: 18
         active: BarState.sectionOpen("battery")

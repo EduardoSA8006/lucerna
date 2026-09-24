@@ -83,7 +83,9 @@ Singleton {
     // só ajusta a velocidade geral com "animation.scale" (1 = padrão, 0 = sem animação).
     // Use pelos componentes Anim e ColorAnim, não direto.
     readonly property QtObject anim: QtObject {
-        readonly property real scale: Config.animationScale >= 0 ? Config.animationScale : (root.data.animation?.scale ?? 1)
+        readonly property real baseScale: Config.animationScale >= 0 ? Config.animationScale : (root.data.animation?.scale ?? 1)
+        // No modo leve as animações ficam mais curtas.
+        readonly property real scale: root.lightMode ? Math.min(baseScale, 0.6) : baseScale
 
         readonly property int small: 200 * scale
         readonly property int normal: 400 * scale
@@ -112,6 +114,11 @@ Singleton {
 
     readonly property int barHeight: data.bar?.height ?? 34
 
+    // Modo leve (em tempo de execução, não é salvo): sem transparência e
+    // desfoque, e animações mais curtas. Ligado pela feature de energia quando
+    // o notebook está na bateria e o usuário pediu.
+    property bool lightMode: false
+
     // Contorno fino nos cartões e painéis. O padrão é sem contorno: os cartões
     // se destacam pelo tom, como no Material 3. O usuário pode ligar (Config).
     readonly property bool outlines: Config.outlines ?? data.surfaces?.outline ?? false
@@ -123,7 +130,7 @@ Singleton {
     readonly property QtObject transparency: QtObject {
         readonly property var custom: Config.transparencyOverride ?? {}
         readonly property var theme: root.data.transparency ?? {}
-        readonly property bool enabled: custom.enabled ?? theme.enabled ?? false
+        readonly property bool enabled: (custom.enabled ?? theme.enabled ?? false) && !root.lightMode
         readonly property real base: custom.base ?? theme.base ?? 1
         readonly property real layers: custom.layers ?? theme.layers ?? 1
         readonly property bool customized: Object.keys(custom).length > 0

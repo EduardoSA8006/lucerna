@@ -149,6 +149,7 @@ Singleton {
     // Bateria
     readonly property bool batteryAvailable: Battery.available
     readonly property int batteryPercent: Math.round(Battery.percentage * 100)
+    readonly property bool batteryShowPercent: Config.batteryShowPercent
     readonly property bool batteryLow: Battery.percentage < 0.15 && !Battery.charging
     readonly property string batteryIcon: Battery.charging ? Icons.batteryCharging : batteryLow ? Icons.batteryAlert : Icons.level(Icons.battery, Battery.percentage)
 
