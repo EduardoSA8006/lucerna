@@ -140,7 +140,7 @@ OverlayPanel {
                             readonly property Item target: topicRows.count > 0 ? topicRows.itemAt(SettingsState.currentIndex) : null
 
                             width: parent.width
-                            height: target?.height ?? 48
+                            height: target?.height ?? 44
                             y: target?.y ?? 0
                             radius: ThemeManager.radius.normal + 2
                             color: ThemeManager.alpha(ThemeManager.colors.accent, 0.12)
@@ -176,7 +176,7 @@ OverlayPanel {
                                     readonly property bool current: index === SettingsState.currentIndex
 
                                     width: topics.width
-                                    height: 48
+                                    height: 44
                                     radius: ThemeManager.radius.normal + 2
                                     onClicked: SettingsState.setTopic(index)
 
@@ -307,6 +307,7 @@ OverlayPanel {
                             power: powerPage,
                             sidebar: sidebarPage,
                             panels: panelsPage,
+                            displays: displaysPage,
                             shortcuts: shortcutsPage,
                             about: aboutPage
                         })[SettingsState.current.id] ?? soonPage
@@ -358,6 +359,12 @@ OverlayPanel {
         id: glassPage
 
         GlassPage {}
+    }
+
+    Component {
+        id: displaysPage
+
+        MonitorsPage {}
     }
 
     Component {

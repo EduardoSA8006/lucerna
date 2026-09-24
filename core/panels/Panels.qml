@@ -67,7 +67,7 @@ Singleton {
 
     // Fecha só este.
     function dismiss(name: string): void {
-        lastDismiss = Date.now();
+        disturb();
         opened = opened.filter(n => n !== name);
     }
 
@@ -90,22 +90,56 @@ Singleton {
         surfaces = surfaces.filter(w => w !== window);
     }
 
-    // Fechar o acompanhante que estava com o teclado faz o Hyprland mandar o
-    // teclado para fora e desfazer o grab. Se ele cai logo depois de um fechar
-    // e ainda sobra algum aberto, não foi clique fora: arma de novo.
-    property real lastDismiss: 0
+    // O grab também cai sem clique fora: ao fechar o painel que estava com o
+    // teclado (o Hyprland manda o teclado para fora) e quando as telas mudam.
+    // A decisão espera um instante; se houve uma dessas perto e ainda sobra
+    // algum aberto, arma de novo em vez de fechar.
+    property real lastDisturb: 0
     property bool rearming: false
 
-    HyprlandFocusGrab {
-        active: root.anyOpen && !root.modalOpen && !root.rearming
-        windows: root.surfaces
-        onCleared: {
-            if (root.anyOpen && Date.now() - root.lastDismiss < 400) {
+    function disturb(): void {
+        lastDisturb = Date.now();
+    }
+
+    Connections {
+        target: Quickshell
+
+        function onScreensChanged() {
+            root.disturb();
+        }
+    }
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (event.name.startsWith("monitor"))
+                root.disturb();
+        }
+    }
+
+    Timer {
+        id: clearedCheck
+
+        property real at: 0
+
+        interval: 250
+        onTriggered: {
+            if (root.anyOpen && Math.abs(root.lastDisturb - at) < 1000) {
                 root.rearming = true;
                 Qt.callLater(() => root.rearming = false);
             } else {
                 root.close();
             }
+        }
+    }
+
+    HyprlandFocusGrab {
+        active: root.anyOpen && !root.modalOpen && !root.rearming
+        windows: root.surfaces
+        onCleared: {
+            clearedCheck.at = Date.now();
+            clearedCheck.restart();
         }
     }
 

@@ -55,6 +55,7 @@ Singleton {
     property alias sidebarSection: adapter.sidebarSection
     property alias panelsTogether: adapter.panelsTogether
     property alias panelsAvoidOverlap: adapter.panelsAvoidOverlap
+    property alias monitorSetups: adapter.monitorSetups
 
     FileView {
         path: Quickshell.statePath("config.json")
@@ -148,6 +149,9 @@ Singleton {
             // desviam um do outro para não se sobrepor.
             property var panelsTogether: ["dashboard", "sidebar"]
             property bool panelsAvoidOverlap: true
+            // Arranjos de monitores salvos, um por conjunto conectado
+            // (Monitors.setup): { setup: { chaveDoMonitor: spec } }.
+            property var monitorSetups: ({})
         }
     }
 }

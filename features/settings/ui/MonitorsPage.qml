@@ -1,0 +1,199 @@
+import QtQuick
+import qs.core.theme
+import qs.core.widgets
+import qs.features.settings.state
+
+// Monitores: disposição (arrastando no canvas) e os ajustes de cada um. Nada
+// vale até aplicar; aplicado, volta sozinho se não for confirmado a tempo
+// (a confirmação é uma janela à parte, em cada tela: MonitorConfirm).
+Column {
+    id: page
+
+    readonly property var monitor: MonitorsState.current
+    readonly property bool active: monitor?.enabled ?? false
+
+    spacing: ThemeManager.spacing.large
+
+    SettingSection {
+        title: "Disposição"
+
+        Item {
+            width: parent.width
+            height: layout.height + ThemeManager.spacing.large * 2
+
+            Column {
+                id: layout
+
+                x: ThemeManager.spacing.large
+                y: ThemeManager.spacing.large
+                width: parent.width - x * 2
+                spacing: ThemeManager.spacing.normal
+
+                MonitorCanvas {
+                    width: parent.width
+                }
+
+                Item {
+                    width: parent.width
+                    height: 40
+
+                    TonalButton {
+                        icon: Icons.identify
+                        text: "Identificar"
+                        onClicked: MonitorsState.identify()
+                    }
+
+                    Row {
+                        anchors.right: parent.right
+                        spacing: ThemeManager.spacing.small
+                        visible: MonitorsState.dirty && !MonitorsState.pending
+
+                        TonalButton {
+                            text: "Descartar"
+                            onClicked: MonitorsState.discard()
+                        }
+
+                        TonalButton {
+                            icon: Icons.check
+                            text: "Aplicar"
+                            onClicked: MonitorsState.apply()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Qual monitor ajustar (inclui os desligados e os que espelham, fora do canvas).
+    SegmentedControl {
+        width: parent.width
+        visible: MonitorsState.draft.length > 1
+        options: MonitorsState.draft.map(m => ({ label: `${MonitorsState.numberOf(m.name)} · ${m.label}`, value: m.name }))
+        value: page.monitor?.name ?? ""
+        onSelected: v => MonitorsState.select(v)
+    }
+
+    SettingSection {
+        title: !page.monitor ? "Monitor" : page.monitor.label === page.monitor.name ? `${MonitorsState.numberOf(page.monitor.name)} · ${page.monitor.name}` : `${MonitorsState.numberOf(page.monitor.name)} · ${page.monitor.label} (${page.monitor.name})`
+
+        SettingRow {
+            icon: Icons.monitor
+            title: "Ativo"
+            description: MonitorsState.enabledCount <= 1 && page.active ? "É o único ligado; não dá para desligar" : "Desligado, a tela fica apagada e sai da disposição"
+
+            Switch {
+                checked: page.active
+                enabled: !page.active || MonitorsState.enabledCount > 1
+                onToggled: on => MonitorsState.setEnabled(on)
+            }
+        }
+
+        SettingRow {
+            visible: page.active
+            wide: true
+            icon: Icons.resolution
+            title: "Resolução"
+
+            Select {
+                width: parent.width
+                options: MonitorsState.resolutions
+                value: page.monitor ? `${page.monitor.width}x${page.monitor.height}` : ""
+                onSelected: v => MonitorsState.setResolution(v)
+            }
+        }
+
+        SettingRow {
+            visible: page.active
+            wide: true
+            icon: Icons.refreshRate
+            title: "Taxa de atualização"
+
+            Select {
+                width: parent.width
+                options: MonitorsState.refreshRates
+                value: page.monitor?.refresh ?? 0
+                onSelected: v => MonitorsState.setRefresh(v)
+            }
+        }
+
+        SettingRow {
+            visible: page.active && !page.monitor?.mirror
+            wide: true
+            icon: Icons.zoom
+            title: "Escala"
+            description: "Maior deixa tudo maior, com menos espaço na tela"
+
+            SegmentedControl {
+                width: parent.width
+                options: MonitorsState.scaleOptions
+                value: page.monitor?.scale ?? 1
+                onSelected: v => MonitorsState.setScale(v)
+            }
+        }
+
+        SettingRow {
+            visible: page.active && !page.monitor?.mirror
+            wide: true
+            icon: Icons.rotate
+            title: "Rotação"
+
+            SegmentedControl {
+                width: parent.width
+                options: [
+                    { label: "Normal", value: 0 },
+                    { label: "90°", value: 1 },
+                    { label: "180°", value: 2 },
+                    { label: "270°", value: 3 }
+                ]
+                value: page.monitor?.transform ?? 0
+                onSelected: v => MonitorsState.setTransform(v)
+            }
+        }
+
+        SettingRow {
+            visible: page.active && MonitorsState.mirrorOptions.length > 1
+            wide: true
+            icon: Icons.mirror
+            title: "Espelhar"
+            description: "Mostra o mesmo que outro monitor, em vez de estender a área de trabalho"
+
+            Select {
+                width: parent.width
+                options: MonitorsState.mirrorOptions
+                value: page.monitor?.mirror ?? ""
+                onSelected: v => MonitorsState.setMirror(v)
+            }
+        }
+
+        SettingRow {
+            visible: page.active
+            wide: true
+            icon: Icons.vrr
+            title: "Taxa variável (VRR)"
+            description: "Acompanha o ritmo de quadros de jogos e vídeos; o monitor precisa ter FreeSync ou G-Sync"
+
+            SegmentedControl {
+                width: parent.width
+                options: [
+                    { label: "Desligada", value: 0 },
+                    { label: "Sempre", value: 1 },
+                    { label: "Tela cheia", value: 2 }
+                ]
+                value: page.monitor?.vrr ?? 0
+                onSelected: v => MonitorsState.setVrr(v)
+            }
+        }
+
+        SettingRow {
+            visible: page.active
+            icon: Icons.colorDepth
+            title: "Cor de 10 bits"
+            description: "Degradês mais suaves em monitores que suportam"
+
+            Switch {
+                checked: page.monitor?.tenBit ?? false
+                onToggled: on => MonitorsState.setTenBit(on)
+            }
+        }
+    }
+}
