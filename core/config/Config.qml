@@ -23,6 +23,7 @@ Singleton {
     property alias barPeek: adapter.barPeek
     property alias barShowDate: adapter.barShowDate
     property alias barOnEmpty: adapter.barOnEmpty
+    property alias barStyle: adapter.barStyle
     property alias sidebarSide: adapter.sidebarSide
     property alias sidebarSection: adapter.sidebarSection
 
@@ -60,11 +61,14 @@ Singleton {
             property var outlines: null
             // Barra: some sozinha (aparece ao encostar o mouse no topo), aparece
             // por um instante ao trocar de workspace, e mostra a data.
-            property bool barAutoHide: true
+            property bool barAutoHide: false
             property bool barPeek: true
             property bool barShowDate: true
             // Com auto-ocultar, a barra fica à mostra quando o workspace não tem janelas.
             property bool barOnEmpty: true
+            // Estilo da barra: "strip" (faixa de ponta a ponta), "island" (ilha que
+            // expande), "pill" ou "islands" (três ilhas).
+            property string barStyle: "strip"
             // Central lateral: "right" ou "left", e a última seção aberta.
             property string sidebarSide: "right"
             property string sidebarSection: "wifi"

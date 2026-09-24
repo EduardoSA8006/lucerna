@@ -16,8 +16,7 @@ Singleton {
 
     readonly property bool open: Panels.isOpen("dashboard")
     readonly property var screen: Hypr.focusedScreen
-    // Distância do topo: colado à borda com a barra escondida; abaixo dela quando fixa.
-    readonly property real topOffset: Config.barAutoHide ? ThemeManager.spacing.small : ThemeManager.barHeight + ThemeManager.spacing.small * 2
+    readonly property real topOffset: Panels.topInset
 
     readonly property var tabs: [
         { id: "overview", icon: Icons.dashboard, label: "Painel" },

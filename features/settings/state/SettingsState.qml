@@ -111,6 +111,18 @@ Singleton {
     }
 
     // Barra
+    readonly property var barStyles: [
+        { id: "strip", label: "Faixa", hint: "De ponta a ponta" },
+        { id: "island", label: "Ilha", hint: "Só a hora; abre com o mouse" },
+        { id: "pill", label: "Pílula", hint: "Flutuante, tudo à mostra" },
+        { id: "islands", label: "Três ilhas", hint: "Uma em cada canto" }
+    ]
+    readonly property string barStyle: Config.barStyle
+
+    function setBarStyle(id: string): void {
+        Config.barStyle = id;
+    }
+
     readonly property bool barAutoHide: Config.barAutoHide
     readonly property bool barPeek: Config.barPeek
     readonly property bool barShowDate: Config.barShowDate

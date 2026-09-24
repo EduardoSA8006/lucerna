@@ -18,10 +18,15 @@ Singleton {
 
     // Visibilidade
     readonly property bool autoHide: Config.barAutoHide
+    readonly property string style: Config.barStyle
     readonly property bool showDate: Config.barShowDate
     readonly property bool panelOpen: Panels.current !== ""
     property var revealedScreen: null
     property bool hovering: false
+    property bool peeking: false
+    // A ilha se expande (workspaces, data e ações) com o mouse em cima e ao
+    // aparecer por troca de workspace; no resto do tempo mostra só a hora.
+    readonly property bool expanded: hovering || peeking
 
     function shownOn(screen: var): bool {
         if (!autoHide)
@@ -47,11 +52,17 @@ Singleton {
 
     // Aparece por um instante (troca de workspace).
     function peek(screen: var): void {
-        if (!autoHide || panelOpen)
+        if (panelOpen)
             return;
-        revealedScreen = screen;
-        if (!hovering)
+        // Barra fixa: não precisa aparecer, só expandir por um instante.
+        if (!autoHide) {
+            peeking = true;
             peekDelay.restart();
+            return;
+        }
+        revealedScreen = screen;
+        peeking = true;
+        peekDelay.restart();
     }
 
     Timer {
@@ -69,6 +80,7 @@ Singleton {
 
         interval: 1400
         onTriggered: {
+            root.peeking = false;
             if (!root.hovering)
                 root.revealedScreen = null;
         }

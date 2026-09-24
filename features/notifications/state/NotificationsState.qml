@@ -19,7 +19,7 @@ Singleton {
     // A lista de notificações fica na central lateral, na seção "notifications".
     readonly property bool centerOpen: Panels.isOpen("sidebar") && Config.sidebarSection === "notifications"
     readonly property var screen: Hypr.focusedScreen
-    readonly property real topOffset: Config.barAutoHide ? ThemeManager.spacing.small : ThemeManager.barHeight + ThemeManager.spacing.small * 2
+    readonly property real topOffset: Panels.topInset
     readonly property var popups: Notifications.popups
     readonly property var list: Notifications.list
     readonly property bool doNotDisturb: Config.doNotDisturb
