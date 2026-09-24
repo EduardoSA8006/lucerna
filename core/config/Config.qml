@@ -67,6 +67,11 @@ Singleton {
     property alias wallpaperFullRes: adapter.wallpaperFullRes
     property alias wallpaperFolder: adapter.wallpaperFolder
     property alias videoVariants: adapter.videoVariants
+    property alias launcherStyle: adapter.launcherStyle
+    property alias launcherFavorites: adapter.launcherFavorites
+    property alias launcherUsage: adapter.launcherUsage
+    property alias launcherHidden: adapter.launcherHidden
+    property alias launcherSearchEngine: adapter.launcherSearchEngine
     property alias wallpaperVideoPrecache: adapter.wallpaperVideoPrecache
     property alias mouseDevices: adapter.mouseDevices
     property alias keyboardLayouts: adapter.keyboardLayouts
@@ -193,6 +198,15 @@ Singleton {
             // Versões convertidas de cada vídeo, uma por tela:
             // { "/caminho/original.mp4": { "2560x1080-c-30": { video, poster, used } } }.
             property var videoVariants: ({})
+            // Launcher: "compact" (busca e lista), "full" (categorias, grade e
+            // detalhes) ou "grid" (tela cheia, como uma gaveta de apps).
+            property string launcherStyle: "compact"
+            // Apps fixados (ids), quantas vezes cada um foi aberto e os ocultos.
+            property var launcherFavorites: []
+            property var launcherUsage: ({})
+            property var launcherHidden: []
+            // Buscador da categoria Web.
+            property string launcherSearchEngine: "duckduckgo"
             // Preparar vídeos também para resoluções comuns (na tomada, sem pressa).
             property bool wallpaperVideoPrecache: false
             // Velocidade própria por mouse: { nome: { sensitivity, accel_profile } }.
