@@ -56,6 +56,12 @@ Singleton {
     property alias panelsTogether: adapter.panelsTogether
     property alias panelsAvoidOverlap: adapter.panelsAvoidOverlap
     property alias monitorSetups: adapter.monitorSetups
+    property alias inputOptions: adapter.inputOptions
+    property alias mouseDevices: adapter.mouseDevices
+    property alias keyboardLayouts: adapter.keyboardLayouts
+    property alias keyboardOptions: adapter.keyboardOptions
+    property alias keyRemaps: adapter.keyRemaps
+    property alias inputBinds: adapter.inputBinds
 
     FileView {
         path: Quickshell.statePath("config.json")
@@ -152,6 +158,19 @@ Singleton {
             // Arranjos de monitores salvos, um por conjunto conectado
             // (Monitors.setup): { setup: { chaveDoMonitor: spec } }.
             property var monitorSetups: ({})
+            // Entrada. Só o que foi mudado nas configurações; o resto segue o
+            // hyprland.lua. Opções: { "input.sensitivity": 0.2, ... }.
+            property var inputOptions: ({})
+            // Velocidade própria por mouse: { nome: { sensitivity, accel_profile } }.
+            property var mouseDevices: ({})
+            // Layouts [{ layout, variant }] e opções do xkb; null = os do hyprland.lua.
+            property var keyboardLayouts: null
+            property var keyboardOptions: null
+            // Teclas remapeadas: [{ from: "CAPS", to: { kind: "key"|"sym"|"none", value } }].
+            property var keyRemaps: []
+            // Botões e teclas mapeados para ações:
+            // [{ trigger, mods, label, action: { id, keys?, command? } }].
+            property var inputBinds: []
         }
     }
 }

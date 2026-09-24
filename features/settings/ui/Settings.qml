@@ -115,11 +115,13 @@ OverlayPanel {
                     readonly property Item currentRow: topicRows.count > 0 ? topicRows.itemAt(SettingsState.currentIndex) : null
 
                     function reveal(): void {
+                        // Deixa um tópico de contexto antes e depois do atual.
                         let y = contentY;
-                        if (currentRow && currentRow.y < y)
-                            y = currentRow.y;
-                        else if (currentRow && currentRow.y + currentRow.height > y + height)
-                            y = currentRow.y + currentRow.height - height;
+                        const around = currentRow?.height ?? 0;
+                        if (currentRow && currentRow.y - around < y)
+                            y = currentRow.y - around;
+                        else if (currentRow && currentRow.y + currentRow.height + around > y + height)
+                            y = currentRow.y + currentRow.height + around - height;
                         contentY = Math.max(0, Math.min(y, contentHeight - height));
                     }
 
@@ -308,6 +310,8 @@ OverlayPanel {
                             sidebar: sidebarPage,
                             panels: panelsPage,
                             displays: displaysPage,
+                            mouse: mousePage,
+                            keyboard: keyboardPage,
                             shortcuts: shortcutsPage,
                             about: aboutPage
                         })[SettingsState.current.id] ?? soonPage
@@ -359,6 +363,18 @@ OverlayPanel {
         id: glassPage
 
         GlassPage {}
+    }
+
+    Component {
+        id: mousePage
+
+        MousePage {}
+    }
+
+    Component {
+        id: keyboardPage
+
+        KeyboardPage {}
     }
 
     Component {
