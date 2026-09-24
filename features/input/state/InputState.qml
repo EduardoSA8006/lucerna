@@ -183,6 +183,7 @@ Singleton {
         case "power":
         case "clipboard":
         case "capture":
+        case "overview":
             Panels.toggle(id);
             break;
         case "sidebar":

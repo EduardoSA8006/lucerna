@@ -18,9 +18,11 @@ import qs.features.settings.ui
 import qs.features.sidebar.ui
 import qs.features.themeSwitcher.ui
 import qs.features.wallpaper.ui
+import qs.features.workspaces.ui
 
 ShellRoot {
     Wallpaper {}
+    WorkspacesOverview {}
     Bar {}
     CaptureOverlay {}
     Clipboard {}

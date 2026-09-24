@@ -18,6 +18,7 @@ Singleton {
         { id: "settings", keys: [{ mods: mod, trigger: "s" }] },
         { id: "notifications", keys: [{ mods: mod, trigger: "n" }] },
         { id: "sidebar", keys: [{ mods: mod, trigger: "c" }] },
+        { id: "overview", keys: [{ mods: mod, trigger: "Tab" }] },
         { id: "clipboard", keys: [{ mods: mod, trigger: "v" }] },
         { id: "themes", keys: [{ mods: mod, trigger: "t" }] },
         { id: "capture", keys: [{ mods: "", trigger: "Print" }] },

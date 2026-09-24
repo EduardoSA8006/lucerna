@@ -20,6 +20,7 @@ Singleton {
         { id: "sidebar", group: "Lucerna", label: "Abrir a central lateral", icon: Icons.sidebar, kind: "shell" },
         { id: "notifications", group: "Lucerna", label: "Abrir os avisos", icon: Icons.bell, kind: "shell" },
         { id: "settings", group: "Lucerna", label: "Abrir as configurações", icon: Icons.settings, kind: "shell" },
+        { id: "overview", group: "Lucerna", label: "Visão geral dos workspaces", icon: "overview_key", kind: "shell" },
         { id: "clipboard", group: "Lucerna", label: "Abrir o histórico da área de transferência", icon: "content_paste", kind: "shell" },
         { id: "capture", group: "Captura", label: "Capturar ou gravar a tela", icon: "screenshot_region", kind: "shell" },
         { id: "capture-screen", group: "Captura", label: "Capturar a tela inteira", icon: "fit_screen", kind: "shell", ipc: "capture screen" },

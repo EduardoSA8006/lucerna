@@ -64,6 +64,7 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Papel de parede | Por tema: o próprio (imagem e efeito animado em shader), só a imagem, qualquer um dos dez efeitos (nas cores do tema), uma imagem ou um vídeo/GIF do usuário. Vídeos convertidos uma vez por tela para tocar pela GPU. 30 ou 60 fps, no ritmo da tela; pausa com tela cheia, bloqueio e tela apagada |
 | Notificações | Servidor de notificações próprio; popups e a lista na central lateral |
 | Área de transferência | Histórico próprio (texto e imagem, pelo `wl-paste --watch`), num painel à parte: busca, filtro, fixar, apagar, colar direto; persistente e limitado. Ignora senhas marcadas pelos gerenciadores |
+| Visão geral | Workspaces em miniatura com as janelas no lugar (`ScreencopyView`, capturadas ao abrir, não ao vivo), ir, mover arrastando e fechar |
 | Captura de tela | Seleção própria (área com alças, janela, tela), sem `slurp`; foto pelo `grim` e vídeo pelo `wf-recorder` (VA-API quando há), com espera, cursor e som. Aviso com abrir e mostrar na pasta; tempo de gravação na barra |
 | Tela de bloqueio | Bloqueio próprio, no visual do tema ativo |
 | Seletor de temas | Painel para trocar rapidamente entre os doze temas |
@@ -133,6 +134,7 @@ lucerna/
 │   └── scripts/                # gpu-status, video-wallpaper, app-info, file-search
 ├── features/
 │   ├── bar/
+│   ├── workspaces/             # visão geral dos workspaces (Super+Tab); IPC overview
 │   ├── capture/                # painel de captura e gravação (Print); IPC capture
 │   ├── clipboard/              # painel do histórico (Super+V); IPC clipboard
 │   │   ├── ui/

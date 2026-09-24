@@ -13,7 +13,7 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 7. [x] **Monitores no login.** O arranjo salvo só vale quando o Lucerna inicia, e no login o `hyprland.lua` aparece antes. Opção de gravar o arranjo num arquivo que o `hyprland.lua` inclui.
 8. [x] **Histórico da área de transferência**, num painel próprio (`Super+V`).
 9. [x] **Captura de tela e gravação:** área, janela ou tela, com notificação e atalho.
-10. [ ] **Visão geral dos workspaces**, com as janelas em miniatura.
+10. [x] **Visão geral dos workspaces**, com as janelas em miniatura.
 11. [ ] **Brilho de monitores externos** por DDC/CI.
 12. [ ] **Instalação e distribuição:** script de instalação (link, trecho do `hyprland.lua`, atalhos padrão), pacote no AUR e verificação no CI (`qmllint`).
 13. [ ] **Plugins próprios**, na ordem de `Lucerna — Plugins Próprios.md`: `lucerna-sysinfo`, depois `lucerna-spectrum`, depois os demais.
@@ -34,6 +34,7 @@ No ambiente de teste não dá para simular cliques, e o Hyprland ignora teclado 
 - [ ] Ociosidade: suspender, segurar com mídia tocando e com tela cheia, e o aviso do `hypridle`.
 - [ ] Luz noturna: a cor mudando de fato (a CTM não aparece no Hyprland aninhado nem em capturas) e a transição suave.
 - [ ] Captura: o som da gravação (sistema e microfone) e a área com escala fracionária ou em outro monitor.
+- [ ] Visão geral: arrastar uma janela para outro workspace (no container não dá para simular o arrasto) e vários monitores.
 - [ ] Launcher: navegação pelo teclado nos três estilos, `Ctrl+1…9` nas ações do app e o "Mais opções".
 
 ## Ambiente de teste
