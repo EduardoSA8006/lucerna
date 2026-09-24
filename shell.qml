@@ -8,6 +8,7 @@ import qs.features.idle.ui
 import qs.features.input.ui
 import qs.features.launcher.ui
 import qs.features.lockscreen.ui
+import qs.features.nightlight.ui
 import qs.features.notifications.ui
 import qs.features.osd.ui
 import qs.features.powerMenu.ui
@@ -25,6 +26,7 @@ ShellRoot {
     Idle {}
     Input {}
     Launcher {}
+    NightLight {}
     NotificationPopups {}
     Osd {}
     PowerMenu {}

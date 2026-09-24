@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import qs.core.config
 import qs.core.format
+import qs.core.nightlight
 import qs.core.widgets
 import qs.services
 
@@ -48,5 +49,20 @@ Singleton {
 
     function setKeepAwake(on: bool): void {
         Config.idleInhibit = on;
+    }
+
+    // Luz noturna: ligar ou desligar agora (até a próxima virada) e a temperatura.
+    readonly property bool nightLightAvailable: NightLight.available
+    readonly property bool nightLightOn: NightSchedule.on
+    readonly property string nightLightStatus: NightSchedule.status
+    readonly property int nightLightTemp: Config.nightLightTemp
+
+    function setNightLight(on: bool): void {
+        NightSchedule.setOn(on);
+    }
+
+    function setNightLightTemp(kelvin: int): void {
+        Config.nightLightTemp = kelvin;
+        NightSchedule.preview();
     }
 }
