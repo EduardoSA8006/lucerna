@@ -44,7 +44,11 @@
     "bar": {
         "height": 44
     },
-    "wallpaper": "wallpapers/lamparina.jpg",
+    "wallpaper": {
+        "static": "wallpapers/lamparina.jpg",
+        "shader": "shaders/chama.qsb",
+        "fps": 30
+    },
     "hyprland": {
         "activeBorder": "#e8a13a",
         "inactiveBorder": "#302820",

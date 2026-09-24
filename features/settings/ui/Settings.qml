@@ -310,6 +310,7 @@ OverlayPanel {
                             sidebar: sidebarPage,
                             panels: panelsPage,
                             displays: displaysPage,
+                            wallpaper: wallpaperPage,
                             mouse: mousePage,
                             keyboard: keyboardPage,
                             shortcuts: shortcutsPage,
@@ -375,6 +376,12 @@ OverlayPanel {
         id: keyboardPage
 
         KeyboardPage {}
+    }
+
+    Component {
+        id: wallpaperPage
+
+        WallpaperPage {}
     }
 
     Component {

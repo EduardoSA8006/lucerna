@@ -46,6 +46,26 @@ Singleton {
         return !ws || ws.toplevels.values.length === 0;
     }
 
+    // Para o wallpaper animado: o que está à mostra em cada tela.
+    function hasFullscreen(screen: var): bool {
+        return Hyprland.monitorFor(screen)?.activeWorkspace?.hasFullscreen ?? false;
+    }
+
+    // Tela apagada (DPMS). O Quickshell não tem essa propriedade: vem dos dados
+    // do monitor, atualizados quando o Hyprland avisa de mudança.
+    function isDpmsOff(screen: var): bool {
+        return Hyprland.monitorFor(screen)?.lastIpcObject?.dpmsStatus === false;
+    }
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (event.name.startsWith("monitor") || event.name === "dpms")
+                Hyprland.refreshMonitors();
+        }
+    }
+
     function workspace(id: int): var {
         return workspaces.find(w => w.id === id) ?? null;
     }

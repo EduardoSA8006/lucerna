@@ -13,6 +13,7 @@ Barra, painel superior, central lateral, launcher, notificações, tela de bloqu
 - **Remapeamento real de teclas**, em qualquer programa e inclusive para modificadores (Caps Lock → Esc, Alt Gr → Super). O Lucerna gera o keymap, confere se ele compila e só então o entrega ao Hyprland.
 - **Monitores arrastando**: a disposição se monta num canvas com encaixe magnético. Cada monitor tem resolução, taxa, escala, rotação, espelhamento, VRR e 10 bits. Aplicar pede confirmação em todas as telas e, sem resposta em 15 s, volta ao anterior.
 - **Painéis que convivem**: o painel superior e a central lateral ficam abertos juntos, desviam um do outro e não cobrem a barra.
+- **Papel de parede animado e leve**: cada tema tem um efeito em shader (aurora, brasas, chama, luar, papel), nas cores do tema, a 30 fps e em meia resolução. Ele pausa sozinho com tela cheia, tela bloqueada ou tela apagada. Cada tema pode trocar o seu por outro efeito ou por uma imagem sua.
 - **Vidro de verdade**: o desfoque atrás dos painéis é do próprio Hyprland, e o tema ajusta também as bordas das janelas.
 - **Leve por padrão**: cada serviço só coleta dados enquanto alguém mostra. Um modo offline desliga tudo o que usa a internet.
 
@@ -56,6 +57,16 @@ A barra tem quatro estilos: **faixa** (o padrão), **ilha** (só a hora, e expan
 
 ![Os quatro estilos da barra](docs/screenshots/bars.png)
 
+### Papel de parede
+
+Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualquer efeito animado (nas cores daquele tema) ou uma imagem do computador, escolhida num navegador com miniaturas.
+
+![Configurações: papel de parede](docs/screenshots/settings-wallpaper.jpg)
+
+| Luar (animado) | Brasas (animado) |
+| --- | --- |
+| ![Efeito Luar](docs/screenshots/wallpaper-luar.jpg) | ![Efeito Brasas](docs/screenshots/wallpaper-brasas.jpg) |
+
 ### Configurações
 
 | Aparência | Monitores |
@@ -84,6 +95,7 @@ A barra tem quatro estilos: **faixa** (o padrão), **ilha** (só a hora, e expan
 | **Tela de bloqueio** | Relógio e senha (PAM). |
 | **Energia** | Menu (bloquear, suspender, sair, reiniciar, desligar). Avisos de bateria baixa e crítica, ação no nível crítico com prazo para cancelar, troca de perfil na tomada e modo leve na bateria. |
 | **OSD** | Volume e brilho. |
+| **Papel de parede** | Imagem com transição na troca e efeito animado por cima (shader, a 30 fps e em meia resolução). Pausa com app em tela cheia, tela bloqueada ou tela apagada, e opcionalmente com qualquer janela aberta; no automático, fica parado na bateria. Modo e origem por monitor. |
 | **Temas** | Cinco prontos (Nebulosa, Brasa, Lamparina, Luar e Pergaminho), com wallpaper, fontes próprias e bordas do Hyprland. Trocam ao vivo. |
 
 ### Configurações
@@ -91,6 +103,7 @@ A barra tem quatro estilos: **faixa** (o padrão), **ilha** (só a hora, e expan
 | Tópico | Opções |
 | --- | --- |
 | **Aparência** | Tema, contorno nos cartões e velocidade das animações. |
+| **Papel de parede** | Por tema: o próprio, a imagem parada, um efeito animado ou uma imagem sua (com preencher ou inteira). Tem ainda o modo de exibição (automático, animado ou parado), modo e papel por monitor, quadros por segundo, parado na bateria, pausar com janelas e resolução cheia. |
 | **Monitores** | Disposição arrastando, resolução, taxa de atualização, escala, rotação, espelhar, VRR e cor de 10 bits. Tem "Identificar" e aplicar com confirmação. O arranjo fica salvo por conjunto de monitores e é reaplicado ao conectar. |
 | **Mouse** | Velocidade, aceleração, canhoto, foco das janelas (ao passar o mouse ou ao clicar), rolagem, touchpad (tocar para clicar, arrastar, desligar ao digitar, clique com dedos, botão do meio), **botões mapeados** e velocidade própria por mouse. |
 | **Teclado** | Layouts (até quatro, com variante e atalho para trocar), repetição, Num Lock, teclas especiais (Caps Lock, Compose, trocar Alt e Super) e qualquer opção do xkb, com busca. Também **teclas remapeadas** e **teclas extras e atalhos**. |
@@ -156,12 +169,13 @@ Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [arg
 | `panels` | `open <nome>`, `toggle <nome>`, `dismiss <nome>` (fecha só esse), `close` (fecha todos), `get`. Nomes: `launcher`, `dashboard`, `sidebar`, `settings`, `themes`, `power` |
 | `dashboard` | `open <aba>` (`overview`, `media`, `performance`, `weather`), `toggle` |
 | `sidebar` | `open <seção>`, `toggle <seção>` (`wifi`, `bluetooth`, `sound`, `notifications`, `battery`, `display`; vazio = a última) |
-| `settings` | `open <tópico>` (`appearance`, `displays`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `sidebar`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |
+| `settings` | `open <tópico>` (`appearance`, `wallpaper`, `displays`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `sidebar`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |
 | `notifications` | `clear`, `toggleDnd`, `count` |
 | `session` | `lock`, `isLocked` |
 | `theme` | `set <id>`, `get`, `list` |
 | `brightness` | `up`, `down`, `set <0-100>` |
 | `monitors` | `identify` |
+| `wallpaper` | `mode <auto\|animated\|static\|toggle>`, `modeFor <monitor> <modo>` (`default` volta ao geral), `get` |
 | `action` | `run <id>`: as mesmas ações dos botões e teclas mapeados (`launcher`, `play-pause`, `volume-up`, `lock`…; a lista está em [`core/input/InputActions.qml`](core/input/InputActions.qml)) |
 | `battery` | `simulate <0-100> <true\|false>` e `real`, só no ambiente de desenvolvimento |
 
@@ -171,6 +185,7 @@ Cada arquivo em `themes/*.json` é um tema, e o nome do arquivo é o id. Para cr
 
 - `transparency`: `enabled`, `base` (opacidade dos painéis) e `layers` (dos cartões dentro deles).
 - `hyprland`: bordas, arredondamento e intensidade do desfoque (`blurSize`, `blurPasses`), aplicados via `hyprctl eval`.
+- `wallpaper`: a imagem (`"wallpapers/luar.jpg"`) ou `{ "static": ..., "shader": "shaders/luar.qsb", "fps": 30 }`. Os efeitos ficam em `themes/shaders/`, com a fonte GLSL ao lado do `.qsb` compilado. `dev/shaders.sh` recompila todos, e isso requer o `qsb`, do pacote `qt6-shadertools`. Todo efeito recebe os mesmos uniforms (`time`, `resolution`, `base`, `surface`, `accent`, `text`), então qualquer tema pode usar qualquer efeito, e um efeito novo entra no catálogo em `themes/shaders/effects.json`.
 - `animation.scale`: velocidade geral das animações (1 = padrão, 0 = desligadas).
 - `fonts`: fontes que o tema traz em `themes/fonts/`, carregadas pelo shell sem instalar nada no sistema. O Nebulosa traz a Rubik, sob licença OFL.
 - `surfaces.outline`: contorno fino nos cartões. O padrão é sem contorno; os cartões se destacam pelo tom.
@@ -197,7 +212,7 @@ features/   uma pasta por parte do shell (bar, dashboard, sidebar, settings,
 - A `ui` fala com o `state` da própria feature, e o `state` fala com `services` e `core`.
 - Uma feature não importa outra. Quando precisam conversar, a conversa passa pelo `core`: por exemplo, o `Panels` diz quais painéis estão abertos.
 
-Os princípios e o desenho completo estão em [`Lucerna — Proposta.md`](<Lucerna — Proposta.md>). Os wallpapers animados, ainda por fazer, estão em [`Lucerna — Proposta do Wallpaper.md`](<Lucerna — Proposta do Wallpaper.md>), e os plugins próprios planejados, em [`Lucerna — Plugins Próprios.md`](<Lucerna — Plugins Próprios.md>).
+Os princípios e o desenho completo estão em [`Lucerna — Proposta.md`](<Lucerna — Proposta.md>). O desenho dos wallpapers animados está em [`Lucerna — Proposta do Wallpaper.md`](<Lucerna — Proposta do Wallpaper.md>), e os plugins próprios planejados, em [`Lucerna — Plugins Próprios.md`](<Lucerna — Plugins Próprios.md>).
 
 ## Desenvolvimento
 

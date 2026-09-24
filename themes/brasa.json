@@ -44,7 +44,11 @@
     "bar": {
         "height": 44
     },
-    "wallpaper": "wallpapers/brasa.jpg",
+    "wallpaper": {
+        "static": "wallpapers/brasa.jpg",
+        "shader": "shaders/brasas.qsb",
+        "fps": 30
+    },
     "hyprland": {
         "activeBorder": "#ff6b3d",
         "inactiveBorder": "#33211c",
