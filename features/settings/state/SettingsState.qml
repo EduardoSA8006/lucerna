@@ -36,6 +36,7 @@ Singleton {
         { id: "notifications", icon: Icons.bell, label: "Notificações", description: "Popups e não perturbe" },
         { id: "panels", icon: Icons.panels, label: "Painéis", description: "Abrir juntos e sem sobrepor" },
         { id: "sidebar", icon: Icons.sidebar, label: "Central lateral", description: "Lado da tela" },
+        { id: "launcher", icon: Icons.apps, label: "Launcher", description: "Estilo, busca e favoritos" },
         { id: "bar", icon: Icons.toolbar, label: "Barra", description: "Quando aparece e o que mostra" },
         { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Abas, cartões, clima e privacidade" },
         { id: "power", icon: Icons.bolt, label: "Energia e bateria", description: "Avisos, perfil e modo leve" },

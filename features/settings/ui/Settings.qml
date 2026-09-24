@@ -305,6 +305,7 @@ OverlayPanel {
                             glass: glassPage,
                             notifications: notificationsPage,
                             bar: barPage,
+                            launcher: launcherPage,
                             dashboard: dashboardPage,
                             power: powerPage,
                             sidebar: sidebarPage,
@@ -412,6 +413,12 @@ OverlayPanel {
         id: dashboardPage
 
         DashboardPage {}
+    }
+
+    Component {
+        id: launcherPage
+
+        LauncherPage {}
     }
 
     Component {

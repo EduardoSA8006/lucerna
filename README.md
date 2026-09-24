@@ -48,9 +48,9 @@ Wi-Fi, Bluetooth, som, avisos, bateria e tela, com as seções do lado de fora. 
 
 ### Launcher, temas e barra
 
-| Launcher | Seletor de temas |
+| Seletor de temas | Launcher compacto |
 | --- | --- |
-| ![Launcher](docs/screenshots/launcher.jpg) | ![Seletor de temas](docs/screenshots/themes.jpg) |
+| ![Seletor de temas](docs/screenshots/themes.jpg) | ![Launcher compacto](docs/screenshots/launcher-compact.jpg) |
 | **Gruvbox Dark** | **Nord** |
 | ![Tema Gruvbox Dark](docs/screenshots/theme-gruvbox.jpg) | ![Tema Nord](docs/screenshots/theme-nord.jpg) |
 
@@ -69,6 +69,14 @@ Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualque
 | ![Efeito Neve](docs/screenshots/wallpaper-neve.jpg) | ![Efeito Chuva digital](docs/screenshots/wallpaper-chuva.jpg) |
 
 ![Efeito Ondas (Kanagawa)](docs/screenshots/wallpaper-ondas.jpg)
+
+### Launcher
+
+Três estilos, escolhidos em Configurações → Launcher. O **completo** tem busca, categorias (aplicativos, arquivos por tipo e web), favoritos, uma grade e os detalhes do app: as ações do `.desktop` com `Ctrl+1…9`, a descrição, a versão e o desenvolvedor. O de **tela cheia** é uma gaveta de apps separada por categoria. O **compacto** é uma busca com lista curta.
+
+| Completo | Tela cheia |
+| --- | --- |
+| ![Launcher completo](docs/screenshots/launcher-full.jpg) | ![Launcher em tela cheia](docs/screenshots/launcher-grid.jpg) |
 
 ### Configurações
 
@@ -94,7 +102,7 @@ Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualque
 | **Painel superior** | Visão geral (perfil, relógio, calendário, clima, recursos e mídia), mídia com letra sincronizada (LRCLIB) e pulso do áudio na capa, desempenho (CPU, GPU, memória, disco e rede) e clima (Open-Meteo). Abas reordenáveis e opção de abrir ao parar o mouse na hora. |
 | **Central lateral** | Wi-Fi (conectar, com senha), Bluetooth (parear e conectar), som (saídas, entradas e volumes), avisos, bateria (perfil de energia) e brilho. Abre à esquerda ou à direita. |
 | **Notificações** | Popups com ações, pausa no mouse e prazo ajustável, não perturbe e a central de avisos. |
-| **Launcher** | Apps e ações do shell, com busca. |
+| **Launcher** | Três estilos: compacto (busca e lista), completo (categorias de aplicativos, arquivos, documentos, imagens, músicas, vídeos e web, com favoritos, grade e detalhes: ações do app, descrição, versão e desenvolvedor) e tela cheia (gaveta de apps por categoria). Os apps mais abertos vêm primeiro; dá para fixar favoritos e ocultar apps. A busca de arquivos usa o `fd` quando há, e, sem busca, mostra os recentes. |
 | **Tela de bloqueio** | Relógio e senha (PAM). |
 | **Energia** | Menu (bloquear, suspender, sair, reiniciar, desligar). Avisos de bateria baixa e crítica, ação no nível crítico com prazo para cancelar, troca de perfil na tomada e modo leve na bateria. |
 | **OSD** | Volume e brilho. |
@@ -113,6 +121,7 @@ Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualque
 | **Transparência e desfoque** | Opacidade dos painéis e dos cartões e intensidade do desfoque, por cima do tema. |
 | **Notificações** | Não perturbe e tempo na tela. |
 | **Painéis** | Quais abrem juntos e se desviam um do outro. |
+| **Launcher** | Estilo, buscador da web, favoritos (ordem e remoção), apps ocultos e histórico de uso. |
 | **Central lateral** | Lado da tela. |
 | **Barra** | Estilo, esconder sozinha, mostrar na área vazia e ao trocar de workspace, data. |
 | **Painel superior** | Abas, abrir e fechar pelo mouse, cartões, semana, letra, pulso do áudio, intervalo do desempenho, GPU, cidade, unidades e **modo offline**. |
@@ -130,6 +139,7 @@ Cada tema tem o seu, e dá para trocar: o próprio, só a imagem parada, qualque
   - BlueZ: Bluetooth
   - `brightnessctl`: brilho
   - `nvidia-smi`: GPU NVIDIA; vem com o driver
+  - `fd`: busca de arquivos do launcher mais rápida (sem ele, usa o `find`)
   - `ffmpeg` e `qt6-multimedia-ffmpeg`: papel de parede em vídeo ou GIF. Para a GPU decodificar o vídeo, também o driver VA-API (`intel-media-driver` na Intel, `libva-mesa-driver` na AMD) e o `libva-utils`, que o shell usa para detectar o suporte.
 - Serviços na internet, só enquanto a aba correspondente está aberta, e desligáveis pelo modo offline: [Open-Meteo](https://open-meteo.com) (clima) e [LRCLIB](https://lrclib.net) (letras).
 
@@ -173,8 +183,9 @@ Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [arg
 | `panels` | `open <nome>`, `toggle <nome>`, `dismiss <nome>` (fecha só esse), `close` (fecha todos), `get`. Nomes: `launcher`, `dashboard`, `sidebar`, `settings`, `themes`, `power` |
 | `dashboard` | `open <aba>` (`overview`, `media`, `performance`, `weather`), `toggle` |
 | `sidebar` | `open <seção>`, `toggle <seção>` (`wifi`, `bluetooth`, `sound`, `notifications`, `battery`, `display`; vazio = a última) |
-| `settings` | `open <tópico>` (`appearance`, `wallpaper`, `displays`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `sidebar`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |
+| `settings` | `open <tópico>` (`appearance`, `wallpaper`, `displays`, `launcher`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `sidebar`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |
 | `notifications` | `clear`, `toggleDnd`, `count` |
+| `launcher` | `open <categoria> <busca>` (`apps`, `files`, `documents`, `images`, `music`, `videos`, `web`; a busca pode ser `""`), `toggle` |
 | `session` | `lock`, `isLocked` |
 | `theme` | `set <id>`, `get`, `list` |
 | `brightness` | `up`, `down`, `set <0-100>` |
