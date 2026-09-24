@@ -35,14 +35,16 @@ Singleton {
         }
     }
 
+    // A busca de arquivos roda depois do evento: dentro dele, o que depende da
+    // busca (prefixo, texto sem prefixo) ainda não foi recalculado.
     onQueryChanged: {
         selected = 0;
-        refreshFiles();
+        Qt.callLater(refreshFiles);
     }
 
     onCategoryChanged: {
         selected = 0;
-        refreshFiles();
+        Qt.callLater(refreshFiles);
     }
 
     onAppCategoryChanged: selected = 0
@@ -200,9 +202,19 @@ Singleton {
     // Arquivos
     readonly property var fileKinds: ({ files: "all", documents: "documents", images: "images", music: "music", videos: "videos" })
 
+    // Nos estilos compacto e tela cheia, um prefixo muda o que se busca:
+    // "/texto" procura arquivos e "?texto" pesquisa na web.
+    readonly property string prefixMode: style === "full" ? "" : query.startsWith("/") ? "files" : query.startsWith("?") ? "web" : ""
+    // O texto a buscar, sem o prefixo.
+    readonly property string searchText: (prefixMode ? query.slice(1) : query).trim()
+
     function refreshFiles(): void {
-        if (open && style === "full" && fileCategory)
-            FileSearch.search(fileKinds[category], query.trim());
+        if (!open)
+            return;
+        if (style === "full" && fileCategory)
+            FileSearch.search(fileKinds[category], searchText);
+        else if (prefixMode === "files")
+            FileSearch.search("all", searchText);
     }
 
     readonly property var imageExts: ["png", "jpg", "jpeg", "webp", "gif", "svg", "bmp", "tiff", "heic", "avif"]
@@ -235,6 +247,9 @@ Singleton {
     readonly property var engines: SearchEngines.all
     readonly property var preferredEngine: engines.find(e => e.id === Config.launcherSearchEngine) ?? engines[0]
 
+    // Favoritos primeiro, na ordem em que foram fixados; depois os demais.
+    readonly property var appsFavoritesFirst: favorites.map(id => sortedApps.find(a => a.id === id)).filter(a => a).concat(sortedApps.filter(a => !favorites.includes(a.id)))
+
     function webItems(text: string): var {
         const q = text.trim();
         const list = [preferredEngine].concat(engines.filter(e => e !== preferredEngine));
@@ -243,10 +258,14 @@ Singleton {
 
     // Resultados do estilo em uso.
     readonly property var items: {
+        if (prefixMode === "files")
+            return FileSearch.results.map(fromFile).slice(0, style === "compact" ? 8 : 60);
+        if (prefixMode === "web")
+            return webItems(searchText);
         if (style === "compact")
-            return searchApps(query, sortedApps, true).slice(0, 8);
+            return searchApps(query, appsFavoritesFirst, true).slice(0, 8);
         if (style === "grid")
-            return searchApps(query, query.trim() ? sortedApps : sortedApps.filter(a => inAppCategory(a, appCategory)), true);
+            return searchApps(query, query.trim() ? sortedApps : appsFavoritesFirst.filter(a => inAppCategory(a, appCategory)), true);
         if (category === "apps")
             return searchApps(query, sortedApps, true);
         if (category === "web")
@@ -278,7 +297,7 @@ Singleton {
     function activate(item: var): void {
         if (!item)
             return;
-        if (item.kind === "web" && !query.trim())
+        if (item.kind === "web" && !searchText)
             return;
         Panels.close();
         if (item.kind === "app") {
@@ -291,7 +310,7 @@ Singleton {
         } else if (item.kind === "file") {
             Qt.openUrlExternally(`file://${item.path}`);
         } else if (item.kind === "web") {
-            Qt.openUrlExternally(item.url.replace("%s", encodeURIComponent(query.trim())));
+            Qt.openUrlExternally(item.url.replace("%s", encodeURIComponent(searchText)));
         }
     }
 
@@ -311,6 +330,38 @@ Singleton {
 
     function copy(text: string): void {
         Quickshell.clipboardText = text;
+    }
+
+    // O que dá para fazer com um item além de abrir (menu do clique direito e
+    // "Mais opções" do estilo completo).
+    function optionsFor(item: var): var {
+        if (item?.kind === "app")
+            return [
+                { label: isFavorite(item.id) ? "Tirar dos favoritos" : "Fixar nos favoritos", icon: isFavorite(item.id) ? "star" : "star_outline", shortcut: "Ctrl+F", run: () => toggleFavorite(item.id) },
+                { label: "Copiar o comando", icon: "content_copy", shortcut: "", run: () => copy(item.entry.execString || item.entry.command.join(" ")) },
+                { label: "Ocultar do launcher", icon: "visibility_off", shortcut: "Ctrl+H", run: () => hide(item.id) }
+            ];
+        if (item?.kind === "file")
+            return [
+                { label: "Abrir a pasta", icon: "folder_open", shortcut: "", run: () => openFolder(item) },
+                { label: "Copiar o caminho", icon: "content_copy", shortcut: "", run: () => copy(item.path) }
+            ];
+        return [];
+    }
+
+    // Atalhos comuns aos três estilos. Devolve se tratou a tecla.
+    function handleShortcut(event: var): bool {
+        if (!(event.modifiers & Qt.ControlModifier) || current?.kind !== "app")
+            return false;
+        if (event.key === Qt.Key_F) {
+            toggleFavorite(current.id);
+            return true;
+        }
+        if (event.key === Qt.Key_H) {
+            hide(current.id);
+            return true;
+        }
+        return false;
     }
 
     IpcHandler {
