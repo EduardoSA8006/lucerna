@@ -171,6 +171,13 @@ qmllint_run() {
         echo "ERRO: não consegui copiar os .js do repositório para a árvore de módulos"
         return 1
     fi
+    # A árvore do qs só tem o que o shell.qml alcança pelos imports; o harness
+    # dos testes (tests/runner.qml) não é alcançado e entra como os .js. Os
+    # imports qs.* dele resolvem pelo -I da árvore.
+    if [ -d "$cfg/tests" ] && ! (cd "$cfg" && find tests -name '*.qml' -exec cp --parents -t "$tree/qs/" {} +); then
+        echo "ERRO: não consegui copiar os .qml de tests/ para a árvore de módulos"
+        return 1
+    fi
     # Sem o .ini na árvore, o qmllint usaria os níveis padrão (com categorias
     # desligadas) e poderia passar.
     if ! cp "$repo/ci/.qmllint.ini" "$tree/qs/.qmllint.ini" ||

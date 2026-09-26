@@ -1,0 +1,161 @@
+// Harness dos testes de unidade (tests/*.test.js). O ci/unit.sh copia este
+// arquivo e os testes para a raiz de uma cópia do repositório, ao lado do
+// shell.qml (para os imports qs.* resolverem), e roda com o qs. Cada arquivo
+// de teste tem run(t); `t` traz test, check, eq, near, object, enums e os
+// singletons. Saída: PASS ou FAIL por caso, "SUITE <nome> casos=N" por suíte e,
+// no fim, "RESULT passed=N failed=M".
+import QtQuick
+import Quickshell
+import Quickshell.Bluetooth as QsBluetooth
+import Quickshell.Networking as QsNet
+import Quickshell.Services.Notifications as QsNotifications
+import qs.core.config
+import qs.core.format
+import qs.core.input
+import qs.core.launcher
+import qs.core.nightlight
+import qs.core.panels
+import qs.core.theme
+import qs.core.time
+import qs.services
+import "sun.test.js" as SunTest
+
+ShellRoot {
+    id: root
+
+    property int passed: 0
+    property int failed: 0
+    property string current: ""
+    property bool currentFailed: false
+
+    // Um item por arquivo em tests/*.test.js, com o nome do arquivo sem
+    // .test.js: o ci/unit.sh exige uma linha "SUITE <nome> casos=N" (N > 0) de cada.
+    readonly property var suites: [
+        ["sun", SunTest]
+    ]
+
+    function fail(message: string): void {
+        currentFailed = true;
+        console.error(`FAIL ${current}: ${message}`);
+    }
+
+    // A mensagem de check, eq e near é opcional: tipada como string, a que
+    // falta chegaria como o texto "undefined".
+    function check(condition: bool, message: var): void {
+        if (!condition)
+            fail(message || "condição falsa");
+    }
+
+    function eq(actual: var, expected: var, message: var): void {
+        const a = JSON.stringify(actual);
+        const e = JSON.stringify(expected);
+        if (a !== e)
+            fail(`${message ? `${message}: ` : ""}esperado ${e}, veio ${a}`);
+    }
+
+    function near(actual: real, expected: real, tolerance: real, message: var): void {
+        if (!(Math.abs(actual - expected) <= tolerance))
+            fail(`${message ? `${message}: ` : ""}esperado ${expected} ± ${tolerance}, veio ${actual}`);
+    }
+
+    function test(name: string, body: var): void {
+        current = name;
+        currentFailed = false;
+        try {
+            body();
+        } catch (e) {
+            fail(`exceção: ${e}`);
+        }
+        if (currentFailed) {
+            failed++;
+        } else {
+            passed++;
+            console.info(`PASS ${name}`);
+        }
+    }
+
+    // Um QtObject novo, para testes que registram objetos (Panels.register).
+    function object(): var {
+        return dummy.createObject(root);
+    }
+
+    function enums(): var {
+        return {
+            wifiOpen: QsNet.WifiSecurityType.Open,
+            wifiOwe: QsNet.WifiSecurityType.Owe,
+            btConnected: QsBluetooth.BluetoothDeviceState.Connected,
+            btConnecting: QsBluetooth.BluetoothDeviceState.Connecting,
+            btDisconnecting: QsBluetooth.BluetoothDeviceState.Disconnecting,
+            urgencyNormal: QsNotifications.NotificationUrgency.Normal,
+            urgencyCritical: QsNotifications.NotificationUrgency.Critical
+        };
+    }
+
+    // O `t` de cada suíte. Os singletons vêm por getters: só é criado o que o
+    // teste usa (cada um sobe o seu Process, D-Bus ou PipeWire).
+    function context(): var {
+        return {
+            test: root.test,
+            check: root.check,
+            eq: root.eq,
+            near: root.near,
+            object: root.object,
+            enums: root.enums(),
+            get Config() { return Config; },
+            get Format() { return Format; },
+            get InputActions() { return InputActions; },
+            get ShellShortcuts() { return ShellShortcuts; },
+            get SearchEngines() { return SearchEngines; },
+            get NightSchedule() { return NightSchedule; },
+            get Panels() { return Panels; },
+            get ThemeManager() { return ThemeManager; },
+            get Sun() { return Sun; },
+            get AppInfo() { return AppInfo; },
+            get Audio() { return Audio; },
+            get Bluetooth() { return Bluetooth; },
+            get Brightness() { return Brightness; },
+            get Capture() { return Capture; },
+            get Clipboard() { return Clipboard; },
+            get Input() { return Input; },
+            get Lyrics() { return Lyrics; },
+            get Media() { return Media; },
+            get Monitors() { return Monitors; },
+            get Network() { return Network; },
+            get Notifications() { return Notifications; },
+            get Session() { return Session; },
+            get SystemStats() { return SystemStats; },
+            get VideoWallpapers() { return VideoWallpapers; },
+            get Weather() { return Weather; }
+        };
+    }
+
+    Component {
+        id: dummy
+
+        QtObject {}
+    }
+
+    Component.onCompleted: {
+        for (const [name, suite] of suites) {
+            const before = passed + failed;
+            let broke = false;
+            try {
+                suite.run(context());
+            } catch (e) {
+                broke = true;
+                console.error(`FAIL ${name}: a suíte quebrou fora de um caso: ${e}`);
+            }
+            console.info(`SUITE ${name} casos=${passed + failed - before}`);
+            if (broke)
+                failed++;
+        }
+        if (passed + failed === 0) {
+            failed++;
+            console.error("FAIL nenhum caso rodou");
+        }
+        // @cov-dump
+        console.info(`RESULT passed=${passed} failed=${failed}`);
+        // No onCompleted o Qt.exit é ignorado; depois do evento, vale.
+        Qt.callLater(() => Qt.exit(failed > 0 ? 1 : 0));
+    }
+}
