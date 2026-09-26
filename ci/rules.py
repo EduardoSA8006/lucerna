@@ -12,7 +12,9 @@ import fnmatch
 import io
 import os
 import re
+import subprocess
 import sys
+import tempfile
 import tokenize
 from pathlib import Path
 from urllib.parse import unquote
@@ -391,11 +393,72 @@ def check_links(root):
     return out
 
 
+def compare_generated(generated, committed, pattern, hint, root):
+    """Cada arquivo gerado tem de ser igual, byte a byte, ao do repositório."""
+    out = []
+    for new in sorted(generated.glob(pattern)):
+        old = committed / new.name
+        where = old.relative_to(root).as_posix()
+        if not old.exists():
+            out.append((where, 1, f"não existe: {hint}"))
+        elif old.read_bytes() != new.read_bytes():
+            out.append((where, 1, f"desatualizado: {hint}"))
+    return out
+
+
+def run_generator(command, what):
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        return [(what, 1, f"o gerador falhou: {(result.stderr or result.stdout).strip()}")]
+    return []
+
+
+# O .qsb depende da versão do qsb: recompilar com o mesmo do CI (o container
+# archlinux:latest do dev/ci.sh), nunca com o da máquina.
+SHADER_HINT = "recompile com o qsb do CI (dev/ci.sh shell rules e, lá dentro, bash dev/shaders.sh) e faça commit do .qsb"
+
+
+def check_generated_shaders(generated, root):
+    """Os .qsb gerados (em `generated`) contra os do repositório, e os .qsb órfãos."""
+    shaders = root / "themes" / "shaders"
+    if not any(generated.glob("*.qsb")):
+        return [("dev/shaders.sh", 1, "o gerador não produziu nenhum .qsb (sumiram os .frag, ou o qsb falhou calado)")]
+    out = compare_generated(generated, shaders, "*.qsb", SHADER_HINT, root)
+    for qsb in sorted(shaders.glob("*.qsb")):
+        if not qsb.with_suffix(".frag").exists():
+            where = qsb.relative_to(root).as_posix()
+            out.append((where, 1, f"órfão: não existe {qsb.stem}.frag; apague o .qsb ou devolva o .frag"))
+    return out
+
+
+def check_generated_themes(generated, root):
+    """Os JSON gerados (em `generated`) contra themes/*.json."""
+    if not any(generated.glob("*.json")):
+        return [("dev/themes.py", 1, "o gerador não produziu nenhum JSON de tema")]
+    return compare_generated(generated, root / "themes", "*.json", "rode dev/themes.py e faça commit do JSON", root)
+
+
+def check_shaders(root):
+    """Recompila themes/shaders/*.frag como o dev/shaders.sh e compara com os .qsb."""
+    with tempfile.TemporaryDirectory() as tmp:
+        failed = run_generator(["bash", str(root / "dev" / "shaders.sh"), tmp], "dev/shaders.sh")
+        return failed or check_generated_shaders(Path(tmp), root)
+
+
+def check_themes(root):
+    """Gera os JSON dos temas embutidos pelo dev/themes.py e compara com themes/*.json."""
+    with tempfile.TemporaryDirectory() as tmp:
+        failed = run_generator([sys.executable, str(root / "dev" / "themes.py"), "--json", tmp], "dev/themes.py")
+        return failed or check_generated_themes(Path(tmp), root)
+
+
 RULES = {
     "camadas": check_layers,
     "espaços": check_whitespace,
     "acentos": check_accents,
     "links": check_links,
+    "shaders": check_shaders,
+    "temas": check_themes,
 }
 
 

@@ -9,13 +9,12 @@ Requer Pillow.
 
     dev/themes.py            # todos
     dev/themes.py nord       # só um
+    dev/themes.py --json PASTA [ids...]   # só os JSON, na pasta dada (sem Pillow)
 """
 import json
 import random
 import sys
 from pathlib import Path
-
-from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent / "themes"
 W, H = 2560, 1440
@@ -191,6 +190,8 @@ def hex_rgb(h):
 
 def render(tid, base, glows, stars, seed):
     """glows: (cx, cy, raio, cor, intensidade), posições em fração da tela."""
+    from PIL import Image  # só o papel estático precisa do Pillow
+
     rng = random.Random(seed)
     base = hex_rgb(base)
     glows = [(cx * W, cy * H, r * W, hex_rgb(c), k) for cx, cy, r, c, k in glows]
@@ -255,15 +256,29 @@ def theme_json(tid, t):
     }
 
 
+def write_json(folder, tid):
+    text = json.dumps(theme_json(tid, THEMES[tid]), indent=4, ensure_ascii=False) + "\n"
+    (folder / f"{tid}.json").write_text(text, encoding="utf-8")
+
+
 def main():
-    only = sys.argv[1:] or list(THEMES)
+    args = sys.argv[1:]
+    if args[:1] == ["--json"]:
+        if len(args) < 2:
+            sys.exit("uso: dev/themes.py --json PASTA [ids...]")
+        folder, only = Path(args[1]), args[2:] or list(THEMES)
+        folder.mkdir(parents=True, exist_ok=True)
+        for tid in THEMES:
+            if tid in only:
+                write_json(folder, tid)
+        return
+    only = args or list(THEMES)
     (ROOT / "wallpapers").mkdir(exist_ok=True)
     for i, tid in enumerate(THEMES):
         if tid not in only:
             continue
-        t = THEMES[tid]
-        (ROOT / f"{tid}.json").write_text(json.dumps(theme_json(tid, t), indent=4, ensure_ascii=False) + "\n")
-        base, glows, stars = t["wallpaper"]
+        write_json(ROOT, tid)
+        base, glows, stars = THEMES[tid]["wallpaper"]
         render(tid, base, glows, stars, seed=i + 3)
         print("ok", tid)
 

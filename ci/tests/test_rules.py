@@ -206,5 +206,38 @@ class AccentsTest(RepoCase):
         self.assertEqual(rules.check_accents(root), [])
 
 
+class GeneratedTest(RepoCase):
+    def test_compara_gerados_com_os_do_repositorio(self):
+        root = self.repo({
+            "novo/a.json": "1\n",
+            "novo/b.json": "2\n",
+            "novo/c.json": "3\n",
+            "themes/a.json": "1\n",
+            "themes/b.json": "velho\n",
+            "themes/meu.json": "tema do usuário\n",
+        })
+        found = rules.compare_generated(root / "novo", root / "themes", "*.json", "rode dev/themes.py", root)
+        self.assertEqual([(p, m.split(":")[0]) for p, _, m in found], [("themes/b.json", "desatualizado"), ("themes/c.json", "não existe")])
+
+    def test_shader_orfao(self):
+        root = self.repo({
+            "novo/a.qsb": "A",
+            "themes/shaders/a.frag": "",
+            "themes/shaders/a.qsb": "A",
+            "themes/shaders/velho.qsb": "V",
+        })
+        found = rules.check_generated_shaders(root / "novo", root)
+        self.assertEqual([(p, m.split(":")[0]) for p, _, m in found], [("themes/shaders/velho.qsb", "órfão")])
+
+    def test_gerador_vazio_reprova(self):
+        root = self.repo({"themes/shaders/a.frag": "", "themes/shaders/a.qsb": "A", "themes/a.json": "1\n"})
+        (root / "vazio").mkdir()
+        self.assertEqual([p for p, _, _ in rules.check_generated_shaders(root / "vazio", root)], ["dev/shaders.sh"])
+        self.assertEqual([p for p, _, _ in rules.check_generated_themes(root / "vazio", root)], ["dev/themes.py"])
+
+    def test_dica_manda_regenerar_com_o_qsb_do_ci(self):
+        self.assertIn("dev/ci.sh shell rules", rules.SHADER_HINT)
+
+
 if __name__ == "__main__":
     unittest.main()
