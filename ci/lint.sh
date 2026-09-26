@@ -73,10 +73,53 @@ ruff_format_run() {
         ruff format --no-cache --check "${pyfiles[@]}"
 }
 
-# ini_keys ARQUIVO: as categorias da seção [Warnings] de um .qmllint.ini.
+# As categorias que o ci/.qmllint.ini pode desligar (disable): os três falsos
+# positivos e a exceção medida, cada um com o motivo no .ini. Qualquer outra
+# categoria que não esteja em warning reprova.
+qmllint_disabled=(BadSignalHandlerParameters CompilerWarnings UncreatableType UnresolvedType)
+
+# ini_pairs ARQUIVO: "categoria nível" de cada linha da seção [Warnings].
+# shellcheck disable=SC2329 # chamada pela qmllint_run
+ini_pairs() {
+    sed -n '/^\[Warnings\]/,/^\[/s/^\([A-Za-z.]*\)=[[:space:]]*\([^[:space:]]*\).*$/\1 \2/p' "$1" | LC_ALL=C sort
+}
+
+# ini_keys ARQUIVO: só as categorias da seção [Warnings].
 # shellcheck disable=SC2329 # chamada pela qmllint_run
 ini_keys() {
-    sed -n '/^\[Warnings\]/,/^\[/s/^\([A-Za-z.]*\)=.*/\1/p' "$1" | sort
+    ini_pairs "$1" | cut -d' ' -f1
+}
+
+# qml_list RAIZ: os .qml de RAIZ (caminhos relativos, ./...), ordenados.
+# shellcheck disable=SC2329 # chamada pela qmllint_run
+qml_list() {
+    repo_files "$1" | tr '\0' '\n' | grep '\.qml$' | LC_ALL=C sort
+}
+
+# same_file A B: B é um arquivo comum com o mesmo conteúdo de A (o cmp é do
+# diffutils, que o job lint não instala).
+# shellcheck disable=SC2329 # chamada pela qmllint_run
+same_file() {
+    [ -f "$2" ] && [ "$(sha256sum < "$1")" = "$(sha256sum < "$2")" ]
+}
+
+# check_levels: cada categoria do ci/.qmllint.ini está em warning, fora as da
+# qmllint_disabled, que podem estar em warning ou disable.
+# shellcheck disable=SC2329 # chamada pela qmllint_run
+check_levels() {
+    local key level bad=""
+    while read -r key level; do
+        [ "$level" = warning ] && continue
+        if [ "$level" = disable ] && [[ " ${qmllint_disabled[*]} " == *" $key "* ]]; then
+            continue
+        fi
+        bad+="$key=$level"$'\n'
+    done < <(ini_pairs "$repo/ci/.qmllint.ini")
+    if [ -n "$bad" ]; then
+        echo "ERRO: no ci/.qmllint.ini, toda categoria fica em warning; só ${qmllint_disabled[*]} podem ficar em disable (com o motivo no .ini). Fora do lugar:"
+        printf '%s' "$bad"
+        return 1
+    fi
 }
 
 # O qmllint precisa da árvore de módulos que o Quickshell monta (a VFS). Uma
@@ -85,7 +128,7 @@ ini_keys() {
 # copiada seguindo os links (com symlinks o qmllint não acha o qmldir).
 # shellcheck disable=SC2329 # chamada pela part, logo abaixo
 qmllint_run() {
-    local cfg="$work/cfg" tree=${LINT_TREE:-$work/tree} vfs expected missing rc=0
+    local cfg="$work/cfg" tree=${LINT_TREE:-$work/tree} vfs defaults missing extra rc=0
     local -a files
     # Toda categoria do qmllint instalado precisa estar no ci/.qmllint.ini: uma
     # versão nova pode trazer uma categoria desligada por padrão, que passaria calada.
@@ -95,12 +138,18 @@ qmllint_run() {
         echo "ERRO: o qmllint --write-defaults não gerou a lista de categorias do qmllint instalado"
         return 1
     fi
-    missing=$(comm -23 <(ini_keys "$work/defaults/.qmllint.ini") <(ini_keys "$repo/ci/.qmllint.ini"))
+    defaults=$(ini_keys "$work/defaults/.qmllint.ini")
+    if [ -z "$defaults" ]; then
+        echo "ERRO: não achei nenhuma categoria na seção [Warnings] do .qmllint.ini do qmllint --write-defaults (o formato mudou?); sem elas, a checagem de categorias passaria calada"
+        return 1
+    fi
+    missing=$(LC_ALL=C comm -23 <(printf '%s\n' "$defaults") <(ini_keys "$repo/ci/.qmllint.ini"))
     if [ -n "$missing" ]; then
         echo "ERRO: o ci/.qmllint.ini não cita estas categorias do qmllint instalado; acrescente cada uma em warning (ou como exceção, com o motivo):"
         echo "$missing"
         return 1
     fi
+    check_levels || return 1
     export XDG_RUNTIME_DIR="$work/run"
     install -d -m 700 "$XDG_RUNTIME_DIR"
     copy_repo "$cfg" || return 1
@@ -113,20 +162,37 @@ qmllint_run() {
         return 1
     fi
     rm -rf "$tree"
-    cp -rL "$vfs" "$tree"
+    if ! cp -rL "$vfs" "$tree"; then
+        echo "ERRO: não consegui copiar a árvore de módulos de $vfs para $tree"
+        return 1
+    fi
     # Os .js que os .qml importam (os testes) também precisam estar na árvore.
-    (cd "$cfg" && find . -name '*.js' -exec cp --parents {} "$tree/qs/" \;)
-    cp "$repo/ci/.qmllint.ini" "$tree/qs/.qmllint.ini"
-    # A árvore precisa ter todos os .qml do repositório: uma VFS vazia ou pela
-    # metade faria o qmllint analisar menos (ou nada) e passar.
-    expected=$(cd "$repo" && find . -name '*.qml' -not -path './.git/*' -not -path './ci-out/*' | wc -l)
-    mapfile -t files < <(cd "$tree/qs" && find . -name '*.qml' | sort)
-    if [ "$expected" -eq 0 ]; then
+    if ! (cd "$cfg" && find . -name '*.js' -exec cp --parents -t "$tree/qs/" {} +); then
+        echo "ERRO: não consegui copiar os .js do repositório para a árvore de módulos"
+        return 1
+    fi
+    # Sem o .ini na árvore, o qmllint usaria os níveis padrão (com categorias
+    # desligadas) e poderia passar.
+    if ! cp "$repo/ci/.qmllint.ini" "$tree/qs/.qmllint.ini" ||
+        ! same_file "$repo/ci/.qmllint.ini" "$tree/qs/.qmllint.ini"; then
+        echo "ERRO: o .qmllint.ini da árvore de módulos não é igual ao ci/.qmllint.ini"
+        return 1
+    fi
+    # A árvore precisa ter os mesmos .qml do repositório: uma VFS vazia, pela
+    # metade ou com outros arquivos faria o qmllint analisar outra coisa e passar.
+    qml_list "$repo" > "$work/qml-repo.txt"
+    (cd "$tree/qs" && find . -name '*.qml' | LC_ALL=C sort) > "$work/qml-tree.txt"
+    mapfile -t files < "$work/qml-tree.txt"
+    if [ ! -s "$work/qml-repo.txt" ]; then
         echo "ERRO: nenhum .qml achado no repositório: o qmllint não teria o que analisar"
         return 1
     fi
-    if [ "${#files[@]}" -lt "$expected" ]; then
-        echo "ERRO: a árvore de módulos tem ${#files[@]} .qml e o repositório tem $expected: o qmllint não veria todos"
+    missing=$(LC_ALL=C comm -23 "$work/qml-repo.txt" "$work/qml-tree.txt")
+    extra=$(LC_ALL=C comm -13 "$work/qml-repo.txt" "$work/qml-tree.txt")
+    if [ -n "$missing" ] || [ -n "$extra" ]; then
+        echo "ERRO: a árvore de módulos não tem os mesmos .qml do repositório; o qmllint analisaria outra coisa."
+        [ -z "$missing" ] || printf 'Faltam na árvore:\n%s\n' "$missing"
+        [ -z "$extra" ] || printf 'Sobram na árvore (não estão no repositório):\n%s\n' "$extra"
         return 1
     fi
     (cd "$tree/qs" && /usr/lib/qt6/bin/qmllint -I "$tree" -I /usr/lib/qt6/qml --json "$out/qmllint.json" "${files[@]}") || rc=$?
