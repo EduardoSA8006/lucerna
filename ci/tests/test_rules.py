@@ -66,5 +66,34 @@ class LayersTest(RepoCase):
         self.assertEqual([n for _, n, _ in rules.check_layers(root)], [2, 3])
 
 
+class WhitespaceTest(RepoCase):
+    def test_aponta_tab_espaco_no_fim_crlf_e_falta_de_quebra(self):
+        root = self.repo({
+            "a.sh": "echo\tx\n",
+            "b.qml": "Item {  \n}\n",
+            "c.md": "linha\r\noutra\r\n",
+            "d.py": "x = 1",
+        })
+        found = {(p, n, m.split(" (")[0]) for p, n, m in rules.check_whitespace(root)}
+        self.assertEqual(found, {
+            ("a.sh", 1, "tab"),
+            ("b.qml", 1, "espaço no fim da linha"),
+            ("c.md", 1, "quebra de linha CRLF"),
+            ("d.py", 1, "sem quebra de linha no fim do arquivo"),
+        })
+
+    def test_ignora_binarios_e_terceiros(self):
+        root = self.repo({
+            "docs/x.png": b"\x89PNG\0\0\t  ",
+            "LICENSE": "texto com espaço no fim \n",
+            "themes/fonts/Rubik-OFL.txt": "idem \n",
+        })
+        self.assertEqual(rules.check_whitespace(root), [])
+
+    def test_le_nome_com_espaco_e_acento(self):
+        root = self.repo({"Lucerna — Pendências.md": "ok \n"})
+        self.assertEqual([(p, n) for p, n, _ in rules.check_whitespace(root)], [("Lucerna — Pendências.md", 1)])
+
+
 if __name__ == "__main__":
     unittest.main()

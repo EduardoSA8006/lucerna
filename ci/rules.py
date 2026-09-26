@@ -90,8 +90,41 @@ def check_layers(root):
     return out
 
 
+# Texto de terceiros, copiado como veio: não se mexe no espaçamento.
+THIRD_PARTY = {"LICENSE", "themes/fonts/Rubik-OFL.txt"}
+
+
+def check_whitespace(root):
+    """Sem tab, sem espaço no fim da linha, com quebra de linha no fim do
+    arquivo e sem CRLF, em todo arquivo de texto do repositório."""
+    out = []
+    for rel in repo_files(root):
+        where = rel.as_posix()
+        if where in THIRD_PARTY:
+            continue
+        data = (root / rel).read_bytes()
+        if b"\0" in data:
+            continue
+        try:
+            text = data.decode("utf-8")
+        except UnicodeDecodeError:
+            out.append((where, 1, "não é UTF-8"))
+            continue
+        if "\r" in text:
+            out.append((where, text[: text.index("\r")].count("\n") + 1, "quebra de linha CRLF (use LF)"))
+        for number, line in enumerate(text.replace("\r", "").split("\n"), 1):
+            if "\t" in line:
+                out.append((where, number, "tab (use espaços)"))
+            if line != line.rstrip(" \t"):
+                out.append((where, number, "espaço no fim da linha"))
+        if text and not text.endswith("\n"):
+            out.append((where, text.count("\n") + 1, "sem quebra de linha no fim do arquivo"))
+    return out
+
+
 RULES = {
     "camadas": check_layers,
+    "espaços": check_whitespace,
 }
 
 
