@@ -110,6 +110,10 @@ Singleton {
     FileView {
         path: Quickshell.statePath("config.json")
         blockLoading: true
+        // Grava de forma síncrona: a gravação precisa terminar antes de o
+        // watcher disparar o reload, senão ele lê o arquivo antigo e desfaz
+        // as mudanças feitas no mesmo turno.
+        blockWrites: true
         printErrors: false
         watchChanges: true
         onFileChanged: reload()
