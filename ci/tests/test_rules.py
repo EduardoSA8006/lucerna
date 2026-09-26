@@ -141,6 +141,23 @@ class SegmentsTest(unittest.TestCase):
         self.assertIn((2, "nao"), segs)
 
 
+class LinksTest(RepoCase):
+    def test_links_locais(self):
+        root = self.repo({
+            "Lucerna — Proposta.md": "x\n",
+            "docs/a b.png": b"\0",
+            "README.md": (
+                "![foto](docs/a%20b.png) [p](<Lucerna — Proposta.md>) [ext](https://x.org/y)\n"
+                "[ancora](#instalação) [quebrado](docs/nada.png) [sec](README.md#licença)\n"
+                "```\n![no bloco](nada.png)\n```\n"
+                "`[inline](nada.png)`\n"
+            ),
+            "docs/guia.md": "[sobe](../README.md) [some](../x.md)\n",
+        })
+        found = sorted((p, n, m.split(": ")[-1]) for p, n, m in rules.check_links(root))
+        self.assertEqual(found, [("README.md", 2, "docs/nada.png"), ("docs/guia.md", 1, "../x.md")])
+
+
 class WordBoundaryTest(unittest.TestCase):
     def test_ponto_final_nao_bloqueia_mas_extensao_bloqueia(self):
         self.assertTrue(rules.WORD.search("Isso nao."))

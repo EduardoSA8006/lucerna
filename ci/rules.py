@@ -15,6 +15,7 @@ import re
 import sys
 import tokenize
 from pathlib import Path
+from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -354,10 +355,36 @@ def check_accents(root):
     return out
 
 
+MD_LINK = re.compile(r"!?\[[^\]]*\]\((<[^>]+>|[^)\s]+)(?:\s+\"[^\"]*\")?\)")
+SCHEME = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
+
+
+def check_links(root):
+    """Imagens e arquivos citados nos .md (links relativos) existem."""
+    out = []
+    for rel in repo_files(root):
+        if rel.suffix != ".md":
+            continue
+        text = (root / rel).read_text(encoding="utf-8")
+        for number, line in md_outside_fences(text):
+            for link in MD_LINK.finditer(INLINE_CODE.sub(" ", line)):
+                target = link.group(1).strip("<>")
+                if SCHEME.match(target) or target.startswith("#"):
+                    continue
+                path = unquote(target.split("#", 1)[0].split("?", 1)[0])
+                if not path:
+                    continue
+                base = root if path.startswith("/") else root / rel.parent
+                if not (base / path.lstrip("/")).exists():
+                    out.append((rel.as_posix(), number, f"link para arquivo que não existe: {target}"))
+    return out
+
+
 RULES = {
     "camadas": check_layers,
     "espaços": check_whitespace,
     "acentos": check_accents,
+    "links": check_links,
 }
 
 
