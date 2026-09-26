@@ -128,8 +128,10 @@ def split_chunk(line, chunk):
     return [(line + i, part) for i, part in enumerate(chunk.split("\n"))]
 
 
-# Caracteres depois dos quais uma barra abre uma expressão regular, não uma divisão.
-REGEX_BEFORE = set("(,=:[!&|?{};+-*%<>~^")
+# Caracteres depois dos quais uma barra abre uma expressão regular, não uma
+# divisão. Sem "}": ele fecha tanto um bloco quanto um ${...} de template
+# (aninhado ou não), e depois dele o mais comum é divisão ou caminho.
+REGEX_BEFORE = set("(,=:[!&|?{;+-*%<>~^")
 
 
 def js_segments(text):
@@ -163,7 +165,9 @@ def js_segments(text):
             chunk = text[i + 1 : j]
             out += split_chunk(line, chunk)
             line += chunk.count("\n")
-            i = j + 1
+            # Sem fechar até a quebra de linha: deixa o "\n" para o laço
+            # principal contar a linha (senão ela fica atrasada dali em diante).
+            i = j if j < n and text[j] == "\n" else j + 1
             prev = c
             continue
         if c == "/" and (prev == "" or prev in REGEX_BEFORE):
@@ -179,7 +183,8 @@ def js_segments(text):
                 elif text[j] == "/" and not in_class:
                     break
                 j += 1
-            i = j + 1
+            # Mesma correção: regex sem fechar até a quebra de linha não pula o "\n".
+            i = j if j < n and text[j] == "\n" else j + 1
             prev = "/"
             continue
         if not c.isspace():
@@ -234,9 +239,10 @@ LINK_TARGET = re.compile(r"\]\([^)]*\)")
 URL = re.compile(r"<?https?://\S+")
 
 
-def md_segments(text):
-    """(linha, texto) de um .md fora dos blocos de código, sem código inline,
-    destinos de link e URLs."""
+def md_outside_fences(text):
+    """(linha, linha crua) de um .md fora dos blocos cercados por ``` ou ~~~
+    (uma cerca só fecha com o mesmo caractere e pelo menos o mesmo tamanho da
+    que abriu, então uma cerca menor aninhada não fecha a de fora)."""
     out, fence = [], None
     for number, line in enumerate(text.split("\n"), 1):
         match = FENCE.match(line)
@@ -247,6 +253,15 @@ def md_segments(text):
         if match:
             fence = match.group(1)
             continue
+        out.append((number, line))
+    return out
+
+
+def md_segments(text):
+    """(linha, texto) de um .md fora dos blocos de código, sem código inline,
+    destinos de link e URLs."""
+    out = []
+    for number, line in md_outside_fences(text):
         clean = URL.sub(" ", LINK_TARGET.sub("] ", INLINE_CODE.sub(" ", line)))
         if clean.strip():
             out.append((number, clean))
@@ -310,7 +325,9 @@ WORDS = {
     "memoria": NO_ACCENT,
 }
 
-WORD = re.compile(r"(?<![\w./\\-])(" + "|".join(sorted(WORDS, key=len, reverse=True)) + r")(?![\w./\\-])", re.I)
+WORD = re.compile(
+    r"(?<![\w./\\-])(" + "|".join(sorted(WORDS, key=len, reverse=True)) + r")(?![\w/\\-]|\.\w)", re.I
+)
 
 # Arquivos que contêm a lista (ou exemplos dela) de propósito.
 SELF = {"ci/rules.py", "ci/tests/test_rules.py"}

@@ -119,6 +119,36 @@ class SegmentsTest(unittest.TestCase):
         self.assertEqual([n for n, _ in segs], [1, 7])
         self.assertNotIn("nao", " ".join(s for _, s in segs))
 
+    def test_md_outside_fences_cerca_aninhada_e_til(self):
+        text = "a\n````\n```\nb\n```\n````\nc\n~~~\nd\n~~~\ne"
+        segs = rules.md_outside_fences(text)
+        self.assertEqual(segs, [(1, "a"), (7, "c"), (11, "e")])
+
+    def test_string_sem_fechar_ate_fim_da_linha_conta_a_quebra(self):
+        # Regressão: string entre aspas que não fecha na própria linha não
+        # pode "engolir" o "\n" sem contar a linha (senão tudo dali em diante
+        # sai numerado uma a menos).
+        segs = rules.js_segments("a: 'x\nb: \"nao\"\n")
+        self.assertIn((2, "nao"), segs)
+
+    def test_chave_de_template_aninhado_nao_abre_regex_e_conta_linha_certa(self):
+        # Regressão: um "}" que fecha um ${...} de template (aninhado, como em
+        # services/Monitors.qml) não pode ser lido como "abre regex" pela
+        # barra seguinte — senão o resto da linha (e as linhas depois) saem
+        # com a contagem de linha errada.
+        text = 'x: `${a || `${"h"}/y`}/z`\nw: "nao"\n'
+        segs = rules.js_segments(text)
+        self.assertIn((2, "nao"), segs)
+
+
+class WordBoundaryTest(unittest.TestCase):
+    def test_ponto_final_nao_bloqueia_mas_extensao_bloqueia(self):
+        self.assertTrue(rules.WORD.search("Isso nao."))
+        self.assertTrue(rules.WORD.search("e tambem."))
+        self.assertTrue(rules.WORD.search("Ja."))
+        self.assertFalse(rules.WORD.search("arquivo so.md"))
+        self.assertFalse(rules.WORD.search("nao.qml"))
+
 
 class AccentsTest(RepoCase):
     def test_acha_palavras_sem_acento(self):
