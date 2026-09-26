@@ -55,13 +55,21 @@ cp "$runner" "${tests[@]}" "$cfg/"
 
 set +e
 env -u LUCERNA_DEV TZ=America/Sao_Paulo QT_QPA_PLATFORM=offscreen \
-    timeout 60 qs -p "$cfg/runner.qml" > "$work/raw.log" 2>&1
+    timeout -k 10 60 qs -p "$cfg/runner.qml" > "$work/raw.log" 2>&1
 rc=$?
 set -e
 sed 's/\x1b\[[0-9;]*m//g' "$work/raw.log" > "$out/unit.log"
 grep -E 'PASS |FAIL |SUITE |RESULT ' "$out/unit.log" || true
 
-result=$(grep -oE 'RESULT passed=[0-9]+ failed=[0-9]+' "$out/unit.log" | tail -n 1 || true)
+# O qs prefixa cada linha de console.* com a categoria e "qml:" (ex.: "  INFO
+# qml: PASS ..." e "  ERROR qml: FAIL ..."). As checagens de SUITE e RESULT
+# ancoram nesse prefixo (início da linha) e no fim dela: sem âncora, uma
+# mensagem de FAIL que citasse "SUITE x casos=3" ou "RESULT passed=0 failed=0"
+# no texto passaria pela checagem sem ter rodado nada.
+qs_line='^[[:space:]]*[A-Za-z]+ qml: '
+
+result_line=$(grep -E "${qs_line}RESULT passed=[0-9]+ failed=[0-9]+\$" "$out/unit.log" | tail -n 1 || true)
+result=$(sed -E "s/${qs_line}//" <<< "$result_line")
 if [ -z "$result" ]; then
     echo "--- unit.log ---" >&2
     tail -n 40 "$out/unit.log" >&2
@@ -76,7 +84,7 @@ fi
 # Todo arquivo de teste precisa ter rodado: importado e fora de suites, ou sem
 # nenhum caso, ele passaria calado.
 for name in "${names[@]}"; do
-    grep -qE "SUITE $name casos=[1-9][0-9]*\$" "$out/unit.log" \
+    grep -qE "${qs_line}SUITE $name casos=[1-9][0-9]*\$" "$out/unit.log" \
         || fail "tests/$name.test.js não rodou nenhum caso (falta \"SUITE $name casos=N\" com N > 0): confira o item [\"$name\", …] em suites no tests/runner.qml e os t.test do arquivo"
 done
 

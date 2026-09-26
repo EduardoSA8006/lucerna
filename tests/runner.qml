@@ -18,6 +18,9 @@ import qs.core.panels
 import qs.core.theme
 import qs.core.time
 import qs.services
+import "format.test.js" as FormatTest
+import "inputactions.test.js" as InputActionsTest
+import "shellshortcuts.test.js" as ShellShortcutsTest
 import "sun.test.js" as SunTest
 
 ShellRoot {
@@ -31,7 +34,10 @@ ShellRoot {
     // Um item por arquivo em tests/*.test.js, com o nome do arquivo sem
     // .test.js: o ci/unit.sh exige uma linha "SUITE <nome> casos=N" (N > 0) de cada.
     readonly property var suites: [
-        ["sun", SunTest]
+        ["sun", SunTest],
+        ["format", FormatTest],
+        ["shellshortcuts", ShellShortcutsTest],
+        ["inputactions", InputActionsTest]
     ]
 
     function fail(message: string): void {
@@ -62,7 +68,9 @@ ShellRoot {
         current = name;
         currentFailed = false;
         try {
-            body();
+            const result = body();
+            if (result && typeof result.then === "function")
+                fail("caso assíncrono não suportado");
         } catch (e) {
             fail(`exceção: ${e}`);
         }
