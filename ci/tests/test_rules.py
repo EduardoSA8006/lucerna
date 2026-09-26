@@ -27,23 +27,27 @@ class RepoCase(unittest.TestCase):
 
 class RepoFilesTest(RepoCase):
     def test_ignora_gitignore_e_pastas_de_saida(self):
-        root = self.repo({
-            ".gitignore": ".qmlls.ini\n*.qmlc\n.cache/\n",
-            "shell.qml": "",
-            ".qmlls.ini": "",
-            "core/a.qmlc": "",
-            ".cache/x.txt": "",
-            "ci-out/lint/qmllint.log": "",
-            "ci/__pycache__/rules.cpython-313.pyc": b"\0",
-            "Lucerna — Proposta.md": "texto\n",
-        })
+        root = self.repo(
+            {
+                ".gitignore": ".qmlls.ini\n*.qmlc\n.cache/\n",
+                "shell.qml": "",
+                ".qmlls.ini": "",
+                "core/a.qmlc": "",
+                ".cache/x.txt": "",
+                "ci-out/lint/qmllint.log": "",
+                "ci/__pycache__/rules.cpython-313.pyc": b"\0",
+                "Lucerna — Proposta.md": "texto\n",
+            }
+        )
         files = sorted(p.as_posix() for p in rules.repo_files(root))
         self.assertEqual(files, [".gitignore", "Lucerna — Proposta.md", "shell.qml"])
 
 
 class LayersTest(RepoCase):
     def test_ui_nao_importa_services(self):
-        root = self.repo({"features/bar/ui/Bar.qml": "import QtQuick\nimport qs.features.bar.state\nimport qs.services\n"})
+        root = self.repo(
+            {"features/bar/ui/Bar.qml": "import QtQuick\nimport qs.features.bar.state\nimport qs.services\n"}
+        )
         found = rules.check_layers(root)
         self.assertEqual([(p, n) for p, n, _ in found], [("features/bar/ui/Bar.qml", 3)])
         self.assertIn("qs.services", found[0][2])
@@ -60,34 +64,43 @@ class LayersTest(RepoCase):
         self.assertIn("qs.features.dashboard", found[0][2])
 
     def test_core_nao_importa_features_nem_services(self):
-        root = self.repo({
-            "core/panels/Panels.qml": "import qs.core.config\nimport qs.services\nimport qs.features.bar.state\n",
-        })
+        root = self.repo(
+            {
+                "core/panels/Panels.qml": "import qs.core.config\nimport qs.services\nimport qs.features.bar.state\n",
+            }
+        )
         self.assertEqual([n for _, n, _ in rules.check_layers(root)], [2, 3])
 
 
 class WhitespaceTest(RepoCase):
     def test_aponta_tab_espaco_no_fim_crlf_e_falta_de_quebra(self):
-        root = self.repo({
-            "a.sh": "echo\tx\n",
-            "b.qml": "Item {  \n}\n",
-            "c.md": "linha\r\noutra\r\n",
-            "d.py": "x = 1",
-        })
+        root = self.repo(
+            {
+                "a.sh": "echo\tx\n",
+                "b.qml": "Item {  \n}\n",
+                "c.md": "linha\r\noutra\r\n",
+                "d.py": "x = 1",
+            }
+        )
         found = {(p, n, m.split(" (")[0]) for p, n, m in rules.check_whitespace(root)}
-        self.assertEqual(found, {
-            ("a.sh", 1, "tab"),
-            ("b.qml", 1, "espaço no fim da linha"),
-            ("c.md", 1, "quebra de linha CRLF"),
-            ("d.py", 1, "sem quebra de linha no fim do arquivo"),
-        })
+        self.assertEqual(
+            found,
+            {
+                ("a.sh", 1, "tab"),
+                ("b.qml", 1, "espaço no fim da linha"),
+                ("c.md", 1, "quebra de linha CRLF"),
+                ("d.py", 1, "sem quebra de linha no fim do arquivo"),
+            },
+        )
 
     def test_ignora_binarios_e_terceiros(self):
-        root = self.repo({
-            "docs/x.png": b"\x89PNG\0\0\t  ",
-            "LICENSE": "texto com espaço no fim \n",
-            "themes/fonts/Rubik-OFL.txt": "idem \n",
-        })
+        root = self.repo(
+            {
+                "docs/x.png": b"\x89PNG\0\0\t  ",
+                "LICENSE": "texto com espaço no fim \n",
+                "themes/fonts/Rubik-OFL.txt": "idem \n",
+            }
+        )
         self.assertEqual(rules.check_whitespace(root), [])
 
     def test_le_nome_com_espaco_e_acento(self):
@@ -97,13 +110,15 @@ class WhitespaceTest(RepoCase):
 
 class SegmentsTest(unittest.TestCase):
     def test_js_comentarios_e_strings(self):
-        text = 'Item {\n    // comentário nao\n    property string a: "texto"\n    x: /"/g.test(b) ? `um\ndois` : 0\n}\n'
+        text = (
+            'Item {\n    // comentário nao\n    property string a: "texto"\n    x: /"/g.test(b) ? `um\ndois` : 0\n}\n'
+        )
         segs = rules.js_segments(text)
         self.assertIn((2, " comentário nao"), segs)
         self.assertIn((3, "texto"), segs)
         self.assertIn((4, "um"), segs)
         self.assertIn((5, "dois"), segs)
-        self.assertFalse(any('"' in s for _, s in segs), "a regex /\"/g não abre string")
+        self.assertFalse(any('"' in s for _, s in segs), 'a regex /"/g não abre string')
 
     def test_sh_comentarios_e_strings_sem_confundir_cerquilha(self):
         segs = rules.sh_segments('echo "${#x} $#" # fim\nn=${v#pre}\n')
@@ -128,7 +143,7 @@ class SegmentsTest(unittest.TestCase):
         # Regressão: string entre aspas que não fecha na própria linha não
         # pode "engolir" o "\n" sem contar a linha (senão tudo dali em diante
         # sai numerado uma a menos).
-        segs = rules.js_segments("a: 'x\nb: \"nao\"\n")
+        segs = rules.js_segments('a: \'x\nb: "nao"\n')
         self.assertIn((2, "nao"), segs)
 
     def test_chave_de_template_aninhado_nao_abre_regex_e_conta_linha_certa(self):
@@ -143,30 +158,34 @@ class SegmentsTest(unittest.TestCase):
 
 class LinksTest(RepoCase):
     def test_links_locais(self):
-        root = self.repo({
-            "Lucerna — Proposta.md": "x\n",
-            "docs/a b.png": b"\0",
-            "README.md": (
-                "![foto](docs/a%20b.png) [p](<Lucerna — Proposta.md>) [ext](https://x.org/y)\n"
-                "[ancora](#instalação) [quebrado](docs/nada.png) [sec](README.md#licença)\n"
-                "```\n![no bloco](nada.png)\n```\n"
-                "`[inline](nada.png)`\n"
-            ),
-            "docs/guia.md": "[sobe](../README.md) [some](../x.md)\n",
-        })
+        root = self.repo(
+            {
+                "Lucerna — Proposta.md": "x\n",
+                "docs/a b.png": b"\0",
+                "README.md": (
+                    "![foto](docs/a%20b.png) [p](<Lucerna — Proposta.md>) [ext](https://x.org/y)\n"
+                    "[ancora](#instalação) [quebrado](docs/nada.png) [sec](README.md#licença)\n"
+                    "```\n![no bloco](nada.png)\n```\n"
+                    "`[inline](nada.png)`\n"
+                ),
+                "docs/guia.md": "[sobe](../README.md) [some](../x.md)\n",
+            }
+        )
         found = sorted((p, n, m.split(": ")[-1]) for p, n, m in rules.check_links(root))
         self.assertEqual(found, [("README.md", 2, "docs/nada.png"), ("docs/guia.md", 1, "../x.md")])
 
     def test_referencias_e_protocolo_relativo(self):
-        root = self.repo({
-            "Lucerna — Proposta.md": "x\n",
-            "README.md": (
-                "[externo](//cdn.exemplo.com/y)\n"
-                "[ref]: <Lucerna — Proposta.md> \"Proposta\"\n"
-                "[quebrada]: docs/nada2.png\n"
-                "```\n[bloco]: docs/nada3.png\n```\n"
-            ),
-        })
+        root = self.repo(
+            {
+                "Lucerna — Proposta.md": "x\n",
+                "README.md": (
+                    "[externo](//cdn.exemplo.com/y)\n"
+                    '[ref]: <Lucerna — Proposta.md> "Proposta"\n'
+                    "[quebrada]: docs/nada2.png\n"
+                    "```\n[bloco]: docs/nada3.png\n```\n"
+                ),
+            }
+        )
         found = sorted((p, n, m.split(": ")[-1]) for p, n, m in rules.check_links(root))
         self.assertEqual(found, [("README.md", 3, "docs/nada2.png")])
 
@@ -182,50 +201,64 @@ class WordBoundaryTest(unittest.TestCase):
 
 class AccentsTest(RepoCase):
     def test_acha_palavras_sem_acento(self):
-        root = self.repo({
-            "core/a.qml": 'Item {\n    // Nao faz nada\n    property string t: "so isso"\n}\n',
-            "dev/b.sh": "# configuracao do ambiente\n",
-            "c.py": "# funcao\n",
-            "d.md": "Voce ja viu?\n",
-        })
+        root = self.repo(
+            {
+                "core/a.qml": 'Item {\n    // Nao faz nada\n    property string t: "so isso"\n}\n',
+                "dev/b.sh": "# configuracao do ambiente\n",
+                "c.py": "# funcao\n",
+                "d.md": "Voce ja viu?\n",
+            }
+        )
         found = {(p, n, m.split('"')[1]) for p, n, m in rules.check_accents(root)}
-        self.assertEqual(found, {
-            ("core/a.qml", 2, "Nao"),
-            ("core/a.qml", 3, "so"),
-            ("dev/b.sh", 1, "configuracao"),
-            ("c.py", 1, "funcao"),
-            ("d.md", 1, "Voce"),
-            ("d.md", 1, "ja"),
-        })
+        self.assertEqual(
+            found,
+            {
+                ("core/a.qml", 2, "Nao"),
+                ("core/a.qml", 3, "so"),
+                ("dev/b.sh", 1, "configuracao"),
+                ("c.py", 1, "funcao"),
+                ("d.md", 1, "Voce"),
+                ("d.md", 1, "ja"),
+            },
+        )
 
     def test_ignora_identificadores_caminhos_e_maiusculas(self):
-        root = self.repo({
-            "core/a.qml": 'Item {\n    property bool nao_existe: true\n    source: "lib/x.so"\n    // O SO do usuário\n}\n',
-            "d.md": "Use `nao` e ja-JP\n",
-        })
+        root = self.repo(
+            {
+                "core/a.qml": 'Item {\n    property bool nao_existe: true\n    source: "lib/x.so"\n    // O SO do usuário\n}\n',
+                "d.md": "Use `nao` e ja-JP\n",
+            }
+        )
         self.assertEqual(rules.check_accents(root), [])
 
 
 class GeneratedTest(RepoCase):
     def test_compara_gerados_com_os_do_repositorio(self):
-        root = self.repo({
-            "novo/a.json": "1\n",
-            "novo/b.json": "2\n",
-            "novo/c.json": "3\n",
-            "themes/a.json": "1\n",
-            "themes/b.json": "velho\n",
-            "themes/meu.json": "tema do usuário\n",
-        })
+        root = self.repo(
+            {
+                "novo/a.json": "1\n",
+                "novo/b.json": "2\n",
+                "novo/c.json": "3\n",
+                "themes/a.json": "1\n",
+                "themes/b.json": "velho\n",
+                "themes/meu.json": "tema do usuário\n",
+            }
+        )
         found = rules.compare_generated(root / "novo", root / "themes", "*.json", "rode dev/themes.py", root)
-        self.assertEqual([(p, m.split(":")[0]) for p, _, m in found], [("themes/b.json", "desatualizado"), ("themes/c.json", "não existe")])
+        self.assertEqual(
+            [(p, m.split(":")[0]) for p, _, m in found],
+            [("themes/b.json", "desatualizado"), ("themes/c.json", "não existe")],
+        )
 
     def test_shader_orfao(self):
-        root = self.repo({
-            "novo/a.qsb": "A",
-            "themes/shaders/a.frag": "",
-            "themes/shaders/a.qsb": "A",
-            "themes/shaders/velho.qsb": "V",
-        })
+        root = self.repo(
+            {
+                "novo/a.qsb": "A",
+                "themes/shaders/a.frag": "",
+                "themes/shaders/a.qsb": "A",
+                "themes/shaders/velho.qsb": "V",
+            }
+        )
         found = rules.check_generated_shaders(root / "novo", root)
         self.assertEqual([(p, m.split(":")[0]) for p, _, m in found], [("themes/shaders/velho.qsb", "órfão")])
 

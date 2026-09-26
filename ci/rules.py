@@ -80,18 +80,22 @@ def check_layers(root):
             if parts[0] == "features" and len(parts) > 2:
                 feature = parts[1]
                 if module[0] == "features" and len(module) > 1 and module[1] != feature:
-                    out.append((
-                        where,
-                        number,
-                        f'a feature "{feature}" não pode importar outra feature (qs.features.{module[1]}): '
-                        "a conversa passa pelo core ou pelos services",
-                    ))
+                    out.append(
+                        (
+                            where,
+                            number,
+                            f'a feature "{feature}" não pode importar outra feature (qs.features.{module[1]}): '
+                            "a conversa passa pelo core ou pelos services",
+                        )
+                    )
                 if parts[2] == "ui" and module[0] == "services":
-                    out.append((
-                        where,
-                        number,
-                        f'a ui da feature "{feature}" não pode importar qs.services: use o state da própria feature',
-                    ))
+                    out.append(
+                        (
+                            where,
+                            number,
+                            f'a ui da feature "{feature}" não pode importar qs.services: use o state da própria feature',
+                        )
+                    )
     return out
 
 
@@ -250,7 +254,12 @@ def md_outside_fences(text):
     for number, line in enumerate(text.split("\n"), 1):
         match = FENCE.match(line)
         if fence:
-            if match and match.group(1)[0] == fence[0] and len(match.group(1)) >= len(fence) and not line.strip()[len(match.group(1)) :]:
+            if (
+                match
+                and match.group(1)[0] == fence[0]
+                and len(match.group(1)) >= len(fence)
+                and not line.strip()[len(match.group(1)) :]
+            ):
                 fence = None
             continue
         if match:
@@ -328,9 +337,7 @@ WORDS = {
     "memoria": NO_ACCENT,
 }
 
-WORD = re.compile(
-    r"(?<![\w./\\-])(" + "|".join(sorted(WORDS, key=len, reverse=True)) + r")(?![\w/\\-]|\.\w)", re.I
-)
+WORD = re.compile(r"(?<![\w./\\-])(" + "|".join(sorted(WORDS, key=len, reverse=True)) + r")(?![\w/\\-]|\.\w)", re.I)
 
 # Arquivos que contêm a lista (ou exemplos dela) de propósito.
 SELF = {"ci/rules.py", "ci/tests/test_rules.py"}
@@ -415,7 +422,9 @@ def run_generator(command, what):
 
 # O .qsb depende da versão do qsb: recompilar com o mesmo do CI (o container
 # archlinux:latest do dev/ci.sh), nunca com o da máquina.
-SHADER_HINT = "recompile com o qsb do CI (dev/ci.sh shell rules e, lá dentro, bash dev/shaders.sh) e faça commit do .qsb"
+SHADER_HINT = (
+    "recompile com o qsb do CI (dev/ci.sh shell rules e, lá dentro, bash dev/shaders.sh) e faça commit do .qsb"
+)
 
 
 def check_generated_shaders(generated, root):
