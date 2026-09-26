@@ -1,0 +1,5 @@
+# Pacotes do job unit (ci/setup.sh). O tzdata garante o fuso de São Paulo.
+quickshell
+qt6-declarative
+python
+tzdata

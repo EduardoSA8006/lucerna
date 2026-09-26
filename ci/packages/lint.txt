@@ -1,0 +1,7 @@
+# Pacotes do job lint (ci/setup.sh). Um por linha; # comenta.
+quickshell
+qt6-declarative
+qt6-multimedia
+shellcheck
+ruff
+python

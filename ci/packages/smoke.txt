@@ -1,0 +1,17 @@
+# Pacotes do job smoke (ci/setup.sh): o sway headless no lugar do Hyprland,
+# o grim para as capturas e o que o shell usa para desenhar os painéis.
+quickshell
+qt6-declarative
+qt6-svg
+qt6-imageformats
+qt6-multimedia
+qt6-multimedia-ffmpeg
+python
+tzdata
+dbus
+sway
+libcap
+grim
+procps-ng
+ttf-material-symbols-variable
+noto-fonts

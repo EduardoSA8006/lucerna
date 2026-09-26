@@ -2,3 +2,7 @@
 *.qmlc
 *.jsc
 .cache/
+ci-out/
+__pycache__/
+.ruff_cache/
+.superpowers/
