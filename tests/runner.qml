@@ -20,6 +20,7 @@ import qs.core.time
 import qs.services
 import "format.test.js" as FormatTest
 import "inputactions.test.js" as InputActionsTest
+import "nightschedule.test.js" as NightScheduleTest
 import "shellshortcuts.test.js" as ShellShortcutsTest
 import "sun.test.js" as SunTest
 
@@ -37,7 +38,8 @@ ShellRoot {
         ["sun", SunTest],
         ["format", FormatTest],
         ["shellshortcuts", ShellShortcutsTest],
-        ["inputactions", InputActionsTest]
+        ["inputactions", InputActionsTest],
+        ["nightschedule", NightScheduleTest]
     ]
 
     function fail(message: string): void {
