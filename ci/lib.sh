@@ -11,13 +11,16 @@
 #
 #   REPO_EXCLUDES
 #       Pastas que ficam de fora, em qualquer nível: o .git, a saída do CI e o
-#       que o .gitignore lista como pasta.
+#       que o .gitignore lista como pasta. O .git sai por nome, qualquer que
+#       seja o tipo: num git worktree ou submódulo ele é um arquivo (gitdir: …).
 #   REPO_EXCLUDE_FILES
 #       Arquivos que ficam de fora, em qualquer nível (padrões do find -name):
 #       os gerados que o .gitignore lista.
 #   repo_files <raiz>
 #       Os arquivos (e links) de <raiz>, sem os de cima, com caminho relativo
-#       (./pasta/arquivo), separados por NUL.
+#       (./pasta/arquivo), separados por NUL. Pastas não entram na lista: uma
+#       pasta vazia não é copiada (como no GitHub, onde o git não guarda pasta
+#       vazia).
 #   copy_repo <destino>
 #       Copia os arquivos da repo_files do repositório (a pasta acima de ci/)
 #       para <destino>, que é criado se não existir e fica gravável: o script
@@ -38,7 +41,7 @@ repo_files() {
     fi
     for name in "${REPO_EXCLUDES[@]}"; do dirs+=(-o -name "$name"); done
     for name in "${REPO_EXCLUDE_FILES[@]}"; do files+=(-o -name "$name"); done
-    (cd "$root" && find . -mindepth 1 -type d \( "${dirs[@]}" \) -prune \
+    (cd "$root" && find . -mindepth 1 \( -name .git -o -type d \( "${dirs[@]}" \) \) -prune \
         -o -not -type d -not \( "${files[@]}" \) -print0)
 }
 
