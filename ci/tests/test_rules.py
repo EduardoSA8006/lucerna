@@ -157,6 +157,19 @@ class LinksTest(RepoCase):
         found = sorted((p, n, m.split(": ")[-1]) for p, n, m in rules.check_links(root))
         self.assertEqual(found, [("README.md", 2, "docs/nada.png"), ("docs/guia.md", 1, "../x.md")])
 
+    def test_referencias_e_protocolo_relativo(self):
+        root = self.repo({
+            "Lucerna — Proposta.md": "x\n",
+            "README.md": (
+                "[externo](//cdn.exemplo.com/y)\n"
+                "[ref]: <Lucerna — Proposta.md> \"Proposta\"\n"
+                "[quebrada]: docs/nada2.png\n"
+                "```\n[bloco]: docs/nada3.png\n```\n"
+            ),
+        })
+        found = sorted((p, n, m.split(": ")[-1]) for p, n, m in rules.check_links(root))
+        self.assertEqual(found, [("README.md", 3, "docs/nada2.png")])
+
 
 class WordBoundaryTest(unittest.TestCase):
     def test_ponto_final_nao_bloqueia_mas_extensao_bloqueia(self):

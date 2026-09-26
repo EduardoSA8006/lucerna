@@ -356,11 +356,27 @@ def check_accents(root):
 
 
 MD_LINK = re.compile(r"!?\[[^\]]*\]\((<[^>]+>|[^)\s]+)(?:\s+\"[^\"]*\")?\)")
+# Definição de referência: "[ref]: caminho "título opcional"", até 3 espaços
+# de indentação, do jeito que o commonmark aceita.
+REF_LINK = re.compile(r'^ {0,3}\[[^\]]+\]:\s*(<[^>]+>|\S+)(?:\s+"[^"]*")?\s*$')
 SCHEME = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
 
 
+def _check_target(root, rel, number, raw_target, out):
+    target = raw_target.strip("<>")
+    if SCHEME.match(target) or target.startswith("#") or target.startswith("//"):
+        return
+    path = unquote(target.split("#", 1)[0].split("?", 1)[0])
+    if not path:
+        return
+    base = root if path.startswith("/") else root / rel.parent
+    if not (base / path.lstrip("/")).exists():
+        out.append((rel.as_posix(), number, f"link para arquivo que não existe: {target}"))
+
+
 def check_links(root):
-    """Imagens e arquivos citados nos .md (links relativos) existem."""
+    """Imagens, arquivos e definições de referência citados nos .md
+    (links relativos) existem."""
     out = []
     for rel in repo_files(root):
         if rel.suffix != ".md":
@@ -368,15 +384,10 @@ def check_links(root):
         text = (root / rel).read_text(encoding="utf-8")
         for number, line in md_outside_fences(text):
             for link in MD_LINK.finditer(INLINE_CODE.sub(" ", line)):
-                target = link.group(1).strip("<>")
-                if SCHEME.match(target) or target.startswith("#"):
-                    continue
-                path = unquote(target.split("#", 1)[0].split("?", 1)[0])
-                if not path:
-                    continue
-                base = root if path.startswith("/") else root / rel.parent
-                if not (base / path.lstrip("/")).exists():
-                    out.append((rel.as_posix(), number, f"link para arquivo que não existe: {target}"))
+                _check_target(root, rel, number, link.group(1), out)
+            ref = REF_LINK.match(line)
+            if ref:
+                _check_target(root, rel, number, ref.group(1), out)
     return out
 
 
