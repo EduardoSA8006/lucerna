@@ -9,9 +9,11 @@ Só a biblioteca padrão do Python.
 """
 
 import fnmatch
+import io
 import os
 import re
 import sys
+import tokenize
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -122,9 +124,223 @@ def check_whitespace(root):
     return out
 
 
+def split_chunk(line, chunk):
+    return [(line + i, part) for i, part in enumerate(chunk.split("\n"))]
+
+
+# Caracteres depois dos quais uma barra abre uma expressão regular, não uma divisão.
+REGEX_BEFORE = set("(,=:[!&|?{};+-*%<>~^")
+
+
+def js_segments(text):
+    """(linha, trecho) de cada comentário e string de um .qml ou .js."""
+    out = []
+    i, n, line, prev = 0, len(text), 1, ""
+    while i < n:
+        c = text[i]
+        if c == "\n":
+            line += 1
+            i += 1
+            continue
+        if text.startswith("//", i):
+            j = text.find("\n", i)
+            j = n if j < 0 else j
+            out.append((line, text[i + 2 : j]))
+            i = j
+            continue
+        if text.startswith("/*", i):
+            j = text.find("*/", i + 2)
+            j = n if j < 0 else j
+            chunk = text[i + 2 : j]
+            out += split_chunk(line, chunk)
+            line += chunk.count("\n")
+            i = j + 2
+            continue
+        if c in "\"'`":
+            j = i + 1
+            while j < n and text[j] != c and not (text[j] == "\n" and c != "`"):
+                j += 2 if text[j] == "\\" else 1
+            chunk = text[i + 1 : j]
+            out += split_chunk(line, chunk)
+            line += chunk.count("\n")
+            i = j + 1
+            prev = c
+            continue
+        if c == "/" and (prev == "" or prev in REGEX_BEFORE):
+            j, in_class = i + 1, False
+            while j < n and text[j] != "\n":
+                if text[j] == "\\":
+                    j += 2
+                    continue
+                if text[j] == "[":
+                    in_class = True
+                elif text[j] == "]":
+                    in_class = False
+                elif text[j] == "/" and not in_class:
+                    break
+                j += 1
+            i = j + 1
+            prev = "/"
+            continue
+        if not c.isspace():
+            prev = c
+        i += 1
+    return out
+
+
+def sh_segments(text):
+    """(linha, trecho) dos comentários e strings de um script de shell."""
+    out = []
+    for number, raw in enumerate(text.split("\n"), 1):
+        i, quote, start = 0, None, 0
+        while i < len(raw):
+            c = raw[i]
+            if quote:
+                if c == "\\" and quote == '"':
+                    i += 2
+                    continue
+                if c == quote:
+                    out.append((number, raw[start:i]))
+                    quote = None
+            elif c in "'\"":
+                quote, start = c, i + 1
+            elif c == "#" and (i == 0 or raw[i - 1] in " \t;"):
+                out.append((number, raw[i + 1 :]))
+                break
+            i += 1
+        if quote:
+            out.append((number, raw[start:]))
+    return out
+
+
+def py_segments(text):
+    """(linha, trecho) dos comentários e strings de um .py (pelo tokenize)."""
+    kinds = {tokenize.COMMENT, tokenize.STRING}
+    if hasattr(tokenize, "FSTRING_MIDDLE"):
+        kinds.add(tokenize.FSTRING_MIDDLE)
+    out = []
+    try:
+        for tok in tokenize.generate_tokens(io.StringIO(text).readline):
+            if tok.type in kinds:
+                out += split_chunk(tok.start[0], tok.string)
+    except (tokenize.TokenError, SyntaxError):
+        pass
+    return out
+
+
+FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
+INLINE_CODE = re.compile(r"(`+)(.+?)\1")
+LINK_TARGET = re.compile(r"\]\([^)]*\)")
+URL = re.compile(r"<?https?://\S+")
+
+
+def md_segments(text):
+    """(linha, texto) de um .md fora dos blocos de código, sem código inline,
+    destinos de link e URLs."""
+    out, fence = [], None
+    for number, line in enumerate(text.split("\n"), 1):
+        match = FENCE.match(line)
+        if fence:
+            if match and match.group(1)[0] == fence[0] and len(match.group(1)) >= len(fence) and not line.strip()[len(match.group(1)) :]:
+                fence = None
+            continue
+        if match:
+            fence = match.group(1)
+            continue
+        clean = URL.sub(" ", LINK_TARGET.sub("] ", INLINE_CODE.sub(" ", line)))
+        if clean.strip():
+            out.append((number, clean))
+    return out
+
+
+NO_ACCENT = "não existe sem acento em português"
+
+# Palavra sem acento → por que ela é sempre erro nos textos do Lucerna
+# (comentários, strings e documentação; identificadores e caminhos ficam de
+# fora pela fronteira de palavra, e siglas em maiúsculas não contam).
+WORDS = {
+    "nao": NO_ACCENT,
+    "voce": NO_ACCENT,
+    "voces": NO_ACCENT,
+    "tambem": NO_ACCENT,
+    "entao": NO_ACCENT,
+    "sao": NO_ACCENT,
+    "estao": NO_ACCENT,
+    "ate": "em português é sempre 'até'; o 'ate' do inglês não aparece nos textos",
+    "ja": "em português é sempre 'já'; códigos como ja-JP ficam de fora pelo hífen",
+    "so": "em português é 'só'; o 'so' do inglês não aparece nos textos, e 'SO' maiúsculo fica de fora",
+    "configuracao": NO_ACCENT,
+    "configuracoes": NO_ACCENT,
+    "funcao": NO_ACCENT,
+    "funcoes": NO_ACCENT,
+    "padrao": NO_ACCENT,
+    "padroes": NO_ACCENT,
+    "opcao": NO_ACCENT,
+    "opcoes": NO_ACCENT,
+    "informacao": NO_ACCENT,
+    "informacoes": NO_ACCENT,
+    "sessao": NO_ACCENT,
+    "versao": NO_ACCENT,
+    "botao": NO_ACCENT,
+    "botoes": NO_ACCENT,
+    "conexao": NO_ACCENT,
+    "acao": NO_ACCENT,
+    "acoes": NO_ACCENT,
+    "animacao": NO_ACCENT,
+    "animacoes": NO_ACCENT,
+    "transparencia": NO_ACCENT,
+    "preferencias": NO_ACCENT,
+    "calendario": NO_ACCENT,
+    "codigo": NO_ACCENT,
+    "numero": NO_ACCENT,
+    "pagina": NO_ACCENT,
+    "proximo": NO_ACCENT,
+    "proxima": NO_ACCENT,
+    "ultimo": NO_ACCENT,
+    "ultima": NO_ACCENT,
+    "possivel": NO_ACCENT,
+    "usuario": NO_ACCENT,
+    "usuarios": NO_ACCENT,
+    "necessario": NO_ACCENT,
+    "midia": NO_ACCENT,
+    "musica": NO_ACCENT,
+    "musicas": NO_ACCENT,
+    "saida": NO_ACCENT,
+    "silencio": NO_ACCENT,
+    "memoria": NO_ACCENT,
+}
+
+WORD = re.compile(r"(?<![\w./\\-])(" + "|".join(sorted(WORDS, key=len, reverse=True)) + r")(?![\w./\\-])", re.I)
+
+# Arquivos que contêm a lista (ou exemplos dela) de propósito.
+SELF = {"ci/rules.py", "ci/tests/test_rules.py"}
+
+SEGMENTS = {".qml": js_segments, ".js": js_segments, ".sh": sh_segments, ".py": py_segments, ".md": md_segments}
+
+
+def check_accents(root):
+    """Palavras comuns sem acento em strings e comentários (.qml, .js, .sh,
+    .py) e no texto dos .md, fora de código."""
+    out = []
+    for rel in repo_files(root):
+        where = rel.as_posix()
+        extract = SEGMENTS.get(rel.suffix)
+        if not extract or where in SELF:
+            continue
+        for number, segment in extract((root / rel).read_text(encoding="utf-8")):
+            for match in WORD.finditer(segment):
+                word = match.group(1)
+                lower = word.lower()
+                if word not in (lower, lower.capitalize()):
+                    continue
+                out.append((where, number, f'"{word}" sem acento ({WORDS[lower]})'))
+    return out
+
+
 RULES = {
     "camadas": check_layers,
     "espaços": check_whitespace,
+    "acentos": check_accents,
 }
 
 

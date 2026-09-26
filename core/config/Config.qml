@@ -268,7 +268,7 @@ Singleton {
             // Botões e teclas mapeados para ações:
             // [{ trigger, mods, label, action: { id, keys?, command? } }].
             property var inputBinds: []
-            // Atalhos do shell que o usuário mudou: { acao: [{ mods, trigger }] }
+            // Atalhos do shell que o usuário mudou: { <id da ação>: [{ mods, trigger }] }
             // (os padrões estão em core/input/ShellShortcuts).
             property var shellShortcuts: ({})
             // Histórico da área de transferência: guardar, quantos, manter ao

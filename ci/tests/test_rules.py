@@ -95,5 +95,56 @@ class WhitespaceTest(RepoCase):
         self.assertEqual([(p, n) for p, n, _ in rules.check_whitespace(root)], [("Lucerna — Pendências.md", 1)])
 
 
+class SegmentsTest(unittest.TestCase):
+    def test_js_comentarios_e_strings(self):
+        text = 'Item {\n    // comentário nao\n    property string a: "texto"\n    x: /"/g.test(b) ? `um\ndois` : 0\n}\n'
+        segs = rules.js_segments(text)
+        self.assertIn((2, " comentário nao"), segs)
+        self.assertIn((3, "texto"), segs)
+        self.assertIn((4, "um"), segs)
+        self.assertIn((5, "dois"), segs)
+        self.assertFalse(any('"' in s for _, s in segs), "a regex /\"/g não abre string")
+
+    def test_sh_comentarios_e_strings_sem_confundir_cerquilha(self):
+        segs = rules.sh_segments('echo "${#x} $#" # fim\nn=${v#pre}\n')
+        self.assertEqual(segs, [(1, "${#x} $#"), (1, " fim")])
+
+    def test_py_comentarios_e_strings(self):
+        segs = rules.py_segments('x = "texto"  # nota\n')
+        self.assertEqual([s for _, s in segs], ['"texto"', "# nota"])
+
+    def test_md_pula_codigo_e_links(self):
+        text = "Texto `nao` e [link](nao/so.md)\n````\n```\nnao\n```\n````\nfim https://x.so/ja\n"
+        segs = rules.md_segments(text)
+        self.assertEqual([n for n, _ in segs], [1, 7])
+        self.assertNotIn("nao", " ".join(s for _, s in segs))
+
+
+class AccentsTest(RepoCase):
+    def test_acha_palavras_sem_acento(self):
+        root = self.repo({
+            "core/a.qml": 'Item {\n    // Nao faz nada\n    property string t: "so isso"\n}\n',
+            "dev/b.sh": "# configuracao do ambiente\n",
+            "c.py": "# funcao\n",
+            "d.md": "Voce ja viu?\n",
+        })
+        found = {(p, n, m.split('"')[1]) for p, n, m in rules.check_accents(root)}
+        self.assertEqual(found, {
+            ("core/a.qml", 2, "Nao"),
+            ("core/a.qml", 3, "so"),
+            ("dev/b.sh", 1, "configuracao"),
+            ("c.py", 1, "funcao"),
+            ("d.md", 1, "Voce"),
+            ("d.md", 1, "ja"),
+        })
+
+    def test_ignora_identificadores_caminhos_e_maiusculas(self):
+        root = self.repo({
+            "core/a.qml": 'Item {\n    property bool nao_existe: true\n    source: "lib/x.so"\n    // O SO do usuário\n}\n',
+            "d.md": "Use `nao` e ja-JP\n",
+        })
+        self.assertEqual(rules.check_accents(root), [])
+
+
 if __name__ == "__main__":
     unittest.main()
