@@ -3,6 +3,31 @@
 function run(t) {
     const S = t.SystemStats;
 
+    // Nenhuma das funções abaixo é pura: parseStat grava lastCpu/cpuHistory/
+    // cpuUsage; parseMeminfo grava memTotal/memUsed/swapTotal/swapUsed;
+    // parseNetdev grava rxTotal/txTotal/lastNet; parseCpuinfo grava cpuModel/
+    // cpuThreads; pickTempSensor grava tempPath; parseGpus grava gpus; parseDf
+    // grava disks. Guarda o estado de antes para restaurar no fim (a suíte
+    // roda no mesmo processo que as seguintes, e o singleton pode já ter
+    // valores reais lidos pelo FileView antes deste teste rodar).
+    const original = {
+        lastCpu: S.lastCpu,
+        cpuHistory: S.cpuHistory,
+        cpuUsage: S.cpuUsage,
+        memTotal: S.memTotal,
+        memUsed: S.memUsed,
+        swapTotal: S.swapTotal,
+        swapUsed: S.swapUsed,
+        rxTotal: S.rxTotal,
+        txTotal: S.txTotal,
+        lastNet: S.lastNet,
+        cpuModel: S.cpuModel,
+        cpuThreads: S.cpuThreads,
+        tempPath: S.tempPath,
+        gpus: S.gpus,
+        disks: S.disks
+    };
+
     t.test("systemstats: histórico limitado", () => {
         t.eq(S.push([1, 2], 3), [1, 2, 3]);
         const full = Array.from({ length: 30 }, (_, i) => i);
@@ -54,7 +79,6 @@ function run(t) {
         t.eq(S.tempPath, "", "sem sensor de CPU conhecido");
         S.pickTempSensor("/inexistente/hwmon0 acpitz\n/inexistente/hwmon1 coretemp\n");
         t.eq(S.tempPath, "/inexistente/hwmon1/temp1_input", "coretemp antes do acpitz");
-        S.tempPath = "";
     });
 
     t.test("systemstats: GPUs do gpu-status.sh", () => {
@@ -62,11 +86,31 @@ function run(t) {
         const g = S.gpus;
         t.eq([g[0].name, g[0].usage, g[0].temp, g[0].freq, g[0].maxFreq, g[0].state], ["NVIDIA", 0.35, 48, 1200, 2100, "active"]);
         t.check(g[1].name === "Intel (integrada)" && isNaN(g[1].usage) && isNaN(g[1].temp), JSON.stringify(g[1]));
-        S.gpus = [];
     });
 
     t.test("systemstats: discos do df, sem repetir", () => {
         S.parseDf("Mounted on     1B-blocks      Used\n/ 1000 400\n/home 2000 500\n/ 1000 400\n");
         t.eq(S.disks, [{ mount: "/", size: 1000, used: 400 }, { mount: "/home", size: 2000, used: 500 }]);
+    });
+
+    S.lastCpu = original.lastCpu;
+    S.cpuHistory = original.cpuHistory;
+    S.cpuUsage = original.cpuUsage;
+    S.memTotal = original.memTotal;
+    S.memUsed = original.memUsed;
+    S.swapTotal = original.swapTotal;
+    S.swapUsed = original.swapUsed;
+    S.rxTotal = original.rxTotal;
+    S.txTotal = original.txTotal;
+    S.lastNet = original.lastNet;
+    S.cpuModel = original.cpuModel;
+    S.cpuThreads = original.cpuThreads;
+    S.tempPath = original.tempPath;
+    S.gpus = original.gpus;
+    S.disks = original.disks;
+
+    t.test("systemstats: estado original restaurado", () => {
+        t.eq([S.lastCpu, S.cpuHistory, S.cpuUsage, S.memTotal, S.memUsed, S.swapTotal, S.swapUsed, S.rxTotal, S.txTotal, S.lastNet, S.cpuModel, S.cpuThreads, S.tempPath, S.gpus, S.disks],
+             [original.lastCpu, original.cpuHistory, original.cpuUsage, original.memTotal, original.memUsed, original.swapTotal, original.swapUsed, original.rxTotal, original.txTotal, original.lastNet, original.cpuModel, original.cpuThreads, original.tempPath, original.gpus, original.disks]);
     });
 }
