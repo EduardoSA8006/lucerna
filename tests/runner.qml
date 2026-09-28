@@ -21,8 +21,11 @@ import qs.services
 import "format.test.js" as FormatTest
 import "inputactions.test.js" as InputActionsTest
 import "nightschedule.test.js" as NightScheduleTest
+import "panels.test.js" as PanelsTest
+import "searchengines.test.js" as SearchEnginesTest
 import "shellshortcuts.test.js" as ShellShortcutsTest
 import "sun.test.js" as SunTest
+import "theme.test.js" as ThemeTest
 
 ShellRoot {
     id: root
@@ -39,7 +42,10 @@ ShellRoot {
         ["format", FormatTest],
         ["shellshortcuts", ShellShortcutsTest],
         ["inputactions", InputActionsTest],
-        ["nightschedule", NightScheduleTest]
+        ["nightschedule", NightScheduleTest],
+        ["theme", ThemeTest],
+        ["panels", PanelsTest],
+        ["searchengines", SearchEnginesTest]
     ]
 
     function fail(message: string): void {
