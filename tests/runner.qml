@@ -22,6 +22,7 @@ import "brightness.test.js" as BrightnessTest
 import "capture.test.js" as CaptureTest
 import "clipboard.test.js" as ClipboardTest
 import "format.test.js" as FormatTest
+import "input.test.js" as InputTest
 import "inputactions.test.js" as InputActionsTest
 import "monitors.test.js" as MonitorsTest
 import "nightschedule.test.js" as NightScheduleTest
@@ -53,7 +54,8 @@ ShellRoot {
         ["clipboard", ClipboardTest],
         ["capture", CaptureTest],
         ["brightness", BrightnessTest],
-        ["monitors", MonitorsTest]
+        ["monitors", MonitorsTest],
+        ["input", InputTest]
     ]
 
     function fail(message: string): void {
