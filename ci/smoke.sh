@@ -9,8 +9,13 @@
 # Reprova com: função fora do padrão na instrumentação --all (arquivo:linha),
 # sway ou shell que não sobe (sem "Configuration Loaded" no log), `ipc call`
 # com código diferente de 0, `panels get` diferente do esperado, painel que não
-# fecha, shell que cai, aviso ou erro fora do ci/tolerated.txt e a unidade da
-# cópia separada que falha.
+# fecha, shell que cai (inclusive no repouso de 5 s depois do último passo),
+# shell que não encerra limpo com `qs kill` (código 0 em 10 s), aviso ou erro
+# fora do ci/tolerated.txt no log final (conferido depois do encerramento) e a
+# unidade da cópia separada que falha.
+#
+# Só encerra os próprios processos (o grupo do sway e o do shell, por PID),
+# nunca por nome: rodada fora do container, não derruba a sessão do usuário.
 #
 # O que a fumaça não confere por IPC: a aba do painel superior, a seção do
 # painel lateral e o tópico das configurações que ficaram abertos. Os IPCs
@@ -30,7 +35,12 @@ out=${CI_OUT:-$repo/ci-out}
 mkdir -p "$out/shots"
 out=$(cd "$out" && pwd)
 work=$(mktemp -d)
-pids=()
+# O sway e o shell rodam cada um no próprio grupo de processos (setsid), e só
+# esses grupos são encerrados: nada é morto por nome, para a fumaça rodada fora
+# do container nunca derrubar o shell ou o sway de verdade do usuário.
+sway_pid=""
+qs_pid=""
+shell_pid=""
 logs_checked=0
 # clean_log: o log do shell (a saída crua do qs) sem cores, em $CI_OUT.
 clean_log() {
@@ -38,16 +48,23 @@ clean_log() {
         sed 's/\x1b\[[0-9;]*m//g' "$work/raw.log" > "$out/shell.log"
     fi
 }
+# stop_group <pid>: encerra o grupo de processos que <pid> lidera (TERM; KILL
+# se sobrar alguém depois de 5 s) e o recolhe.
+stop_group() {
+    local pid=$1
+    [ -n "$pid" ] || return 0
+    kill -TERM -- "-$pid" 2> /dev/null || true
+    for _ in $(seq 20); do
+        kill -0 -- "-$pid" 2> /dev/null || break
+        sleep 0.25
+    done
+    kill -KILL -- "-$pid" 2> /dev/null || true
+    wait "$pid" 2> /dev/null || true
+}
 # shellcheck disable=SC2329 # chamada pelo trap
 cleanup() {
-    local p
-    pkill -TERM -u "$(id -u)" -f "qs -c lucerna" 2> /dev/null || true
-    for p in "${pids[@]}"; do
-        kill "$p" 2> /dev/null || true
-    done
-    for p in "${pids[@]}"; do
-        wait "$p" 2> /dev/null || true
-    done
+    stop_group "$qs_pid"
+    stop_group "$sway_pid"
     # O que o shell escreveu até o fim (inclusive depois de uma falha) vai para
     # o artefato.
     clean_log || true
@@ -96,10 +113,11 @@ python3 "$repo/ci/coverage.py" instrument "$cfg" --all \
 # abrir (o nome muda com o que já existe no XDG_RUNTIME_DIR), detectado, não
 # fixo.
 printf '%s\n' 'output HEADLESS-1 resolution 1920x1080' 'xwayland disable' 'swaybg_command -' > "$work/sway.cfg"
+# Num script, o filho em segundo plano não lidera grupo: o setsid cria a sessão
+# sem outro fork, e o PID do sway é o do grupo.
 WLR_BACKENDS=headless WLR_RENDERER=pixman WLR_LIBINPUT_NO_DEVICES=1 \
-    sway -c "$work/sway.cfg" > "$out/sway.log" 2>&1 &
+    setsid sway -c "$work/sway.cfg" > "$out/sway.log" 2>&1 &
 sway_pid=$!
-pids+=("$sway_pid")
 socket=""
 for _ in $(seq 100); do
     socket=$(find "$XDG_RUNTIME_DIR" -maxdepth 1 -type s -name 'wayland-*' -printf '%f\n' | sort | head -n 1)
@@ -111,14 +129,18 @@ done
 row "sway headless" "um socket wayland-*" "$socket"
 export WAYLAND_DISPLAY=$socket QT_QPA_PLATFORM=wayland QT_QUICK_BACKEND=software
 
-dbus-run-session -- qs -c lucerna > "$work/raw.log" 2>&1 &
+# O shell grava o próprio PID (o bash do meio dá lugar ao qs com exec): é por
+# ele que a fumaça confere que o shell continua vivo e o encerra no fim.
+# shellcheck disable=SC2016 # o $$ e o $1 expandem no bash de dentro
+setsid dbus-run-session -- bash -c 'echo "$$" > "$1" && exec qs -c lucerna' _ "$work/qs.pid" > "$work/raw.log" 2>&1 &
 qs_pid=$!
-pids+=("$qs_pid")
 for _ in $(seq 120); do
+    [ -z "$shell_pid" ] && [ -s "$work/qs.pid" ] && shell_pid=$(cat "$work/qs.pid")
     grep -q "Configuration Loaded" "$work/raw.log" && break
     kill -0 "$qs_pid" 2> /dev/null || break
     sleep 0.5
 done
+[ -n "$shell_pid" ] || shell_pid=$(cat "$work/qs.pid" 2> /dev/null || true)
 clean_log
 if ! grep -q "Configuration Loaded" "$out/shell.log"; then
     row "shell carregado" "Configuration Loaded" "(não veio)"
@@ -126,6 +148,10 @@ if ! grep -q "Configuration Loaded" "$out/shell.log"; then
 fi
 row "shell carregado" "Configuration Loaded" "Configuration Loaded"
 
+[ -n "$shell_pid" ] || fail "não achei o PID do shell ($work/qs.pid vazio)"
+
+# alive: o shell (o próprio qs, não o dbus-run-session em volta) está rodando.
+alive() { kill -0 "$shell_pid" 2> /dev/null; }
 ipc() { qs -c lucerna ipc call "$@"; }
 n=0
 grim "$out/shots/00-inicio.png" || fail "o grim não capturou a tela inicial"
@@ -141,7 +167,7 @@ step() {
     name=$(printf '%02d-%s' "$n" "$(printf '%s-' "$@" | tr -cd 'a-z0-9-' | sed 's/-*$//')")
     ipc "$@" > /dev/null || fail "ipc call $* saiu com código $?"
     sleep 1
-    kill -0 "$qs_pid" 2> /dev/null || fail "o shell caiu depois de: ipc call $*"
+    alive || fail "o shell caiu depois de: ipc call $*"
     got=$(ipc panels get) || fail "ipc call panels get saiu com código $?"
     row "ipc call $*" "$expected" "${got:-(nenhum)}"
     [ "$got" = "$expected" ] || fail "depois de \"ipc call $*\", o panels get trouxe \"$got\"; o esperado era \"$expected\""
@@ -169,10 +195,33 @@ step clipboard clipboard open
 step capture capture open shot
 step overview overview toggle
 
+# Repouso: o shell fica parado alguns segundos depois do último passo, para o
+# que chega tarde (um Timer, uma resposta assíncrona, o efeito do último
+# panels close) cair no log antes do veredito.
+sleep 5
+alive || fail "o shell caiu no repouso depois do último passo"
 ipc cov dump > "$work/hits-smoke.txt" || fail "não consegui ler a cobertura (ipc call cov dump saiu com código $?)"
-kill -0 "$qs_pid" 2> /dev/null || fail "o shell caiu no fim da fumaça"
-row "shell vivo no fim" "sim" "sim"
+alive || fail "o shell caiu no fim da fumaça"
+row "shell vivo depois de 5 s de repouso" "sim" "sim"
+
+# Encerra o shell antes do veredito, pelo PID dele (qs kill --pid, a saída
+# limpa do Quickshell), e espera o fim: o log conferido é o final, com o
+# encerramento, e é o mesmo que vai para o artefato.
+qs kill --pid "$shell_pid" > "$work/kill.log" 2>&1 || true
+for _ in $(seq 40); do
+    alive || break
+    sleep 0.25
+done
+if alive; then
+    row "shell encerrado (qs kill)" "em 10 s, código 0" "(não encerrou)"
+    fail "o shell não encerrou em 10 s depois do qs kill --pid $shell_pid"
+fi
+code=0
+wait "$qs_pid" || code=$?
+qs_pid=""
 clean_log
+row "shell encerrado (qs kill)" "em 10 s, código 0" "código $code"
+[ "$code" -eq 0 ] || fail "o shell encerrou com código $code depois do qs kill (veja shell.log)"
 
 # A unidade numa cópia separada (nunca na pasta de config do shell que está
 # rodando), instrumentada igual (--all), para a cobertura informativa juntar as
