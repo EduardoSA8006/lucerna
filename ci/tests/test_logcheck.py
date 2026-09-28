@@ -1,5 +1,6 @@
 """Testes do ci/logcheck.py, inclusive contra o ci/tolerated.txt de verdade."""
 
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -52,6 +53,23 @@ class ProblemsTest(unittest.TestCase):
         log = "  INFO: Configuration Loaded\n\x1b[33m  WARN\x1b[0m x: algo\n DEBUG y\n"
         self.assertEqual(logcheck.problems(log, []), [(2, "WARN x: algo")])
 
+    def test_erro_sem_nivel_e_pego_por_xyzerror(self):
+        # Sem WARN/ERROR nenhum: só o "ReferenceError:" já classifica a linha.
+        log = "algo: ReferenceError: foo is not defined\n"
+        self.assertEqual(logcheck.problems(log, []), [(1, "algo: ReferenceError: foo is not defined")])
+
+    def test_erro_sem_nivel_e_pego_por_referencia_qml(self):
+        # Sem WARN/ERROR nem "Error:": só a referência a arquivo.qml:NN classifica.
+        log = "INFO qml: @X.qml:42: parou de responder\n"
+        self.assertEqual(logcheck.problems(log, []), [(1, "INFO qml: @X.qml:42: parou de responder")])
+
+    def test_padrao_tolerado_nao_bate_so_parte_da_linha(self):
+        # Um padrão que bateria com um pedaço da linha (busca livre) não deve
+        # tolerar quando a linha inteira é outra coisa: fullmatch, não search.
+        log = "WARN: prefixo $HYPRLAND_INSTANCE_SIGNATURE is unset. Cannot connect to hyprland. sufixo\n"
+        patterns = [re.compile(r"\$HYPRLAND_INSTANCE_SIGNATURE is unset")]
+        self.assertEqual(logcheck.problems(log, patterns), [(1, log.strip())])
+
 
 class ToleratedFileTest(unittest.TestCase):
     def setUp(self):
@@ -65,6 +83,19 @@ class ToleratedFileTest(unittest.TestCase):
         log = "\n".join(ENVIRONMENT + REAL_ERRORS)
         found = [text for _, text in logcheck.problems(log, self.patterns)]
         self.assertEqual(found, [line.strip() for line in REAL_ERRORS])
+
+    def test_aviso_tolerado_com_typeerror_emendado_reprova(self):
+        # A linha inteira não é o aviso de ambiente puro: tem um TypeError
+        # emendado no meio. Um padrão largo (busca livre) engoliria; o
+        # fullmatch + NEVER_TOLERATE têm de reprovar.
+        log = "WARN scene: @X.qml[1:1]: TypeError: foo $HYPRLAND_INSTANCE_SIGNATURE is unset"
+        found = [text for _, text in logcheck.problems(log, self.patterns)]
+        self.assertEqual(found, [log.strip()])
+
+    def test_mesa_com_referenceerror_emendado_reprova(self):
+        log = "MESA: error: something unrelated ReferenceError"
+        found = [text for _, text in logcheck.problems(log, self.patterns)]
+        self.assertEqual(found, [log.strip()])
 
 
 if __name__ == "__main__":

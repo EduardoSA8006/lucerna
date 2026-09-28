@@ -1,33 +1,39 @@
 # Avisos de ambiente que a fumaça tolera (ci/smoke.sh, pelo ci/logcheck.py).
 # Cada bloco com padrões começa com o motivo em comentário; os padrões são
-# expressões regulares do Python, procuradas em cada linha de aviso ou erro dos
-# logs do shell e do sway. Só entra aviso de ambiente medido no CI: erro do
-# shell se corrige, não se tolera.
+# expressões regulares do Python, e cada um precisa bater com a LINHA INTEIRA
+# (ci/logcheck.py usa fullmatch), inclusive o nível (WARN/ERROR/...) e o texto
+# exato medido na sonda — nada de padrão parcial, para não engolir um erro real
+# emendado na mesma linha de um aviso de ambiente. Só entra aviso de ambiente
+# medido no CI: erro do shell se corrige, não se tolera.
 
 # Sem Hyprland no CI (ele não sobe sem GPU; a fumaça roda no sway headless):
 # o Quickshell avisa que não acha a instância.
-\$HYPRLAND_INSTANCE_SIGNATURE is unset
+^WARN: \$HYPRLAND_INSTANCE_SIGNATURE is unset\. Cannot connect to hyprland\.$
 
 # O sway não tem o protocolo de foco do Hyprland, que o Panels usa para fechar
 # os painéis com um clique fora. O aviso do Quickshell vem em duas linhas.
-compositor does not support the hyprland_focus_grab_v1 protocol
-Learn why \$XDG_CURRENT_DESKTOP sucks
+^WARN: The active compositor does not support the hyprland_focus_grab_v1 protocol\. HyprlandFocusGrab will not work\.$
+^WARN: \*\* Learn why \$XDG_CURRENT_DESKTOP sucks and download a better compositor today at https://hyprland\.org$
 
 # Sem D-Bus do sistema no container: rede, bateria e perfis de energia ficam
 # de fora (o D-Bus de sessão do dbus-run-session não tem esses serviços).
-quickshell\.network\.networkmanager: Could not connect to DBus\.
-quickshell\.service\.upower: Could not connect to DBus\.
-quickshell\.service\.powerprofiles: Could not connect to DBus\.
+^WARN quickshell\.network\.networkmanager: Could not connect to DBus\. NetworkManager backend will not work\.$
+^WARN quickshell\.service\.upower: Could not connect to DBus\. UPower service will not work\.$
+^WARN quickshell\.service\.powerprofiles: Could not connect to DBus\. PowerProfiles services will not work\.$
 # Consequência do aviso do NetworkManager: nenhum backend de rede.
-quickshell\.network: Network will not work\. Could not find an available backend\.
+^ERROR quickshell\.network: Network will not work\. Could not find an available backend\.$
 
-# Sem PipeWire no container: volume e mídia ficam de fora.
-quickshell\.service\.pipewire\.loop: Failed to connect pipewire context\.
+# Sem PipeWire no container: volume e mídia ficam de fora (o número do errno
+# pode variar conforme o socket que falta).
+^ERROR quickshell\.service\.pipewire\.loop: Failed to connect pipewire context\. Errno: \d+$
 
 # Sem GPU: o Mesa avisa ao procurar um driver; o Qt desenha em software
-# (QT_QUICK_BACKEND=software) e o sway com o pixman.
-^(MESA|ZINK)\b
+# (QT_QUICK_BACKEND=software) e o sway com o pixman. Linha literal medida na
+# sonda; a Tarefa 18 confirma contra o log real do sway headless e ajusta se o
+# Mesa emitir outras linhas.
+^MESA: error: ZINK: failed to choose pdev$
 
 # O sway tenta abrir o swaybg para o fundo; ele não está instalado e não faz
-# falta (o papel de parede é do próprio shell).
-(?i)failed to execute .?swaybg
+# falta (o papel de parede é do próprio shell). O timestamp e o número da
+# linha do sway/main.c variam entre execuções.
+^[\d:.]+ \[ERROR\] \[sway/main\.c:\d+\] failed to execute 'swaybg': No such file or directory$
