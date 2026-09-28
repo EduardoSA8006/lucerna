@@ -20,8 +20,15 @@ ENVIRONMENT = [
     " ERROR quickshell.service.pipewire.loop: Failed to connect pipewire context. Errno: 112",
     "  WARN: The active compositor does not support the hyprland_focus_grab_v1 protocol. HyprlandFocusGrab will not work.",
     "  WARN: ** Learn why $XDG_CURRENT_DESKTOP sucks and download a better compositor today at https://hyprland.org",
-    "MESA: error: ZINK: failed to choose pdev",
-    "00:00:00.120 [ERROR] [sway/main.c:120] failed to execute 'swaybg': No such file or directory",
+    '  WARN quickshell.hyprland.ipc: Error making request: QLocalSocket::ServerNotFoundError request: "j/clients"',
+    '  WARN: Process failed to start, likely because the binary could not be found. Command: QList("hyprctl", "version", "-j")',
+    '  WARN: Process failed to start, likely because the binary could not be found. Command: QList("hyprctl", "monitors", "all", "-j")',
+    '  WARN: Process failed to start, likely because the binary could not be found. Command: QList("hyprctl", "devices", "-j")',
+    (
+        "  WARN: Process failed to start, likely because the binary could not be found. "
+        'Command: QList("brightnessctl", "-m", "-c", "backlight", "info")'
+    ),
+    "  WARN quickshell.bluetooth: Could not connect to DBus. Bluetooth integration is not available.",
 ]
 
 # Erros do shell de verdade: nunca podem passar.
@@ -63,6 +70,13 @@ class ProblemsTest(unittest.TestCase):
         log = "INFO qml: @X.qml:42: parou de responder\n"
         self.assertEqual(logcheck.problems(log, []), [(1, "INFO qml: @X.qml:42: parou de responder")])
 
+    def test_processo_ausente_com_outro_comando_reprova(self):
+        # O tolerado é o comando exato medido: outro programa que falte (ou o
+        # hyprctl com outros argumentos) é novidade e precisa ser visto.
+        log = 'WARN: Process failed to start, likely because the binary could not be found. Command: QList("rm", "-rf")'
+        patterns, _ = logcheck.load_tolerated(TOLERATED.read_text(encoding="utf-8"))
+        self.assertEqual(logcheck.problems(log, patterns), [(1, log)])
+
     def test_padrao_tolerado_nao_bate_so_parte_da_linha(self):
         # Um padrão que bateria com um pedaço da linha (busca livre) não deve
         # tolerar quando a linha inteira é outra coisa: fullmatch, não search.
@@ -92,8 +106,11 @@ class ToleratedFileTest(unittest.TestCase):
         found = [text for _, text in logcheck.problems(log, self.patterns)]
         self.assertEqual(found, [log.strip()])
 
-    def test_mesa_com_referenceerror_emendado_reprova(self):
-        log = "MESA: error: something unrelated ReferenceError"
+    def test_processo_ausente_com_referenceerror_emendado_reprova(self):
+        log = (
+            "WARN: Process failed to start, likely because the binary could not be found. "
+            'Command: QList("hyprctl", "version", "-j") ReferenceError: x is not defined'
+        )
         found = [text for _, text in logcheck.problems(log, self.patterns)]
         self.assertEqual(found, [log.strip()])
 
