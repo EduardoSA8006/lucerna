@@ -18,8 +18,12 @@ import qs.core.panels
 import qs.core.theme
 import qs.core.time
 import qs.services
+import "brightness.test.js" as BrightnessTest
+import "capture.test.js" as CaptureTest
+import "clipboard.test.js" as ClipboardTest
 import "format.test.js" as FormatTest
 import "inputactions.test.js" as InputActionsTest
+import "monitors.test.js" as MonitorsTest
 import "nightschedule.test.js" as NightScheduleTest
 import "panels.test.js" as PanelsTest
 import "searchengines.test.js" as SearchEnginesTest
@@ -45,7 +49,11 @@ ShellRoot {
         ["nightschedule", NightScheduleTest],
         ["theme", ThemeTest],
         ["panels", PanelsTest],
-        ["searchengines", SearchEnginesTest]
+        ["searchengines", SearchEnginesTest],
+        ["clipboard", ClipboardTest],
+        ["capture", CaptureTest],
+        ["brightness", BrightnessTest],
+        ["monitors", MonitorsTest]
     ]
 
     function fail(message: string): void {
