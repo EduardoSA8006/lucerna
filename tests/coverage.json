@@ -1,0 +1,37 @@
+{
+    "escopo": "core/",
+    "fora": {
+        "core/widgets/": "interface: componentes visuais, exercitados pela fumaça",
+        "core/config/": "dado: só as preferências persistidas, sem lógica"
+    },
+    "serviços": {
+        "services/AppInfo.qml": ["info", "decodeEntities"],
+        "services/Audio.qml": ["nodeName"],
+        "services/Bluetooth.qml": ["isBusy"],
+        "services/Brightness.qml": ["parse"],
+        "services/Capture.qml": ["geometryArg"],
+        "services/Clipboard.qml": ["decode"],
+        "services/Input.qml": ["option", "luaString", "luaValue", "nest", "unbindLua", "bindLua", "parseKeymap", "keyBlock", "patchKeymap"],
+        "services/Lyrics.qml": ["parse", "apply", "lineAt"],
+        "services/Media.qml": ["select"],
+        "services/Monitors.qml": ["keyOf", "parseMode", "normalize", "logicalSize", "luaFor", "lua"],
+        "services/Network.qml": ["isSecure", "needsPassword"],
+        "services/Notifications.qml": ["hidePopup", "clearPopups", "timeoutFor", "timeOf"],
+        "services/Session.qml": ["lock", "unlock"],
+        "services/SystemStats.qml": ["push", "parseStat", "parseMeminfo", "isPhysical", "parseNetdev", "parseCpuinfo", "pickTempSensor", "parseGpus", "parseDf"],
+        "services/VideoWallpapers.qml": ["isVideo", "targetFor", "keyOf", "parseKey", "isQueued", "isPreparing", "forget"],
+        "services/Weather.qml": ["isStale"]
+    },
+    "exceções": {
+        "core/panels/Panels.qml:Connections.onScreensChanged": "sinal do Quickshell ao mudar as telas; só chama disturb(), que é testada",
+        "core/panels/Panels.qml:Connections.onRawEvent": "evento do Hyprland, que não roda no CI; só chama disturb()",
+        "core/panels/Panels.qml:IpcHandler.open": "IPC panels open: repassa a open(), testada; exercitado pela fumaça",
+        "core/panels/Panels.qml:IpcHandler.close": "IPC panels close: repassa a close(), testada; exercitado pela fumaça",
+        "core/panels/Panels.qml:IpcHandler.dismiss": "IPC panels dismiss: repassa a dismiss(), testada",
+        "core/panels/Panels.qml:IpcHandler.toggle": "IPC panels toggle: repassa a toggle(), testada",
+        "core/panels/Panels.qml:IpcHandler.get": "IPC panels get: exercitado pela fumaça a cada passo",
+        "core/theme/ThemeManager.qml:IpcHandler.set": "IPC theme set: repassa a apply(), testada",
+        "core/theme/ThemeManager.qml:IpcHandler.get": "IPC theme get: só devolve current",
+        "core/theme/ThemeManager.qml:IpcHandler.list": "IPC theme list: só junta os ids de themes"
+    }
+}
