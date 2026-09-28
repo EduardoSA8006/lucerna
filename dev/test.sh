@@ -18,13 +18,48 @@
 # LUCERNA_TEST_GPU="/dev/dri/renderDN /dev/dri/cardN": força a GPU repassada.
 # Um `hyprctl reload` ou fechar a janela derruba a saída do Hyprland aninhado
 # (ele cai no monitor FALLBACK e as capturas saem vazias): dev/test.sh up de novo.
+#
+# Roteiro de referência ("antes-*", a linha de base capturada antes das
+# correções das Tarefas 21 a 28; regenerar a partir do repositório, com o
+# container de pé):
+#   p=antes
+#   dev/test.sh see $p panels open launcher
+#   dev/test.sh see $p launcher open files ""
+#   for tab in overview media performance weather; do dev/test.sh see $p dashboard open "$tab"; done
+#   for s in wifi bluetooth sound notifications battery display; do dev/test.sh see $p sidebar open "$s"; done
+#   for t in appearance wallpaper displays idle nightlight launcher clipboard capture mouse keyboard glass \
+#       notifications panels sidebar bar dashboard power shortcuts about; do dev/test.sh see $p settings open "$t"; done
+#   dev/test.sh see $p panels open themes
+#   dev/test.sh see $p panels open power
+#   dev/test.sh see $p clipboard open
+#   dev/test.sh see $p capture open shot
+#   dev/test.sh ipc session lock; sleep 1; dev/test.sh shot $p-bloqueio; dev/test.sh run 'wtype lucerna && wtype -k Return'
+#   dev/test.sh run 'notify-send "Teste do Lucerna" "Corpo da notificação, comprido o bastante para quebrar em duas linhas"'; sleep 1; dev/test.sh shot $p-popup
+#   dev/test.sh ipc brightness up; dev/test.sh shot $p-osd; dev/test.sh ipc brightness down
+#   for e in strip island pill islands; do dev/test.sh setc "dict(barStyle='$e')"; sleep 1; dev/test.sh shot $p-barra-$e; done; dev/test.sh setc "dict(barStyle='strip')"
+#   for e in compact full grid; do dev/test.sh setc "dict(launcherStyle='$e')"; dev/test.sh see $p-$e launcher open apps ""; done; dev/test.sh setc "dict(launcherStyle='compact')"
+#   # Nesta imagem, o Hyprland (0.56.2, config Lua) não aceita mais o
+#   # `hyprctl dispatch exec "[workspace N silent] CMD"` clássico (dá erro de
+#   # parser Lua); use a forma hl.dsp abaixo.
+#   dev/test.sh run "hyprctl dispatch 'hl.dsp.exec_cmd(\"[workspace 2 silent] kitty\")'"
+#   dev/test.sh run "hyprctl dispatch 'hl.dsp.exec_cmd(\"[workspace 3 silent] foot\")'"; sleep 2; dev/test.sh see $p overview toggle
+#
+#   Extras para as Tarefas 22, 24, 26 e 27 (telas que essas conferências
+#   comparam e que o roteiro acima não cobre):
+#   dev/test.sh run 'notify-send "Teste do Lucerna" "Corpo da notificação, comprido o bastante para quebrar em duas linhas"'
+#   dev/test.sh see $p-caixa sidebar open notifications
+#   dev/test.sh setc 'dict(transparencyOverride=dict(enabled=True))'; dev/test.sh see $p-vidro settings open glass; dev/test.sh setc 'dict(transparencyOverride=dict())'
+#   dev/test.sh setc "dict(launcherStyle='full')"; dev/test.sh see $p-full-busca launcher open apps kitty; dev/test.sh setc "dict(launcherStyle='compact')"
+#   dev/test.sh run 'printf "texto de teste" | wl-copy'; dev/test.sh see $p-clipboard clipboard open
 set -euo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 name=lucerna-polish
 image=lucerna-dev
 out=${LUCERNA_TEST_OUT:-/tmp/lucerna-test}
-noise='portal|dropped operation'
+# "dropped operation" fica de fora: é o sintoma do bug do Config (spec linha
+# 112); se voltar, tem que aparecer no log e no errs, não ser filtrado.
+noise='portal'
 
 fail() {
     echo "ERRO: $*" >&2
@@ -107,13 +142,16 @@ print("config:", os.environ["SETC"])
 '
 }
 
-# shot NOME: captura a saída do Hyprland aninhado em $out/NOME.png.
+# shot NOME: captura a saída do Hyprland aninhado em $out/NOME.png. Com
+# timeout: se a janela do host estiver escondida ou minimizada, o Hyprland
+# aninhado para de desenhar e o grim trava esperando um frame que não vem.
 shot() {
     running
     ex 'hyprctl monitors | grep -q "^Monitor WAYLAND-1 "' \
         || fail "a saída WAYLAND-1 sumiu (Hyprland no FALLBACK, depois de um reload ou da janela fechada): rode dev/test.sh up"
     mkdir -p "$out"
-    ex 'grim -o WAYLAND-1 /tmp/lucerna-shot.png'
+    ex 'timeout 10 grim -o WAYLAND-1 /tmp/lucerna-shot.png' \
+        || fail "a captura travou: a janela de teste está escondida ou minimizada? Traga-a para a frente (não precisa de foco) e tente de novo."
     docker cp -q "$name:/tmp/lucerna-shot.png" "$out/$1.png"
     echo "$out/$1.png"
 }
@@ -190,7 +228,9 @@ case "${1:-}" in
     see)
         running
         [ $# -ge 3 ] || fail "uso: dev/test.sh see PREFIXO ALVO FUNÇÃO [ARGUMENTOS...]"
-        prefix=$2
+        # O prefixo passa pela mesma sanitização do resto do nome, para não
+        # gravar fora de $out (ex.: um prefixo com "/" ou "..").
+        prefix=$(printf '%s' "$2" | tr -cd 'a-z0-9-')
         shift 2
         ex "qs -c lucerna ipc call $(printf '%q ' "$@")" > /dev/null
         sleep 1
