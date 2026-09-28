@@ -30,7 +30,9 @@ import "panels.test.js" as PanelsTest
 import "searchengines.test.js" as SearchEnginesTest
 import "shellshortcuts.test.js" as ShellShortcutsTest
 import "sun.test.js" as SunTest
+import "systemstats.test.js" as SystemStatsTest
 import "theme.test.js" as ThemeTest
+import "videowallpapers.test.js" as VideoWallpapersTest
 
 ShellRoot {
     id: root
@@ -55,7 +57,9 @@ ShellRoot {
         ["capture", CaptureTest],
         ["brightness", BrightnessTest],
         ["monitors", MonitorsTest],
-        ["input", InputTest]
+        ["input", InputTest],
+        ["systemstats", SystemStatsTest],
+        ["videowallpapers", VideoWallpapersTest]
     ]
 
     function fail(message: string): void {
