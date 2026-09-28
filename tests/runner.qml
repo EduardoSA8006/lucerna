@@ -18,21 +18,30 @@ import qs.core.panels
 import qs.core.theme
 import qs.core.time
 import qs.services
+import "appinfo.test.js" as AppInfoTest
+import "audio.test.js" as AudioTest
+import "bluetooth.test.js" as BluetoothTest
 import "brightness.test.js" as BrightnessTest
 import "capture.test.js" as CaptureTest
 import "clipboard.test.js" as ClipboardTest
 import "format.test.js" as FormatTest
 import "input.test.js" as InputTest
 import "inputactions.test.js" as InputActionsTest
+import "lyrics.test.js" as LyricsTest
+import "media.test.js" as MediaTest
 import "monitors.test.js" as MonitorsTest
+import "network.test.js" as NetworkTest
 import "nightschedule.test.js" as NightScheduleTest
+import "notifications.test.js" as NotificationsTest
 import "panels.test.js" as PanelsTest
 import "searchengines.test.js" as SearchEnginesTest
+import "session.test.js" as SessionTest
 import "shellshortcuts.test.js" as ShellShortcutsTest
 import "sun.test.js" as SunTest
 import "systemstats.test.js" as SystemStatsTest
 import "theme.test.js" as ThemeTest
 import "videowallpapers.test.js" as VideoWallpapersTest
+import "weather.test.js" as WeatherTest
 
 ShellRoot {
     id: root
@@ -59,7 +68,16 @@ ShellRoot {
         ["monitors", MonitorsTest],
         ["input", InputTest],
         ["systemstats", SystemStatsTest],
-        ["videowallpapers", VideoWallpapersTest]
+        ["videowallpapers", VideoWallpapersTest],
+        ["lyrics", LyricsTest],
+        ["notifications", NotificationsTest],
+        ["network", NetworkTest],
+        ["bluetooth", BluetoothTest],
+        ["audio", AudioTest],
+        ["appinfo", AppInfoTest],
+        ["media", MediaTest],
+        ["session", SessionTest],
+        ["weather", WeatherTest]
     ]
 
     function fail(message: string): void {
