@@ -1,0 +1,33 @@
+# Avisos de ambiente que a fumaça tolera (ci/smoke.sh, pelo ci/logcheck.py).
+# Cada bloco com padrões começa com o motivo em comentário; os padrões são
+# expressões regulares do Python, procuradas em cada linha de aviso ou erro dos
+# logs do shell e do sway. Só entra aviso de ambiente medido no CI: erro do
+# shell se corrige, não se tolera.
+
+# Sem Hyprland no CI (ele não sobe sem GPU; a fumaça roda no sway headless):
+# o Quickshell avisa que não acha a instância.
+\$HYPRLAND_INSTANCE_SIGNATURE is unset
+
+# O sway não tem o protocolo de foco do Hyprland, que o Panels usa para fechar
+# os painéis com um clique fora. O aviso do Quickshell vem em duas linhas.
+compositor does not support the hyprland_focus_grab_v1 protocol
+Learn why \$XDG_CURRENT_DESKTOP sucks
+
+# Sem D-Bus do sistema no container: rede, bateria e perfis de energia ficam
+# de fora (o D-Bus de sessão do dbus-run-session não tem esses serviços).
+quickshell\.network\.networkmanager: Could not connect to DBus\.
+quickshell\.service\.upower: Could not connect to DBus\.
+quickshell\.service\.powerprofiles: Could not connect to DBus\.
+# Consequência do aviso do NetworkManager: nenhum backend de rede.
+quickshell\.network: Network will not work\. Could not find an available backend\.
+
+# Sem PipeWire no container: volume e mídia ficam de fora.
+quickshell\.service\.pipewire\.loop: Failed to connect pipewire context\.
+
+# Sem GPU: o Mesa avisa ao procurar um driver; o Qt desenha em software
+# (QT_QUICK_BACKEND=software) e o sway com o pixman.
+^(MESA|ZINK)\b
+
+# O sway tenta abrir o swaybg para o fundo; ele não está instalado e não faz
+# falta (o papel de parede é do próprio shell).
+(?i)failed to execute .?swaybg
