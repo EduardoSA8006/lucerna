@@ -67,26 +67,52 @@ function run(t) {
         t.eq(I.keyBlock(keymap, "NADA"), null);
     });
 
+    // Saída completa de patchKeymap(), escrita à mão a partir do keymap de
+    // entrada (não gerada chamando a própria função), conferindo em
+    // services/Input.qml onde cada trecho entra:
+    // - nada muda antes de "xkb_symbols" (patchKeymap só mexe a partir daí);
+    // - keyBlock() tira a linha "    key <CAPS> {...};" inteira (com o "\n"
+    //   que vinha antes dela); o "replace()" do modifier_map só some com o
+    //   texto casado pela regex ("modifier_map Lock { <CAPS> };"), não com a
+    //   indentação em volta — por isso sobra uma linha só com 4 espaços onde
+    //   estava esse modifier_map (linha 11 abaixo);
+    // - a tecla nova entra com "\n\t" antes do "close", que é o PENÚLTIMO
+    //   "};" do texto (o que fecha xkb_symbols — o último fecha xkb_keymap),
+    //   por isso a linha em branco antes do "\tkey <CAPS>...".
+    const head = [
+        "xkb_keymap {",
+        "xkb_keycodes \"evdev\" {",
+        "    <ESC> = 9;",
+        "    <CAPS> = 66;",
+        "    <LCTL> = 37;",
+        "};",
+        "xkb_types \"complete\" {",
+        "};",
+        "xkb_symbols \"pc+us\" {",
+        "    key <ESC> { [ Escape ] };",
+        "    key <LCTL> { [ Control_L ] };",
+        "    ",
+        "    modifier_map Control { <LCTL> };",
+        ""
+    ];
+    const tail = ["};", "};", ""];
+
     t.test("input: remapear Caps Lock para Esc", () => {
         const out = I.patchKeymap(keymap, [{ from: "CAPS", to: { kind: "key", value: "ESC" } }]);
-        t.check(out.includes("key <CAPS> { [ Escape ] };"), "Caps copia o Esc");
-        t.check(!out.includes("Caps_Lock"), "o bloco antigo saiu");
-        t.check(!out.includes("modifier_map Lock"), "Caps saiu do Lock");
-        t.check(out.includes("modifier_map Control { <LCTL> };"), "o resto dos modificadores fica");
-        t.check(out.startsWith("xkb_keymap {\nxkb_keycodes"), "o começo do keymap fica igual");
+        t.eq(out, head.concat(["\tkey <CAPS> { [ Escape ] };"], tail).join("\n"));
     });
 
     t.test("input: remapear para um modificador leva o modifier_map junto", () => {
         const out = I.patchKeymap(keymap, [{ from: "CAPS", to: { kind: "key", value: "LCTL" } }]);
-        t.check(out.includes("key <CAPS> { [ Control_L ] };"), out);
-        t.check(out.includes("modifier_map Control { <CAPS> };"), out);
+        t.eq(out, head.concat(["\tkey <CAPS> { [ Control_L ] };", "\tmodifier_map Control { <CAPS> };"], tail).join("\n"));
     });
 
     t.test("input: remapear para um símbolo ou para nada", () => {
         const sym = I.patchKeymap(keymap, [{ from: "CAPS", to: { kind: "sym", value: "XF86AudioPlay" } }]);
-        t.check(sym.includes('key <CAPS> { type= "ONE_LEVEL", symbols[1]= [ XF86AudioPlay ] };'), sym);
+        t.eq(sym, head.concat(["\tkey <CAPS> { type= \"ONE_LEVEL\", symbols[1]= [ XF86AudioPlay ] };"], tail).join("\n"));
+
         const none = I.patchKeymap(keymap, [{ from: "CAPS", to: { kind: "none" } }]);
-        t.check(none.includes('key <CAPS> { type= "ONE_LEVEL", symbols[1]= [ NoSymbol ] };'), none);
+        t.eq(none, head.concat(["\tkey <CAPS> { type= \"ONE_LEVEL\", symbols[1]= [ NoSymbol ] };"], tail).join("\n"));
     });
 
     I.keyNames = originalKeyNames;
