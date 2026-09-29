@@ -24,6 +24,8 @@ Variants {
         screen: modelData
         visible: shown > 0
         anchors.top: true
+        // Falso positivo: o margins do PanelWindow não está descrito nos qmltypes do Quickshell (ver spec).
+        margins.top: 90 // qmllint disable unqualified
         implicitWidth: 460
         implicitHeight: card.height + 20
         color: "transparent"
@@ -31,10 +33,7 @@ Variants {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "lucerna-panel-monitor-confirm"
 
-        Component.onCompleted: {
-            window.margins.top = 90;
-            MonitorsState.registerSurface(window);
-        }
+        Component.onCompleted: MonitorsState.registerSurface(window)
         Component.onDestruction: MonitorsState.unregisterSurface(window)
 
         Surface {
