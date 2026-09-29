@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs.core.config
 import qs.core.nightlight
@@ -98,6 +100,8 @@ Column {
             ] : []
 
             delegate: SettingRow {
+                id: clockRow
+
                 required property var modelData
 
                 wide: true
@@ -108,10 +112,10 @@ Column {
                     width: parent.width
                     visibleRows: 6
                     searchable: true
-                    options: NightLightSettings.clockOptionsFor(Config[modelData.key])
-                    value: Config[modelData.key]
+                    options: NightLightSettings.clockOptionsFor(Config[clockRow.modelData.key])
+                    value: Config[clockRow.modelData.key]
                     onSelected: v => {
-                        Config[modelData.key] = v;
+                        Config[clockRow.modelData.key] = v;
                         Config.nightLightOverride = null;
                     }
                 }

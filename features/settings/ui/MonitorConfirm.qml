@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -22,7 +24,6 @@ Variants {
         screen: modelData
         visible: shown > 0
         anchors.top: true
-        margins.top: 90
         implicitWidth: 460
         implicitHeight: card.height + 20
         color: "transparent"
@@ -30,7 +31,10 @@ Variants {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "lucerna-panel-monitor-confirm"
 
-        Component.onCompleted: MonitorsState.registerSurface(window)
+        Component.onCompleted: {
+            window.margins.top = 90;
+            MonitorsState.registerSurface(window);
+        }
         Component.onDestruction: MonitorsState.unregisterSurface(window)
 
         Surface {
