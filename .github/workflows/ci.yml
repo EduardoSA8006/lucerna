@@ -17,8 +17,10 @@ on:
 permissions:
   contents: read
 
+# PR: um grupo por ref, a execução nova cancela a antiga. Fora de PR (main,
+# agenda, manual): um grupo por execução, para nenhuma ficar cancelada na fila.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 defaults:
@@ -69,13 +71,13 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ matrix.job }}
-          path: /tmp/ci-out/
+          path: ${{ env.CI_OUT }}/
           if-no-files-found: ignore
 
-      - name: Log (só quando falha)
-        if: failure() && matrix.job != 'unit' && matrix.job != 'smoke'
+      - name: Log (só quando falha ou estoura o tempo)
+        if: (failure() || cancelled()) && matrix.job != 'unit' && matrix.job != 'smoke'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ matrix.job }}
-          path: /tmp/ci-out/
+          path: ${{ env.CI_OUT }}/
           if-no-files-found: ignore
