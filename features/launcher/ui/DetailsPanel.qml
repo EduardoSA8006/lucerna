@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
@@ -159,7 +160,7 @@ Surface {
                         width: parent.width
                         height: 38
                         radius: ThemeManager.radius.small + 2
-                        onClicked: LauncherState.runAction(root.item, index)
+                        onClicked: LauncherState.runAction(root.item, actionRow.index)
 
                         Icon {
                             id: actionIcon
@@ -229,20 +230,22 @@ Surface {
                 }
 
                 delegate: Column {
+                    id: infoRow
+
                     required property var modelData
 
                     width: content.width
                     spacing: 3
 
                     Txt {
-                        text: modelData.label
+                        text: infoRow.modelData.label
                         font.weight: Font.DemiBold
                         font.pixelSize: ThemeManager.font.small + 1
                     }
 
                     Txt {
                         width: parent.width
-                        text: modelData.value
+                        text: infoRow.modelData.value
                         muted: true
                         wrapMode: Text.Wrap
                         font.pixelSize: ThemeManager.font.small + 1
@@ -303,12 +306,14 @@ Surface {
                     model: root.moreOpen ? LauncherState.optionsFor(root.item) : []
 
                     delegate: Clickable {
+                        id: optRow
+
                         required property var modelData
 
                         width: parent.width
                         height: 38
                         radius: ThemeManager.radius.small + 2
-                        onClicked: modelData.run()
+                        onClicked: optRow.modelData.run()
 
                         Icon {
                             id: optIcon
@@ -316,7 +321,7 @@ Surface {
                             anchors.left: parent.left
                             anchors.leftMargin: ThemeManager.spacing.large
                             anchors.verticalCenter: parent.verticalCenter
-                            icon: modelData.icon
+                            icon: optRow.modelData.icon
                             size: 18
                             color: ThemeManager.colors.accent
                         }
@@ -325,7 +330,7 @@ Surface {
                             anchors.left: optIcon.right
                             anchors.leftMargin: ThemeManager.spacing.normal
                             anchors.verticalCenter: parent.verticalCenter
-                            text: modelData.label
+                            text: optRow.modelData.label
                         }
                     }
                 }

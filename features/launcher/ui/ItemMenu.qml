@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
@@ -53,13 +54,15 @@ Item {
                 model: root.options
 
                 delegate: Clickable {
+                    id: opt
+
                     required property var modelData
 
                     width: list.width
                     height: 36
                     radius: ThemeManager.radius.small + 2
                     onClicked: {
-                        modelData.run();
+                        opt.modelData.run();
                         root.close();
                     }
 
@@ -69,7 +72,7 @@ Item {
                         anchors.left: parent.left
                         anchors.leftMargin: ThemeManager.spacing.small
                         anchors.verticalCenter: parent.verticalCenter
-                        icon: parent.modelData.icon
+                        icon: opt.modelData.icon
                         size: 18
                         color: ThemeManager.colors.accent
                     }
@@ -78,7 +81,7 @@ Item {
                         anchors.left: optIcon.right
                         anchors.leftMargin: ThemeManager.spacing.normal
                         anchors.verticalCenter: parent.verticalCenter
-                        text: parent.modelData.label
+                        text: opt.modelData.label
                         font.pixelSize: ThemeManager.font.small + 1
                     }
 
@@ -86,7 +89,7 @@ Item {
                         anchors.right: parent.right
                         anchors.rightMargin: ThemeManager.spacing.small
                         anchors.verticalCenter: parent.verticalCenter
-                        text: parent.modelData.shortcut
+                        text: opt.modelData.shortcut
                         faint: true
                         font.pixelSize: ThemeManager.font.small
                     }
