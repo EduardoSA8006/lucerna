@@ -1,0 +1,81 @@
+# CI do Lucerna: os quatro checks obrigatórios do main (lint, rules, unit,
+# smoke). Cada job só prepara o container (ci/setup.sh, como root) e chama o
+# script do job (ci/run.sh, como usuário comum): a lógica fica em ci/ e roda
+# igual na máquina local (dev/ci.sh).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Toda segunda às 06:00 UTC: pega quebras vindas do Arch ou do Quickshell
+    # sem mudança no código.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check:
+    name: ${{ matrix.job }}
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    timeout-minutes: ${{ matrix.job == 'smoke' && 25 || 15 }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job: [lint, rules, unit, smoke]
+    env:
+      JOB: ${{ matrix.job }}
+      CI_OUT: /tmp/ci-out
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Semana (chave do cache)
+        id: week
+        run: echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache do pacman
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /var/cache/pacman/pkg
+          key: pacman-${{ matrix.job }}-${{ hashFiles(format('ci/packages/{0}.txt', matrix.job)) }}-${{ steps.week.outputs.week }}
+          restore-keys: pacman-${{ matrix.job }}-
+
+      - name: Preparar o container
+        run: bash ci/setup.sh "$JOB"
+
+      - name: Rodar o check
+        run: runuser -u "$(id -nu 1000)" -- env CI_OUT="$CI_OUT" bash ci/run.sh "$JOB"
+
+      - name: Resumo
+        if: always()
+        run: cat "$CI_OUT/summary.md" >> "$GITHUB_STEP_SUMMARY" 2> /dev/null || true
+
+      - name: Artefatos (sempre, na unidade e na fumaça)
+        if: always() && (matrix.job == 'unit' || matrix.job == 'smoke')
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ matrix.job }}
+          path: /tmp/ci-out/
+          if-no-files-found: ignore
+
+      - name: Log (só quando falha)
+        if: failure() && matrix.job != 'unit' && matrix.job != 'smoke'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ matrix.job }}
+          path: /tmp/ci-out/
+          if-no-files-found: ignore
