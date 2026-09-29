@@ -1,5 +1,4 @@
 import QtQuick
-import qs.core.format
 import qs.core.theme
 import qs.core.widgets
 import qs.features.settings.state

@@ -104,6 +104,8 @@ ClippingRectangle {
             Behavior on color { ColorAnim {} }
 
             Row {
+                id: cards
+
                 anchors.fill: parent
                 anchors.margins: ThemeManager.spacing.normal
                 spacing: ThemeManager.spacing.small
@@ -112,7 +114,7 @@ ClippingRectangle {
                     model: 3
 
                     delegate: Rectangle {
-                        width: (parent.width - parent.spacing * 2) / 3
+                        width: (cards.width - cards.spacing * 2) / 3
                         height: parent.height
                         radius: ThemeManager.radius.normal
                         color: ThemeManager.alpha(ThemeManager.colors.surface, root.transparency ? root.cardOpacity : 1)

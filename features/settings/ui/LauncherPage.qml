@@ -1,6 +1,4 @@
 import QtQuick
-import Quickshell
-import Quickshell.Widgets
 import qs.core.theme
 import qs.core.widgets
 import qs.features.settings.state

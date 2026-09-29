@@ -291,7 +291,7 @@ Item {
                     required property int index
                     readonly property bool current: index === MediaState.currentLine
 
-                    width: ListView.view.width
+                    width: lyricsView.width
                     text: modelData.text || "♪"
                     wrapMode: Text.Wrap
                     horizontalAlignment: Text.AlignHCenter

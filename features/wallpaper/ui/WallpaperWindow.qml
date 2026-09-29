@@ -79,13 +79,10 @@ PanelWindow {
 
         active: window.effect && video !== ""
         source: active ? "VideoWallpaper.qml" : ""
-        opacity: item?.showing ? 1 : 0
-
-        Behavior on opacity { NumberAnimation { duration: WallpaperState.fadeDuration } }
-
         onLoaded: {
             item.source = Qt.binding(() => videoLoader.video);
             item.playing = Qt.binding(() => WallpaperState.shouldAnimate(window.targetScreen));
+            item.fadeDuration = Qt.binding(() => WallpaperState.fadeDuration);
             item.fillMode = Qt.binding(() => WallpaperState.fill);
         }
     }

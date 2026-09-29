@@ -7,7 +7,6 @@ import Quickshell.Services.Notifications
 import qs.core.config
 import qs.core.format
 import qs.core.panels
-import qs.core.theme
 import qs.services
 
 // View model das notificações: popups e central lateral.

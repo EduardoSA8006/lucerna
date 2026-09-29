@@ -12,6 +12,7 @@ Item {
     property real value: 0
     property real stepSize: 0
     // Texto do balão para um valor.
+    // Função de formato do rótulo (valor → texto), passada por quem usa; por isso var.
     property var format: v => `${Math.round(v * 100)}%`
 
     signal moved(real value)
@@ -116,7 +117,7 @@ Item {
             id: bubbleText
 
             anchors.centerIn: parent
-            text: root.format(root.value)
+            text: root.format.call(null, root.value)
             color: ThemeManager.colors.base
             font.family: ThemeManager.font.mono
             font.pixelSize: ThemeManager.font.small + 1

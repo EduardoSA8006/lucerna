@@ -5,7 +5,6 @@ import Quickshell
 import Quickshell.Io
 import qs.core.config
 import qs.core.panels
-import qs.core.theme
 import qs.core.widgets
 import qs.services
 

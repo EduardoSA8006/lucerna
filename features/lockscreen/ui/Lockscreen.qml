@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell
 import Quickshell.Wayland
 import qs.core.theme
 import qs.features.lockscreen.state

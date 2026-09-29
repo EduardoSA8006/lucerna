@@ -4,6 +4,8 @@ import qs.core.widgets
 
 // Estado vazio de uma seção: forma orgânica com ícone e uma frase.
 Column {
+    id: root
+
     property string icon
     property string text
 
@@ -27,7 +29,7 @@ Column {
 
         Icon {
             anchors.centerIn: parent
-            icon: parent.parent.icon
+            icon: root.icon
             size: 36
             color: ThemeManager.colors.textFaint
         }

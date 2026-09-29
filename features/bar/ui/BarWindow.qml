@@ -36,7 +36,13 @@ PanelWindow {
     implicitHeight: strip ? ThemeManager.barHeight : ThemeManager.barHeight + ThemeManager.spacing.small * 2
     color: "transparent"
     exclusionMode: BarState.autoHide ? ExclusionMode.Ignore : ExclusionMode.Auto
-    mask: layout.item?.mask ?? null
+    // O item do Loader é um QObject: o `as` de cada estilo dá o tipo que tem `mask`.
+    function layoutMask(): Region {
+        const item = layout.item;
+        return (item as StripLayout)?.mask ?? (item as IslandLayout)?.mask ?? (item as PillLayout)?.mask ?? (item as IslandsLayout)?.mask ?? null;
+    }
+
+    mask: layoutMask()
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "lucerna-panel-bar"
 

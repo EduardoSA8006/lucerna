@@ -1,8 +1,6 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import qs.core.theme
-import qs.core.widgets
 import qs.features.idle.state
 
 // O escurecer da ociosidade: um véu preto em cada tela, que não pega o mouse

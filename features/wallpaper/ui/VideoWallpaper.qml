@@ -10,13 +10,21 @@ Item {
     property string source
     property bool playing: false
     property int fillMode: Image.PreserveAspectCrop
+    // Duração do fade de entrada, passada por quem carrega (a camada é carregada
+    // por URL, então o WallpaperWindow não enxerga o `showing` daqui).
+    property int fadeDuration: 0
     // Há um quadro na tela (para a camada aparecer só então).
     readonly property bool showing: released ? false : player.mediaStatus === MediaPlayer.BufferedMedia || player.mediaStatus === MediaPlayer.BufferingMedia || player.mediaStatus === MediaPlayer.EndOfMedia
     property bool released: false
 
-    onPlayingChanged: update()
+    // A camada só aparece quando há um quadro na tela.
+    opacity: showing ? 1 : 0
 
-    function update(): void {
+    Behavior on opacity { NumberAnimation { duration: root.fadeDuration } }
+
+    onPlayingChanged: syncPlayback()
+
+    function syncPlayback(): void {
         if (!player.source.toString())
             return;
         if (playing) {
@@ -37,7 +45,7 @@ Item {
         // Troca de arquivo para a reprodução: toca de novo quando o novo carrega.
         onMediaStatusChanged: {
             if (mediaStatus === MediaPlayer.LoadedMedia)
-                root.update();
+                root.syncPlayback();
         }
     }
 

@@ -113,7 +113,7 @@ Column {
                         width: parent.width - x * 2
                         active: entry.capturingHere
                         visible: active
-                        height: active ? item.implicitHeight + ThemeManager.spacing.large : 0
+                        height: active ? (item as Item).implicitHeight + ThemeManager.spacing.large : 0
 
                         sourceComponent: Column {
                             spacing: ThemeManager.spacing.small

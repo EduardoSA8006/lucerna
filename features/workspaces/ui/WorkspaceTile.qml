@@ -83,7 +83,7 @@ Item {
 
             anchors.fill: parent
             keys: ["lucerna-window"]
-            onDropped: event => WorkspacesState.moveWindow(event.source.win, root.wsId)
+            onDropped: event => WorkspacesState.moveWindow((event.source as WindowThumb).win, root.wsId)
         }
     }
 
