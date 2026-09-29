@@ -48,7 +48,9 @@
 #   comparam e que o roteiro acima não cobre):
 #   dev/test.sh run 'notify-send "Teste do Lucerna" "Corpo da notificação, comprido o bastante para quebrar em duas linhas"'
 #   dev/test.sh see $p-caixa sidebar open notifications
-#   dev/test.sh setc 'dict(transparencyOverride=dict(enabled=True))'; dev/test.sh see $p-vidro settings open glass; dev/test.sh setc 'dict(transparencyOverride=dict())'
+#   # O setc troca a chave inteira (update raso): `dict()` deixaria um {} no lugar
+#   # do override; `None` (null) devolve a transparência ao tema, como no Config.
+#   dev/test.sh setc 'dict(transparencyOverride=dict(enabled=True))'; dev/test.sh see $p-vidro settings open glass; dev/test.sh setc 'dict(transparencyOverride=None)'
 #   dev/test.sh setc "dict(launcherStyle='full')"; dev/test.sh see $p-full-busca launcher open apps kitty; dev/test.sh setc "dict(launcherStyle='compact')"
 #   dev/test.sh run 'printf "texto de teste" | wl-copy'; dev/test.sh see $p-clipboard clipboard open
 set -euo pipefail
