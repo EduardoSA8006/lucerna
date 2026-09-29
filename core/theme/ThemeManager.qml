@@ -1,4 +1,5 @@
 pragma Singleton
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import Qt.labs.folderlistmodel
@@ -7,89 +8,56 @@ import Quickshell.Io
 import qs.core.config
 
 // Único ponto de verdade do visual. Carrega o tema ativo de themes/<id>.json
-// e expõe os tokens; nenhum componente usa cor ou tamanho fixo.
+// e expõe os tokens; nenhum componente usa cor ou tamanho fixo. Cada grupo de
+// tokens tem um tipo declarado (ColorTokens, FontTokens...), para o qmllint
+// conhecer ThemeManager.colors.accent e os outros; os valores vêm nas
+// instâncias, logo abaixo das declarações.
 Singleton {
     id: root
 
-    readonly property string defaultTheme: "catppuccin-mocha"
-    readonly property string directory: Quickshell.shellPath("themes")
-    readonly property string current: Config.theme
-
-    // Temas disponíveis, para o seletor: { id, name, description, dark, colors,
-    // wallpaper, shader } (wallpaper é a imagem; shader, o animado, se houver).
-    property var themes: []
-
-    readonly property var data: parse(activeFile.text())
-    readonly property bool dark: data.dark ?? true
-    // Papel de parede do tema ativo, já com a escolha do usuário (wallpaperFor).
-    readonly property var activeWallpaper: wallpaperFor(current)
-    readonly property string wallpaper: activeWallpaper.static
-    readonly property string wallpaperShader: activeWallpaper.shader
-    readonly property var hyprland: data.hyprland ?? ({})
-
-    readonly property QtObject colors: QtObject {
-        property color base: root.token("base")
-        property color surface: root.token("surface")
-        property color raised: root.token("raised")
-        property color border: root.token("border")
-        property color text: root.token("text")
-        property color textMuted: root.token("textMuted")
-        property color textFaint: root.token("textFaint")
-        property color accent: root.token("accent")
-        property color accentText: root.token("accentText")
-        property color danger: root.token("danger")
-        property color success: root.token("success")
-        property color warning: root.token("warning")
-        // Trilho de medidores e barras. O tema pode definir; senão, "raised" no
-        // escuro e "border" no claro (onde "raised" some sobre o cartão).
-        property color track: root.data.colors?.track ?? (root.dark ? raised : border)
-
-        Behavior on track { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-
-        Behavior on base { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-        Behavior on surface { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-        Behavior on raised { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-        Behavior on border { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-        Behavior on text { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-        Behavior on textMuted { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-        Behavior on textFaint { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-        Behavior on accent { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-        Behavior on accentText { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-        Behavior on danger { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-        Behavior on success { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
-        Behavior on warning { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+    component ColorTokens: QtObject {
+        property color base
+        property color surface
+        property color raised
+        property color border
+        property color text
+        property color textMuted
+        property color textFaint
+        property color accent
+        property color accentText
+        property color danger
+        property color success
+        property color warning
+        property color track
     }
 
-    readonly property QtObject font: QtObject {
-        readonly property string sans: root.data.font?.sans ?? "sans-serif"
-        readonly property string mono: root.data.font?.mono ?? "monospace"
-        readonly property string icon: root.data.font?.icon ?? "monospace"
-        readonly property int small: root.data.font?.size?.small ?? 11
-        readonly property int normal: root.data.font?.size?.normal ?? 13
-        readonly property int large: root.data.font?.size?.large ?? 16
-        readonly property int huge: root.data.font?.size?.huge ?? 44
+    component FontTokens: QtObject {
+        property string sans
+        property string mono
+        property string icon
+        property int small
+        property int normal
+        property int large
+        property int huge
     }
 
-    readonly property QtObject radius: QtObject {
-        readonly property int small: root.data.radius?.small ?? 6
-        readonly property int normal: root.data.radius?.normal ?? 10
-        readonly property int large: root.data.radius?.large ?? 16
+    component RadiusTokens: QtObject {
+        property int small
+        property int normal
+        property int large
     }
 
-    readonly property QtObject spacing: QtObject {
-        readonly property int tiny: root.data.spacing?.tiny ?? 4
-        readonly property int small: root.data.spacing?.small ?? 8
-        readonly property int normal: root.data.spacing?.normal ?? 12
-        readonly property int large: root.data.spacing?.large ?? 20
+    component SpacingTokens: QtObject {
+        property int tiny
+        property int small
+        property int normal
+        property int large
     }
 
-    // Tokens de movimento do Material 3 (as mesmas curvas do Caelestia). O tema
-    // só ajusta a velocidade geral com "animation.scale" (1 = padrão, 0 = sem animação).
-    // Use pelos componentes Anim e ColorAnim, não direto.
-    readonly property QtObject anim: QtObject {
-        readonly property real baseScale: Config.animationScale >= 0 ? Config.animationScale : (root.data.animation?.scale ?? 1)
-        // No modo leve as animações ficam mais curtas.
-        readonly property real scale: root.lightMode ? Math.min(baseScale, 0.6) : baseScale
+    // Durações e curvas do Material 3; só a escala vem de fora.
+    component MotionTokens: QtObject {
+        property real baseScale: 1
+        property real scale: 1
 
         readonly property int small: 200 * scale
         readonly property int normal: 400 * scale
@@ -116,6 +84,113 @@ Singleton {
         readonly property var slowEffectsCurve: [0.34, 0.88, 0.34, 1, 1, 1]
     }
 
+    component TransparencyTokens: QtObject {
+        property var custom: ({})
+        property var theme: ({})
+        property bool enabled
+        property real base: 1
+        property real layers: 1
+        property bool customized
+    }
+
+    component BlurTokens: QtObject {
+        property var custom: ({})
+        property bool enabled
+        property int size
+        property int passes
+        property bool customized
+    }
+
+    // Um arquivo da lista de temas (o delegate do themeFiles), com tipo
+    // declarado para o rebuildList ler themeId, loaded e text sem o qmllint
+    // reclamar do objectAt, que devolve QObject.
+    component ThemeFile: FileView {
+        required property string filePath
+        required property string fileBaseName
+        readonly property string themeId: fileBaseName
+    }
+
+    readonly property string defaultTheme: "catppuccin-mocha"
+    readonly property string directory: Quickshell.shellPath("themes")
+    readonly property string current: Config.theme
+
+    // Temas disponíveis, para o seletor: { id, name, description, dark, colors,
+    // wallpaper, shader } (wallpaper é a imagem; shader, o animado, se houver).
+    property var themes: []
+
+    readonly property var data: parse(activeFile.text())
+    readonly property bool dark: data.dark ?? true
+    // Papel de parede do tema ativo, já com a escolha do usuário (wallpaperFor).
+    readonly property var activeWallpaper: wallpaperFor(current)
+    readonly property string wallpaper: activeWallpaper.static
+    readonly property string wallpaperShader: activeWallpaper.shader
+    readonly property var hyprland: data.hyprland ?? ({})
+
+    readonly property ColorTokens colors: ColorTokens {
+        base: root.token("base")
+        surface: root.token("surface")
+        raised: root.token("raised")
+        border: root.token("border")
+        text: root.token("text")
+        textMuted: root.token("textMuted")
+        textFaint: root.token("textFaint")
+        accent: root.token("accent")
+        accentText: root.token("accentText")
+        danger: root.token("danger")
+        success: root.token("success")
+        warning: root.token("warning")
+        // Trilho de medidores e barras. O tema pode definir; senão, "raised" no
+        // escuro e "border" no claro (onde "raised" some sobre o cartão).
+        track: root.data.colors?.track ?? (root.dark ? raised : border)
+
+        Behavior on track { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+
+        Behavior on base { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on surface { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on raised { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on border { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on text { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on textMuted { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on textFaint { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on accent { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on accentText { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on danger { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on success { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+        Behavior on warning { ColorAnimation { duration: root.anim.large; easing.type: Easing.BezierSpline; easing.bezierCurve: root.anim.standard } }
+    }
+
+    readonly property FontTokens font: FontTokens {
+        sans: root.data.font?.sans ?? "sans-serif"
+        mono: root.data.font?.mono ?? "monospace"
+        icon: root.data.font?.icon ?? "monospace"
+        small: root.data.font?.size?.small ?? 11
+        normal: root.data.font?.size?.normal ?? 13
+        large: root.data.font?.size?.large ?? 16
+        huge: root.data.font?.size?.huge ?? 44
+    }
+
+    readonly property RadiusTokens radius: RadiusTokens {
+        small: root.data.radius?.small ?? 6
+        normal: root.data.radius?.normal ?? 10
+        large: root.data.radius?.large ?? 16
+    }
+
+    readonly property SpacingTokens spacing: SpacingTokens {
+        tiny: root.data.spacing?.tiny ?? 4
+        small: root.data.spacing?.small ?? 8
+        normal: root.data.spacing?.normal ?? 12
+        large: root.data.spacing?.large ?? 20
+    }
+
+    // Tokens de movimento do Material 3 (as mesmas curvas do Caelestia). O tema
+    // só ajusta a velocidade geral com "animation.scale" (1 = padrão, 0 = sem animação).
+    // Use pelos componentes Anim e ColorAnim, não direto.
+    readonly property MotionTokens anim: MotionTokens {
+        baseScale: Config.animationScale >= 0 ? Config.animationScale : (root.data.animation?.scale ?? 1)
+        // No modo leve as animações ficam mais curtas.
+        scale: root.lightMode ? Math.min(baseScale, 0.6) : baseScale
+    }
+
     readonly property int barHeight: data.bar?.height ?? 34
 
     // Modo leve (em tempo de execução, não é salvo): sem transparência e
@@ -131,23 +206,23 @@ Singleton {
     // (Config.transparencyOverride, pela tela de configurações).
     //   base:   fundo dos painéis (barra, painel superior, launcher, menus)
     //   layers: cartões dentro de um painel
-    readonly property QtObject transparency: QtObject {
-        readonly property var custom: Config.transparencyOverride ?? {}
-        readonly property var theme: root.data.transparency ?? {}
-        readonly property bool enabled: (custom.enabled ?? theme.enabled ?? false) && !root.lightMode
-        readonly property real base: custom.base ?? theme.base ?? 1
-        readonly property real layers: custom.layers ?? theme.layers ?? 1
-        readonly property bool customized: Object.keys(custom).length > 0
+    readonly property TransparencyTokens transparency: TransparencyTokens {
+        custom: Config.transparencyOverride ?? {}
+        theme: root.data.transparency ?? {}
+        enabled: (custom.enabled ?? theme.enabled ?? false) && !root.lightMode
+        base: custom.base ?? theme.base ?? 1
+        layers: custom.layers ?? theme.layers ?? 1
+        customized: Object.keys(custom).length > 0
     }
 
     // Desfoque atrás dos painéis, feito pelo Hyprland (regra de camada aplicada
     // pelo seletor de temas). Só tem efeito com a transparência ligada.
-    readonly property QtObject blur: QtObject {
-        readonly property var custom: Config.blurOverride ?? {}
-        readonly property bool enabled: custom.enabled ?? root.data.hyprland?.blur ?? true
-        readonly property int size: custom.size ?? root.data.hyprland?.blurSize ?? 6
-        readonly property int passes: custom.passes ?? root.data.hyprland?.blurPasses ?? 2
-        readonly property bool customized: Object.keys(custom).length > 0
+    readonly property BlurTokens blur: BlurTokens {
+        custom: Config.blurOverride ?? {}
+        enabled: custom.enabled ?? root.data.hyprland?.blur ?? true
+        size: custom.size ?? root.data.hyprland?.blurSize ?? 6
+        passes: custom.passes ?? root.data.hyprland?.blurPasses ?? 2
+        customized: Object.keys(custom).length > 0
     }
 
     function setTransparency(key: string, value: var): void {
@@ -264,7 +339,7 @@ Singleton {
     function rebuildList(): void {
         const list = [];
         for (let i = 0; i < themeFiles.count; i++) {
-            const file = themeFiles.objectAt(i);
+            const file = themeFiles.objectAt(i) as ThemeFile;
             if (!file?.loaded)
                 continue;
             const d = parse(file.text());
@@ -348,14 +423,12 @@ Singleton {
         onObjectAdded: root.rebuildList()
         onObjectRemoved: root.rebuildList()
 
-        delegate: FileView {
-            required property string filePath
-            required property string fileBaseName
-            readonly property string themeId: fileBaseName
+        delegate: ThemeFile {
+            id: themeFile
 
-            path: filePath
+            path: themeFile.filePath
             watchChanges: true
-            onFileChanged: reload()
+            onFileChanged: themeFile.reload()
             onLoaded: root.rebuildList()
         }
     }
