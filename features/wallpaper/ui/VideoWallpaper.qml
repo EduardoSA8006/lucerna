@@ -10,7 +10,7 @@ Item {
     property string source
     property bool playing: false
     property int fillMode: Image.PreserveAspectCrop
-    // Duração do fade de entrada, passada por quem carrega (a camada é carregada
+    // Duração do fade (entrada e saída), passada por quem carrega (a camada é carregada
     // por URL, então o WallpaperWindow não enxerga o `showing` daqui).
     property int fadeDuration: 0
     // Há um quadro na tela (para a camada aparecer só então).
