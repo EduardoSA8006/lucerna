@@ -296,3 +296,7 @@ Atalhos no Hyprland aninhado (a tecla de mod é `Alt`, para não brigar com o de
 | `Alt+1..5` / `Alt+Shift+1..5` | Ir para o workspace / mover a janela |
 | `Alt+Shift+R` | Reiniciar o Quickshell |
 | `Alt+Shift+E` | Sair do Hyprland |
+
+## Licença
+
+GPL-3.0. O texto está em [`LICENSE`](LICENSE).
