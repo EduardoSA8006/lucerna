@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Widgets
@@ -254,6 +256,8 @@ Item {
                         ]
 
                         delegate: Row {
+                            id: metric
+
                             required property var modelData
 
                             width: parent.width
@@ -262,7 +266,7 @@ Item {
                             AnimatedNumber {
                                 id: number
 
-                                value: modelData.value
+                                value: metric.modelData.value
                             }
 
                             Icon {

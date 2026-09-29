@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import qs.core.theme
@@ -231,6 +233,8 @@ Item {
                         ]
 
                         delegate: Column {
+                            id: stat
+
                             required property var modelData
 
                             width: parent.width / 3
@@ -238,21 +242,21 @@ Item {
 
                             Icon {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                icon: modelData.icon
+                                icon: stat.modelData.icon
                                 size: 20
                                 color: ThemeManager.colors.accent
                             }
 
                             Txt {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: modelData.value
+                                text: stat.modelData.value
                                 mono: true
                                 font.weight: Font.DemiBold
                             }
 
                             Txt {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: modelData.label
+                                text: stat.modelData.label
                                 faint: true
                                 font.pixelSize: ThemeManager.font.small
                             }
@@ -286,6 +290,8 @@ Item {
                         model: WeatherState.hourly
 
                         delegate: Column {
+                            id: hour
+
                             required property var modelData
 
                             width: parent.width / Math.max(1, WeatherState.hourly.length)
@@ -294,21 +300,21 @@ Item {
 
                             Txt {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: modelData.time
+                                text: hour.modelData.time
                                 faint: true
                                 font.pixelSize: ThemeManager.font.small
                             }
 
                             Icon {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                icon: modelData.icon
+                                icon: hour.modelData.icon
                                 size: 24
                                 color: ThemeManager.colors.textMuted
                             }
 
                             Txt {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: modelData.temp
+                                text: hour.modelData.temp
                                 mono: true
                                 font.pixelSize: ThemeManager.font.small + 1
                             }
@@ -331,6 +337,8 @@ Item {
                         model: WeatherState.daily
 
                         delegate: Item {
+                            id: day
+
                             required property var modelData
 
                             width: parent.width
@@ -341,7 +349,7 @@ Item {
 
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 56
-                                text: modelData.day
+                                text: day.modelData.day
                                 font.weight: Font.DemiBold
                             }
 
@@ -350,7 +358,7 @@ Item {
 
                                 anchors.left: dayName.right
                                 anchors.verticalCenter: parent.verticalCenter
-                                icon: modelData.icon
+                                icon: day.modelData.icon
                                 size: 22
                                 color: ThemeManager.colors.accent
                             }
@@ -362,7 +370,7 @@ Item {
                                 anchors.leftMargin: 4
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 40
-                                text: modelData.rain
+                                text: day.modelData.rain
                                 color: ThemeManager.colors.accent
                                 font.pixelSize: ThemeManager.font.small
                             }
@@ -374,7 +382,7 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 36
                                 horizontalAlignment: Text.AlignRight
-                                text: modelData.min
+                                text: day.modelData.min
                                 mono: true
                                 muted: true
                             }
@@ -392,8 +400,8 @@ Item {
                                 color: ThemeManager.colors.track
 
                                 Rectangle {
-                                    x: modelData.from * parent.width
-                                    width: Math.max(parent.height, (modelData.to - modelData.from) * parent.width)
+                                    x: day.modelData.from * parent.width
+                                    width: Math.max(parent.height, (day.modelData.to - day.modelData.from) * parent.width)
                                     height: parent.height
                                     radius: 3
                                     gradient: Gradient {
@@ -412,7 +420,7 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 36
                                 horizontalAlignment: Text.AlignRight
-                                text: modelData.max
+                                text: day.modelData.max
                                 mono: true
                             }
                         }

@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Widgets
@@ -228,7 +230,7 @@ Item {
                             id: chip
 
                             anchors.centerIn: parent
-                            text: modelData.name
+                            text: parent.modelData.name
                             color: parent.active ? ThemeManager.colors.accentText : ThemeManager.colors.text
                             font.pixelSize: ThemeManager.font.small
                         }
