@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell
 import qs.core.theme
@@ -64,17 +66,17 @@ Rectangle {
             property real dx: 0
             property real dy: 0
 
-            x: canvas.ox + rect.x * canvas.k + dx
-            y: canvas.oy + rect.y * canvas.k + dy
-            width: rect.w * canvas.k
-            height: rect.h * canvas.k
-            z: moving ? 2 : selected ? 1 : 0
+            x: canvas.ox + tile.rect.x * canvas.k + tile.dx
+            y: canvas.oy + tile.rect.y * canvas.k + tile.dy
+            width: tile.rect.w * canvas.k
+            height: tile.rect.h * canvas.k
+            z: tile.moving ? 2 : tile.selected ? 1 : 0
             radius: ThemeManager.radius.small + 2
-            color: selected ? ThemeManager.alpha(ThemeManager.colors.accent, 0.22) : ThemeManager.colors.surface
-            border.width: selected ? 2 : 1
-            border.color: selected ? ThemeManager.colors.accent : ThemeManager.colors.border
-            scale: moving ? 1.03 : 1
-            opacity: moving ? 0.9 : 1
+            color: tile.selected ? ThemeManager.alpha(ThemeManager.colors.accent, 0.22) : ThemeManager.colors.surface
+            border.width: tile.selected ? 2 : 1
+            border.color: tile.selected ? ThemeManager.colors.accent : ThemeManager.colors.border
+            scale: tile.moving ? 1.03 : 1
+            opacity: tile.moving ? 0.9 : 1
 
             Behavior on x { enabled: !tile.moving; Anim { type: Anim.Spatial } }
             Behavior on y { enabled: !tile.moving; Anim { type: Anim.Spatial } }
@@ -126,16 +128,16 @@ Rectangle {
                 preventStealing: true
 
                 onPressed: event => {
-                    press = mapToItem(canvas, event.x, event.y);
+                    mouse.press = mouse.mapToItem(canvas, event.x, event.y);
                     MonitorsState.select(tile.modelData);
                 }
                 onPositionChanged: event => {
-                    const p = mapToItem(canvas, event.x, event.y);
-                    if (!tile.moving && Math.hypot(p.x - press.x, p.y - press.y) < 4)
+                    const p = mouse.mapToItem(canvas, event.x, event.y);
+                    if (!tile.moving && Math.hypot(p.x - mouse.press.x, p.y - mouse.press.y) < 4)
                         return;
                     canvas.dragging = tile.modelData;
-                    tile.dx = p.x - press.x;
-                    tile.dy = p.y - press.y;
+                    tile.dx = p.x - mouse.press.x;
+                    tile.dy = p.y - mouse.press.y;
                     const at = MonitorsState.snap(tile.modelData, tile.rect.x + tile.dx / canvas.k, tile.rect.y + tile.dy / canvas.k, canvas.pull, null);
                     canvas.ghost = { x: at.x, y: at.y, w: tile.rect.w, h: tile.rect.h };
                 }
