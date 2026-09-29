@@ -24,7 +24,7 @@ NumberAnimation {
     }
 
     property int type: Anim.Spatial
-    readonly property QtObject tokens: ThemeManager.anim
+    readonly property ThemeManager.MotionTokens tokens: ThemeManager.anim
 
     duration: [tokens.spatial, tokens.fastSpatial, tokens.slowSpatial, tokens.effects, tokens.fastEffects, tokens.slowEffects, tokens.normal, tokens.large, tokens.small, tokens.normal, tokens.small, tokens.normal][type]
     easing.type: Easing.BezierSpline
