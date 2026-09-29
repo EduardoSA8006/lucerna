@@ -34,7 +34,8 @@ PanelWindow {
         right: true
         bottom: true
     }
-    margins {
+    // Falso positivo do qmllint com o grupo margins do PanelWindow (ver o spec do CI).
+    margins { // qmllint disable unqualified
         top: ThemeManager.spacing.small
         right: ThemeManager.spacing.small
     }

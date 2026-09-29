@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell
 import qs.core.theme
@@ -23,6 +25,8 @@ OverlayPanel {
         onLoaded: item.forceActiveFocus()
 
         sourceComponent: FocusScope {
+            id: overview
+
             focus: true
 
             readonly property int count: WorkspacesState.ids.length
@@ -101,7 +105,7 @@ OverlayPanel {
                             required property int modelData
 
                             wsId: modelData
-                            tileWidth: grid.parent.parent.tileWidth
+                            tileWidth: overview.tileWidth
                         }
                     }
                 }

@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs.core.format
 import qs.core.theme
@@ -63,16 +65,18 @@ Column {
                 ].filter(r => r.value)
 
                 delegate: Column {
+                    id: stat
+
                     required property var modelData
 
                     Txt {
-                        text: modelData.label
+                        text: stat.modelData.label
                         faint: true
                         font.pixelSize: ThemeManager.font.small
                     }
 
                     Txt {
-                        text: modelData.value
+                        text: stat.modelData.value
                         font.weight: Font.Medium
                     }
                 }
