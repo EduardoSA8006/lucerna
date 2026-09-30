@@ -2,7 +2,6 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import qs.core.config
 import qs.services
 
 // View model de Configurações → Área de transferência. O histórico mora no

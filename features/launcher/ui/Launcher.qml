@@ -1,5 +1,5 @@
+pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 import qs.core.theme
 import qs.core.widgets
 import qs.features.launcher.state
@@ -17,9 +17,17 @@ OverlayPanel {
     dim: LauncherState.style === "grid" ? 0 : ThemeManager.dark ? 0.4 : 0.22
     onDismissed: LauncherState.close()
 
+    // O item do Loader é um QObject: o `as` de cada estilo dá o tipo que tem focusSearch.
+    function focusSearch(): void {
+        const item = style.item;
+        (item as CompactLauncher)?.focusSearch();
+        (item as FullLauncher)?.focusSearch();
+        (item as GridLauncher)?.focusSearch();
+    }
+
     onOpenChanged: {
         if (open)
-            Qt.callLater(() => style.item?.focusSearch());
+            Qt.callLater(() => panel.focusSearch());
     }
 
     Loader {
@@ -29,7 +37,7 @@ OverlayPanel {
         sourceComponent: ({ compact: compact, full: full, grid: grid })[LauncherState.style] ?? compact
         onLoaded: {
             if (panel.open)
-                item.focusSearch();
+                panel.focusSearch();
         }
     }
 

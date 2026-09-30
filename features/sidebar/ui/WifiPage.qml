@@ -59,6 +59,8 @@ Column {
                 spacing: 4
 
                 ListRow {
+                    id: row
+
                     icon: entry.modelData.icon
                     title: entry.modelData.name
                     detail: entry.modelData.connected ? "Conectada" : entry.modelData.busy ? "Conectando…" : entry.modelData.known ? "Salva" : entry.modelData.secure ? "Protegida" : "Aberta"
@@ -75,7 +77,7 @@ Column {
                     }
 
                     IconButton {
-                        visible: entry.modelData.known && parent.parent.hovered
+                        visible: entry.modelData.known && row.hovered
                         icon: Icons.trash
                         iconSize: 18
                         foreground: ThemeManager.colors.textMuted

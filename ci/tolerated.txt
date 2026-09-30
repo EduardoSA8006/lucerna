@@ -1,0 +1,41 @@
+# Avisos de ambiente que a fumaça tolera (ci/smoke.sh, pelo ci/logcheck.py).
+# Cada bloco com padrões começa com o motivo em comentário; os padrões são
+# expressões regulares do Python, e cada um precisa bater com a LINHA INTEIRA
+# (ci/logcheck.py usa fullmatch), inclusive o nível (WARN/ERROR/...) e o texto
+# exato medido na sonda — nada de padrão parcial, para não engolir um erro real
+# emendado na mesma linha de um aviso de ambiente. Só entra aviso de ambiente
+# medido no CI: erro do shell se corrige, não se tolera.
+
+# Sem Hyprland no CI (ele não sobe sem GPU; a fumaça roda no sway headless):
+# o Quickshell avisa que não acha a instância, e o pedido da lista de janelas
+# (a visão geral, no passo `overview toggle`) não acha o socket dele.
+^WARN: \$HYPRLAND_INSTANCE_SIGNATURE is unset\. Cannot connect to hyprland\.$
+^WARN quickshell\.hyprland\.ipc: Error making request: QLocalSocket::ServerNotFoundError request: "j/clients"$
+
+# Programas que o container não tem: o hyprctl vem com o Hyprland (fora do CI)
+# e o brightnessctl só serve com uma tela de brilho ajustável (a saída do sway
+# headless não tem). O Quickshell avisa ao não achar o binário; cada linha é o
+# comando exato medido na fumaça.
+^WARN: Process failed to start, likely because the binary could not be found\. Command: QList\("hyprctl", "version", "-j"\)$
+^WARN: Process failed to start, likely because the binary could not be found\. Command: QList\("hyprctl", "monitors", "all", "-j"\)$
+^WARN: Process failed to start, likely because the binary could not be found\. Command: QList\("hyprctl", "devices", "-j"\)$
+^WARN: Process failed to start, likely because the binary could not be found\. Command: QList\("brightnessctl", "-m", "-c", "backlight", "info"\)$
+
+# O sway não tem o protocolo de foco do Hyprland, que o Panels usa para fechar
+# os painéis com um clique fora. O aviso do Quickshell vem em duas linhas.
+^WARN: The active compositor does not support the hyprland_focus_grab_v1 protocol\. HyprlandFocusGrab will not work\.$
+^WARN: \*\* Learn why \$XDG_CURRENT_DESKTOP sucks and download a better compositor today at https://hyprland\.org$
+
+# Sem D-Bus do sistema no container: rede, bateria, perfis de energia e
+# Bluetooth ficam de fora (o D-Bus de sessão do dbus-run-session não tem esses
+# serviços).
+^WARN quickshell\.network\.networkmanager: Could not connect to DBus\. NetworkManager backend will not work\.$
+^WARN quickshell\.service\.upower: Could not connect to DBus\. UPower service will not work\.$
+^WARN quickshell\.service\.powerprofiles: Could not connect to DBus\. PowerProfiles services will not work\.$
+^WARN quickshell\.bluetooth: Could not connect to DBus\. Bluetooth integration is not available\.$
+# Consequência do aviso do NetworkManager: nenhum backend de rede.
+^ERROR quickshell\.network: Network will not work\. Could not find an available backend\.$
+
+# Sem PipeWire no container: volume e mídia ficam de fora (o número do errno
+# pode variar conforme o socket que falta).
+^ERROR quickshell\.service\.pipewire\.loop: Failed to connect pipewire context\. Errno: \d+$

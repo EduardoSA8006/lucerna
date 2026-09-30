@@ -22,7 +22,9 @@ in=$1 dir=$2 tw=$3 th=$4 cap=$5 crop=$6 hw=$7 threads=${8:-0}
 
 fail() { echo "error $*"; exit 1; }
 [ -f "$in" ] || fail "arquivo não encontrado"
-command -v ffmpeg >/dev/null && command -v ffprobe >/dev/null || fail "ffmpeg não está instalado"
+if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+    fail "ffmpeg não está instalado"
+fi
 mkdir -p "$dir" || fail "não foi possível criar a pasta do cache"
 
 key=$(printf '%s|%s|%s' "$in" "$(stat -c '%s %Y' "$in")" "$tw $th $cap $crop $hw v3" | md5sum | cut -c1-16)
@@ -54,6 +56,8 @@ if [ -n "$detect" ]; then
     fi
 fi
 
+# Valores de partida; o awk abaixo recalcula os três.
+fps=$cap ow=$tw oh=$th
 # Conta com awk: fps final, tamanho final (par) e se é animação (GIF/APNG/WebP).
 eval "$(awk -v sw="$sw" -v sh="$sh" -v tw="$tw" -v th="$th" -v rate="$rate" -v cap="$cap" -v crop="$crop" 'BEGIN {
     split(rate, r, "/"); fps = (r[2] > 0) ? r[1] / r[2] : cap
@@ -92,6 +96,7 @@ tune=""
 gop=$(awk -v f="$fps" 'BEGIN { printf "%d", f * 10 }')
 
 tmp="$out.part.mp4"
+# shellcheck disable=SC2086 # $tune é vazio ou "-tune <perfil>": dois argumentos de propósito
 ffmpeg -y -hide_banner -v error -nostats -progress pipe:1 -i "$in" \
     -an -sn -dn -map 0:v:0 -vf "$filters" -fps_mode vfr \
     -c:v libx264 -preset medium -crf 22 -profile:v high -pix_fmt yuv420p -threads "$threads" \

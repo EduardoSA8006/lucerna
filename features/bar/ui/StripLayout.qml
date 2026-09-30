@@ -1,8 +1,6 @@
 import QtQuick
 import Quickshell
 import qs.core.theme
-import qs.core.widgets
-import qs.features.bar.state
 
 // Faixa: a barra clássica, de ponta a ponta, colada ao topo. Workspaces à
 // esquerda, hora e data no centro, ações à direita.

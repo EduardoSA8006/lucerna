@@ -1,5 +1,6 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import Quickshell
 import qs.core.theme
 import qs.core.widgets
 import qs.features.dashboard.state
@@ -21,7 +22,7 @@ OverlayPanel {
     }
 
     readonly property int index: DashboardState.currentIndex
-    readonly property Item currentPage: pageRepeater.count > index ? pageRepeater.itemAt(index) : null
+    readonly property Loader currentPage: pageRepeater.count > index ? pageRepeater.itemAt(index) as Loader : null
 
     // Cartão flutuante que desce do topo da tela com mola (abaixo da barra,
     // quando ela está fixa).
@@ -89,7 +90,7 @@ OverlayPanel {
                 anchors.top: tabs.bottom
                 anchors.topMargin: ThemeManager.spacing.normal
                 width: parent.width
-                height: panel.currentPage?.item?.implicitHeight ?? 0
+                height: (panel.currentPage?.item as Item)?.implicitHeight ?? 0
                 clip: true
 
                 Behavior on height { Anim { type: Anim.Spatial } }

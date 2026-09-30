@@ -12,7 +12,8 @@ PanelWindow {
     screen: OsdState.screen
     visible: pill.opacity > 0
     anchors.bottom: true
-    margins.bottom: 72
+    // Falso positivo do qmllint com o grupo margins do PanelWindow (ver o spec do CI).
+    margins.bottom: 72 // qmllint disable unqualified
     implicitWidth: pill.width
     implicitHeight: pill.height + 32
     color: "transparent"

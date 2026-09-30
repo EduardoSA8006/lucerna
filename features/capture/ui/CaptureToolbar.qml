@@ -47,6 +47,8 @@ Surface {
                 model: CaptureState.targets
 
                 delegate: Clickable {
+                    id: option
+
                     required property var modelData
                     readonly property bool current: CaptureState.target === modelData.value
 
@@ -65,17 +67,17 @@ Surface {
 
                         Icon {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            icon: parent.parent.modelData.icon
-                            filled: parent.parent.current
+                            icon: option.modelData.icon
+                            filled: option.current
                             size: 24
-                            color: parent.parent.current ? ThemeManager.colors.accent : ThemeManager.colors.textMuted
+                            color: option.current ? ThemeManager.colors.accent : ThemeManager.colors.textMuted
                         }
 
                         Txt {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: parent.parent.modelData.label
+                            text: option.modelData.label
                             font.pixelSize: ThemeManager.font.small + 1
-                            font.weight: parent.parent.current ? Font.DemiBold : Font.Normal
+                            font.weight: option.current ? Font.DemiBold : Font.Normal
                         }
                     }
                 }

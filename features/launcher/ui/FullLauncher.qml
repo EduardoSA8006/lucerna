@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
@@ -77,6 +78,8 @@ Item {
                 model: LauncherState.categories
 
                 delegate: Clickable {
+                    id: catRow
+
                     required property var modelData
                     readonly property bool current: LauncherState.category === modelData.id
 
@@ -85,7 +88,7 @@ Item {
                     radius: ThemeManager.radius.normal
                     color: current ? ThemeManager.alpha(ThemeManager.colors.accent, 0.16) : "transparent"
                     onClicked: {
-                        LauncherState.setCategory(modelData.id);
+                        LauncherState.setCategory(catRow.modelData.id);
                         search.focusInput();
                     }
 
@@ -95,18 +98,18 @@ Item {
                         anchors.left: parent.left
                         anchors.leftMargin: ThemeManager.spacing.normal
                         anchors.verticalCenter: parent.verticalCenter
-                        icon: parent.modelData.icon
-                        filled: parent.current
+                        icon: catRow.modelData.icon
+                        filled: catRow.current
                         size: 20
-                        color: parent.current ? ThemeManager.colors.accent : ThemeManager.colors.textMuted
+                        color: catRow.current ? ThemeManager.colors.accent : ThemeManager.colors.textMuted
                     }
 
                     Txt {
                         anchors.left: catIcon.right
                         anchors.leftMargin: ThemeManager.spacing.normal
                         anchors.verticalCenter: parent.verticalCenter
-                        text: parent.modelData.label
-                        font.weight: parent.current ? Font.DemiBold : Font.Normal
+                        text: catRow.modelData.label
+                        font.weight: catRow.current ? Font.DemiBold : Font.Normal
                     }
                 }
             }
@@ -142,12 +145,14 @@ Item {
                 model: LauncherState.favoriteApps
 
                 delegate: Clickable {
+                    id: favRow
+
                     required property var modelData
 
                     width: side.width
                     height: 38
                     radius: ThemeManager.radius.normal
-                    onClicked: LauncherState.activate(LauncherState.fromApp(modelData))
+                    onClicked: LauncherState.activate(LauncherState.fromApp(favRow.modelData))
 
                     ItemIcon {
                         id: favIcon
@@ -155,7 +160,7 @@ Item {
                         anchors.left: parent.left
                         anchors.leftMargin: ThemeManager.spacing.normal
                         anchors.verticalCenter: parent.verticalCenter
-                        item: LauncherState.fromApp(parent.modelData)
+                        item: LauncherState.fromApp(favRow.modelData)
                         size: 22
                     }
 
@@ -164,7 +169,7 @@ Item {
                         anchors.leftMargin: ThemeManager.spacing.normal
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
-                        text: parent.modelData.name
+                        text: favRow.modelData.name
                         elide: Text.ElideRight
                         font.pixelSize: ThemeManager.font.small + 1
                     }

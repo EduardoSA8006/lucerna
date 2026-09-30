@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
@@ -78,6 +79,8 @@ Item {
                 model: LauncherState.usedAppCategories
 
                 delegate: Clickable {
+                    id: chip
+
                     required property var modelData
                     readonly property bool current: LauncherState.appCategory === modelData.id
 
@@ -86,7 +89,7 @@ Item {
                     radius: 17
                     color: current ? ThemeManager.colors.accent : ThemeManager.alpha(ThemeManager.colors.text, 0.08)
                     onClicked: {
-                        LauncherState.appCategory = modelData.id;
+                        LauncherState.appCategory = chip.modelData.id;
                         search.focusInput();
                     }
 
@@ -96,9 +99,9 @@ Item {
                         id: chipText
 
                         anchors.centerIn: parent
-                        text: parent.modelData.label
-                        color: parent.current ? ThemeManager.colors.accentText : ThemeManager.colors.text
-                        font.weight: parent.current ? Font.DemiBold : Font.Normal
+                        text: chip.modelData.label
+                        color: chip.current ? ThemeManager.colors.accentText : ThemeManager.colors.text
+                        font.weight: chip.current ? Font.DemiBold : Font.Normal
                     }
                 }
             }

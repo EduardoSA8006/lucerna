@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -22,7 +24,8 @@ Variants {
         screen: modelData
         visible: shown > 0
         anchors.top: true
-        margins.top: 90
+        // Falso positivo: o margins do PanelWindow não está descrito nos qmltypes do Quickshell (ver spec).
+        margins.top: 90 // qmllint disable unqualified
         implicitWidth: 460
         implicitHeight: card.height + 20
         color: "transparent"

@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -151,6 +153,8 @@ Surface {
                     model: card.notification?.actions ?? []
 
                     delegate: Clickable {
+                        id: action
+
                         required property var modelData
 
                         implicitWidth: actionLabel.implicitWidth + ThemeManager.spacing.normal * 2
@@ -163,7 +167,7 @@ Surface {
                             id: actionLabel
 
                             anchors.centerIn: parent
-                            text: modelData.text
+                            text: action.modelData.text
                             font.pixelSize: ThemeManager.font.small
                         }
                     }

@@ -1,5 +1,6 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import Quickshell
 import qs.core.theme
 import qs.core.widgets
 import qs.features.workspaces.state
@@ -20,9 +21,11 @@ OverlayPanel {
         anchors.fill: parent
         active: panel.visible
         focus: true
-        onLoaded: item.forceActiveFocus()
+        onLoaded: (item as Item).forceActiveFocus()
 
         sourceComponent: FocusScope {
+            id: overview
+
             focus: true
 
             readonly property int count: WorkspacesState.ids.length
@@ -91,7 +94,7 @@ OverlayPanel {
 
                     x: ThemeManager.spacing.large
                     y: header.y + header.height + ThemeManager.spacing.large
-                    columns: parent.parent.columns
+                    columns: overview.columns
                     spacing: ThemeManager.spacing.large
 
                     Repeater {
@@ -101,7 +104,7 @@ OverlayPanel {
                             required property int modelData
 
                             wsId: modelData
-                            tileWidth: grid.parent.parent.tileWidth
+                            tileWidth: overview.tileWidth
                         }
                     }
                 }

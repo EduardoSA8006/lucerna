@@ -36,39 +36,54 @@ Singleton {
     // Nascer e pôr do sol de hoje na cidade do clima (ou null).
     readonly property var sunToday: location ? Sun.times(new Date(now), location.latitude, location.longitude) : null
 
-    // A noite de hoje: { start, end } em minutos, ou { always } / { never }.
-    readonly property var night: {
+    // A noite de um dia: { start, end } em minutos, ou { always } / { never }.
+    // `sun` é o Sun.times do dia, ou null (sem cidade: vale o de/até).
+    function nightFor(schedule: string, sun: var, from: string, to: string): var {
         if (schedule === "always")
             return { always: true };
-        if (schedule === "sun" && location) {
-            const sun = sunToday;
+        if (schedule === "sun" && sun) {
             if (sun.polar === "day")
                 return { never: true };
             if (sun.polar === "night")
                 return { always: true };
             return { start: sun.sunset, end: sun.sunrise };
         }
-        return { start: toMinutes(Config.nightLightFrom), end: toMinutes(Config.nightLightTo) };
+        return { start: toMinutes(from), end: toMinutes(to) };
     }
+
+    // 0 (dia) a 1 (noite cheia) no minuto `minute` do dia, com a rampa nas duas pontas.
+    function factorAt(night: var, minute: real): real {
+        if (night.always)
+            return 1;
+        if (night.never)
+            return 0;
+        const length = (night.end - night.start + 1440) % 1440;
+        const elapsed = (minute - night.start + 1440) % 1440;
+        if (length === 0 || elapsed >= length)
+            return 0;
+        const ramp = Math.min(rampMinutes, length / 2);
+        return Math.min(1, elapsed / ramp, (length - elapsed) / ramp);
+    }
+
+    // Quando o horário vira de novo (em ms), visto no minuto `minute` do dia do
+    // instante `at` (ms). Com "sempre" ou "nunca", não vira: 0.
+    function nextChangeAt(night: var, minute: real, at: real): real {
+        if (night.always || night.never)
+            return 0;
+        const target = factorAt(night, minute) > 0 ? night.end : night.start;
+        const minutes = (target - minute + 1440) % 1440 || 1440;
+        return at + minutes * 60000;
+    }
+
+    // A noite de hoje.
+    readonly property var night: nightFor(schedule, sunToday, Config.nightLightFrom, Config.nightLightTo)
 
     readonly property real minuteOfDay: {
         const d = new Date(now);
         return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
     }
 
-    // 0 (dia) a 1 (noite cheia), com a rampa nas duas pontas.
-    readonly property real scheduledFactor: {
-        if (night.always)
-            return 1;
-        if (night.never)
-            return 0;
-        const length = (night.end - night.start + 1440) % 1440;
-        const elapsed = (minuteOfDay - night.start + 1440) % 1440;
-        if (length === 0 || elapsed >= length)
-            return 0;
-        const ramp = Math.min(rampMinutes, length / 2);
-        return Math.min(1, elapsed / ramp, (length - elapsed) / ramp);
-    }
+    readonly property real scheduledFactor: factorAt(night, minuteOfDay)
     readonly property bool scheduledOn: scheduledFactor > 0
 
     readonly property var override: {
@@ -86,11 +101,7 @@ Singleton {
 
     // Quando o horário vira de novo (em ms), para o "até" da mão.
     function nextChange(): real {
-        if (night.always || night.never)
-            return 0;
-        const target = scheduledOn ? night.end : night.start;
-        const minutes = (target - minuteOfDay + 1440) % 1440 || 1440;
-        return now + minutes * 60000;
+        return nextChangeAt(night, minuteOfDay, now);
     }
 
     readonly property string status: {

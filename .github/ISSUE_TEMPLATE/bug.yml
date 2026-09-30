@@ -1,0 +1,33 @@
+name: Bug
+description: Algo não funciona como deveria.
+labels: [bug]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: O que aconteceu
+      description: O que você fez, o que esperava e o que viu.
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. Abrir o painel superior (Super+D)
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log do Quickshell
+      description: A saída de `qs -c lucerna log` perto do problema.
+      render: text
+  - type: input
+    id: versoes
+    attributes:
+      label: Versões
+      description: Commit do Lucerna (`git rev-parse --short HEAD`), `hyprctl version` e `qs --version`.
+    validations:
+      required: true

@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 import qs.core.theme
-import qs.core.widgets
 import qs.features.bar.state
 
 // Ilha: recolhida, só a hora (com sinais de atenção); com o mouse em cima,

@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell
 
 // Os atalhos do próprio shell: os padrões e o que o usuário mudou
-// (Config.shellShortcuts: { acao: [{ mods, trigger }] }; lista vazia = sem
+// (Config.shellShortcuts: { <id da ação>: [{ mods, trigger }] }; lista vazia = sem
 // atalho). Só dados: a feature input aplica e as configurações editam.
 // No ambiente de desenvolvimento o Mod é Alt (o Hyprland de fora fica com o Super).
 Singleton {

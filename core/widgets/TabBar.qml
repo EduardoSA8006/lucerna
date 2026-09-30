@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs.core.theme
 
@@ -9,6 +11,9 @@ Item {
     // [{ icon, label }]
     required property var tabs
     property int currentIndex: 0
+    // Largura do rótulo da aba atual, para o indicador: a aba atual escreve aqui
+    // (o Binding do delegate). O repeater.itemAt devolve Item, que não tem labelWidth.
+    property real currentLabelWidth: 40
 
     signal activated(int index)
 
@@ -36,6 +41,16 @@ Item {
                 height: row.height
                 radius: ThemeManager.radius.normal
                 onClicked: root.activated(index)
+
+                // Só a aba atual escreve. RestoreNone: ao deixar de ser a atual, a
+                // aba não devolve o valor antigo por cima do que a nova escreveu.
+                Binding {
+                    target: root
+                    property: "currentLabelWidth"
+                    value: tab.labelWidth
+                    when: tab.current
+                    restoreMode: Binding.RestoreNone
+                }
 
                 Column {
                     anchors.centerIn: parent
@@ -67,8 +82,9 @@ Item {
 
     // Indicador: a largura do rótulo da aba atual, colado embaixo.
     Rectangle {
+        // A aba atual, para a posição (x, logo abaixo); a largura vem do root.
         readonly property Item target: repeater.count > 0 ? repeater.itemAt(root.currentIndex) : null
-        readonly property real targetWidth: Math.max(28, (target?.labelWidth ?? 40) + 12)
+        readonly property real targetWidth: Math.max(28, root.currentLabelWidth + 12)
 
         anchors.bottom: parent.bottom
         x: target ? target.x + (target.width - width) / 2 : 0

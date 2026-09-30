@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import qs.core.format
@@ -185,6 +187,8 @@ Item {
                         model: PerformanceState.gpus.slice(0, 2)
 
                         delegate: Column {
+                            id: gpu
+
                             required property var modelData
 
                             width: parent.width
@@ -195,30 +199,30 @@ Item {
 
                                 Txt {
                                     width: parent.width - value.width
-                                    text: parent.parent.modelData.name
+                                    text: gpu.modelData.name
                                     font.pixelSize: ThemeManager.font.small + 1
                                 }
 
                                 Txt {
                                     id: value
 
-                                    text: parent.parent.modelData.valueText
+                                    text: gpu.modelData.valueText
                                     mono: true
-                                    faint: parent.parent.modelData.asleep
+                                    faint: gpu.modelData.asleep
                                     font.pixelSize: ThemeManager.font.small + 1
                                 }
                             }
 
                             LinearGauge {
                                 width: parent.width
-                                value: modelData.fraction
-                                opacity: modelData.asleep ? 0.4 : 1
+                                value: gpu.modelData.fraction
+                                opacity: gpu.modelData.asleep ? 0.4 : 1
                             }
 
                             Txt {
                                 width: parent.width
                                 visible: text !== ""
-                                text: modelData.detail
+                                text: gpu.modelData.detail
                                 faint: true
                                 font.pixelSize: ThemeManager.font.small
                             }
@@ -291,19 +295,21 @@ Item {
                             model: PerformanceState.disks
 
                             delegate: Column {
+                                id: disk
+
                                 required property var modelData
 
                                 width: parent.width
 
                                 Txt {
-                                    text: modelData.mount
+                                    text: disk.modelData.mount
                                     mono: true
                                     font.pixelSize: ThemeManager.font.small + 1
                                 }
 
                                 Txt {
                                     width: parent.width
-                                    text: modelData.text
+                                    text: disk.modelData.text
                                     muted: true
                                     font.pixelSize: ThemeManager.font.small
                                 }

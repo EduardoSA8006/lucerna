@@ -1,5 +1,6 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import Quickshell
 import qs.core.theme
 import qs.core.widgets
 import qs.features.themeSwitcher.state

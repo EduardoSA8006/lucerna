@@ -32,6 +32,8 @@ Clickable {
         Behavior on color { ColorAnim {} }
 
         Icon {
+            id: glyph
+
             anchors.centerIn: parent
             icon: root.icon
             size: 20
@@ -45,7 +47,7 @@ Clickable {
                 to: 360
                 duration: 1400
                 loops: Animation.Infinite
-                onStopped: parent.rotation = 0
+                onStopped: glyph.rotation = 0
             }
         }
     }

@@ -1,9 +1,13 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
 
 // Tópico que ainda não tem opções.
 Item {
+    id: root
+
     required property var topic
 
     implicitHeight: 360
@@ -28,7 +32,7 @@ Item {
 
             Icon {
                 anchors.centerIn: parent
-                icon: topic.icon
+                icon: root.topic.icon
                 size: 40
                 color: ThemeManager.colors.textFaint
             }
@@ -43,7 +47,7 @@ Item {
 
         Txt {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: `As opções de ${topic.label.toLowerCase()} ainda estão sendo feitas.`
+            text: `As opções de ${root.topic.label.toLowerCase()} ainda estão sendo feitas.`
             faint: true
         }
     }

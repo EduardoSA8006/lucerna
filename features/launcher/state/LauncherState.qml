@@ -139,14 +139,14 @@ Singleton {
     // Ações do próprio shell. `keywords` ajuda a achar por sinônimos.
     readonly property var actions: [
         { name: "Bloquear tela", description: "Ação do Lucerna", glyph: Icons.lock, keywords: "lock bloqueio", run: () => Session.lock() },
-        { name: "Painel", description: "Ação do Lucerna", glyph: Icons.dashboard, keywords: "dashboard calendario clima desempenho midia musica", run: () => Panels.open("dashboard") },
-        { name: "Configurações", description: "Ação do Lucerna", glyph: Icons.settings, keywords: "ajustes preferencias transparencia desfoque blur opacidade animacoes settings", run: () => Panels.open("settings") },
+        { name: "Painel", description: "Ação do Lucerna", glyph: Icons.dashboard, keywords: "dashboard calendário clima desempenho mídia música", run: () => Panels.open("dashboard") },
+        { name: "Configurações", description: "Ação do Lucerna", glyph: Icons.settings, keywords: "ajustes preferências transparência desfoque blur opacidade animações settings", run: () => Panels.open("settings") },
         { name: "Trocar tema", description: "Ação do Lucerna", glyph: Icons.palette, keywords: "theme cores aparência", run: () => Panels.open("themes") },
         { name: "Notificações", description: "Ação do Lucerna", glyph: Icons.bell, keywords: "central avisos", run: () => Panels.openSidebar("notifications") },
-        { name: "Wi-Fi", description: "Ação do Lucerna", glyph: Icons.wifiOn, keywords: "rede internet wifi conexao", run: () => Panels.openSidebar("wifi") },
+        { name: "Wi-Fi", description: "Ação do Lucerna", glyph: Icons.wifiOn, keywords: "rede internet wifi conexão", run: () => Panels.openSidebar("wifi") },
         { name: "Bluetooth", description: "Ação do Lucerna", glyph: Icons.bluetooth, keywords: "fone dispositivos parear", run: () => Panels.openSidebar("bluetooth") },
-        { name: "Som", description: "Ação do Lucerna", glyph: Icons.sound, keywords: "audio volume microfone saida", run: () => Panels.openSidebar("sound") },
-        { name: Config.doNotDisturb ? "Desativar não perturbe" : "Ativar não perturbe", description: "Ação do Lucerna", glyph: Icons.bellSleep, keywords: "dnd silencio silenciar", run: () => Config.doNotDisturb = !Config.doNotDisturb },
+        { name: "Som", description: "Ação do Lucerna", glyph: Icons.sound, keywords: "audio volume microfone saída", run: () => Panels.openSidebar("sound") },
+        { name: Config.doNotDisturb ? "Desativar não perturbe" : "Ativar não perturbe", description: "Ação do Lucerna", glyph: Icons.bellSleep, keywords: "dnd silêncio silenciar", run: () => Config.doNotDisturb = !Config.doNotDisturb },
         { name: "Menu de energia", description: "Ação do Lucerna", glyph: Icons.power, keywords: "desligar reiniciar suspender sair logout power", run: () => Panels.open("power") }
     ].map(a => Object.assign({ kind: "action" }, a))
 

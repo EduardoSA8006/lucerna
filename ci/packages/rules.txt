@@ -1,0 +1,3 @@
+# Pacotes do job rules (ci/setup.sh). O qsb (qt6-shadertools) recompila os shaders.
+python
+qt6-shadertools

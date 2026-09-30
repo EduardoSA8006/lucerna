@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Widgets
@@ -228,7 +230,7 @@ Item {
                             id: chip
 
                             anchors.centerIn: parent
-                            text: modelData.name
+                            text: parent.modelData.name
                             color: parent.active ? ThemeManager.colors.accentText : ThemeManager.colors.text
                             font.pixelSize: ThemeManager.font.small
                         }
@@ -289,7 +291,7 @@ Item {
                     required property int index
                     readonly property bool current: index === MediaState.currentLine
 
-                    width: ListView.view.width
+                    width: lyricsView.width
                     text: modelData.text || "♪"
                     wrapMode: Text.Wrap
                     horizontalAlignment: Text.AlignHCenter

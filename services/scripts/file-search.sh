@@ -24,7 +24,7 @@ esac
 
 matches_kind() {
     [ -z "$exts" ] && return 0
-    ext=$(printf '%s' "${1##*.}" | tr 'A-Z' 'a-z')
+    ext=$(printf '%s' "${1##*.}" | tr '[:upper:]' '[:lower:]')
     for e in $exts; do
         [ "$e" = "$ext" ] && return 0
     done
@@ -35,7 +35,7 @@ emit() {
     while IFS= read -r f; do
         [ -f "$f" ] || continue
         matches_kind "$f" || continue
-        printf '%s\t%s\n' "$f" "$(stat -c '%s	%Y' "$f" 2>/dev/null)"
+        printf '%s\t%s\n' "$f" "$(stat --printf '%s\t%Y' "$f" 2>/dev/null)"
     done
 }
 

@@ -1,0 +1,11 @@
+# Atualizações das actions do CI (fixadas por SHA no ci.yml), uma vez por
+# semana e num PR só. O PR passa pelos quatro checks como qualquer outro.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

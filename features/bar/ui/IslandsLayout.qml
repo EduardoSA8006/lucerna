@@ -1,8 +1,6 @@
 import QtQuick
 import Quickshell
 import qs.core.theme
-import qs.core.widgets
-import qs.features.bar.state
 
 // Três ilhas: workspaces à esquerda, hora e data no meio, ações à direita.
 // Descem em cascata quando a barra aparece.

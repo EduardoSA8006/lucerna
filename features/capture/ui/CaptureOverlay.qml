@@ -1,5 +1,5 @@
+pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 import qs.core.theme
 import qs.core.widgets
 import qs.features.capture.state
@@ -60,6 +60,8 @@ OverlayPanel {
         }
 
         Item {
+            id: frame
+
             visible: !!panel.hole
             anchors.fill: parent
 
@@ -111,8 +113,8 @@ OverlayPanel {
                 delegate: Rectangle {
                     required property int index
 
-                    x: parent.h.x + (index % 2 ? parent.h.width : 0) - 6
-                    y: parent.h.y + (index > 1 ? parent.h.height : 0) - 6
+                    x: frame.h.x + (index % 2 ? frame.h.width : 0) - 6
+                    y: frame.h.y + (index > 1 ? frame.h.height : 0) - 6
                     width: 12
                     height: 12
                     radius: 6

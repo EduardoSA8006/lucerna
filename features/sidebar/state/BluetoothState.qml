@@ -26,7 +26,7 @@ Singleton {
             icon: Icons.forDevice(d.icon),
             connected: d.connected,
             busy: Bluetooth.isBusy(d),
-            detail: d.connected ? (d.batteryAvailable ? `Conectado · bateria ${Format.percent(d.battery)}` : "Conectado") : d.paired ? "Pareado" : "Disponível"
+            detail: d.connected ? (d.batteryAvailable ? "Conectado · bateria " + Format.percent(d.battery) : "Conectado") : d.paired ? "Pareado" : "Disponível"
         };
     }
 

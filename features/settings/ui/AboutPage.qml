@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
@@ -55,12 +57,14 @@ Column {
             model: SettingsState.about
 
             delegate: SettingRow {
+                id: row
+
                 required property var modelData
 
                 title: modelData.label
 
                 Txt {
-                    text: modelData.value
+                    text: row.modelData.value
                     mono: true
                     muted: true
                     font.pixelSize: ThemeManager.font.small + 1

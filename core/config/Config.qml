@@ -110,6 +110,10 @@ Singleton {
     FileView {
         path: Quickshell.statePath("config.json")
         blockLoading: true
+        // Grava de forma síncrona: a gravação precisa terminar antes de o
+        // watcher disparar o reload, senão ele lê o arquivo antigo e desfaz
+        // as mudanças feitas no mesmo turno.
+        blockWrites: true
         printErrors: false
         watchChanges: true
         onFileChanged: reload()
@@ -268,7 +272,7 @@ Singleton {
             // Botões e teclas mapeados para ações:
             // [{ trigger, mods, label, action: { id, keys?, command? } }].
             property var inputBinds: []
-            // Atalhos do shell que o usuário mudou: { acao: [{ mods, trigger }] }
+            // Atalhos do shell que o usuário mudou: { <id da ação>: [{ mods, trigger }] }
             // (os padrões estão em core/input/ShellShortcuts).
             property var shellShortcuts: ({})
             // Histórico da área de transferência: guardar, quantos, manter ao

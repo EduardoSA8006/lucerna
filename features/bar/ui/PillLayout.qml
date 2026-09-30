@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import qs.core.theme
 import qs.core.widgets
-import qs.features.bar.state
 
 // Pílula: uma só, flutuante e centralizada, com tudo à mostra.
 Item {

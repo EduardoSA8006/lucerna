@@ -1,0 +1,18 @@
+name: Sugestão
+description: Recurso novo ou mudança de comportamento.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema
+      description: Que caso de uso isto resolve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Proposta
+      description: Como deveria funcionar. Se mexer numa decisão da Proposta, cite a seção.
+    validations:
+      required: true
