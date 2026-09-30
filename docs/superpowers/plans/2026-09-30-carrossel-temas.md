@@ -25,6 +25,7 @@
 - Lint: `pragma ComponentBehavior: Bound` com `required property` nos delegates e ids qualificados; nenhuma supressão do qmllint; nenhum aviso aceito.
 - Estilo compacto da casa (`Behavior on x { Anim { type: Anim.Spatial } }` numa linha); nada de `qmlformat`.
 - Testes: prefira `t.eq`; `t.check(a === b)` só para identidade; restaure `Config`, `ThemeManager.themes` e `Panels.opened` no fim de cada caso; nada de hora real nem espera real; o runner já sai com `Qt.callLater(() => Qt.exit(n))`.
+- Regras sempre por `dev/ci.sh rules` (no container do CI), não por `python3 ci/rules.py` no host: a regra dos shaders recompila com o `qsb`, e o do host pode ter outra versão.
 - Funções do escopo de cobertura declaradas como `function nome(...) {` numa linha; 100% delas chamadas pelos testes.
 - Tudo em português do Brasil com acentos: comentários, textos, documentação e mensagens de commit.
 - Conferência visual só no `lucerna-polish` (`dev/test.sh`); nunca mexer no container `lucerna-dev`.
@@ -33,7 +34,7 @@
 ## Review Focus
 
 1. **Fechar por outro caminho com a espera armada** (o atalho de novo, que faz `Panels.toggle`; outro painel modal; `panels close`): o esperado é desfazer como o Esc e a espera nunca aplicar um tema depois do seletor fechado. Teste na Tarefa 2 ("fechar por outro caminho também desfaz").
-2. **Fila de 0, 1 ou 2 temas**: as setas não quebram nem aplicam nada à toa; com 2, a distância até o centro é estável (empate para a direita); vazia, o Enter só fecha. Testes nas Tarefas 1 ("distância até o centro") e 2 ("lista que muda com o seletor aberto").
+2. **Fila de 0, 1 ou 2 temas**: as setas não quebram nem aplicam nada à toa; com 2, a distância até o centro é estável (empate para a direita); vazia, o Enter só fecha. Testes nas Tarefas 1 ("distância até o centro") e 2 ("lista que muda com o seletor aberto" e "seletor fechado não gira nem fecha outro painel").
 3. **Tema da abertura fora da lista** (`Config.theme` aponta para um tema que não está em `ThemeManager.themes`): o esperado é centrar no primeiro card e o Esc voltar ao tema da abertura, não ao primeiro. Teste na Tarefa 2 ("tema da abertura fora da lista").
 4. **Lista de temas trocada com o seletor aberto** (um arquivo novo em `themes/` dispara o `rebuildList`): o índice central continua dentro da lista, e os cards recriados aparecem já visíveis. Teste do índice na Tarefa 2 (mesmo caso do item 2); os cards visíveis vêm do `Component.onCompleted` do delegate na Tarefa 3.
 5. **Enter sem girar e clique no card central durante a espera**: Enter sem giro não regrava o tema; clique no central com a espera armada aplica uma vez, o do centro, e fecha. Testes na Tarefa 2 ("Enter sem girar mantém o tema da abertura" e "clique num card lateral gira até ele; no central, confirma").
@@ -46,8 +47,12 @@
 - **Espera sem relógio**: o estado expõe `pending` (o `Timer` armado) e `flush()` (aplica agora o card central, se ele não é o tema aplicado). O `flush()` não é só para teste: é o que o `confirm()` e o próprio `Timer` chamam. O teste gira, confere `pending` e o tema intacto, e chama `flush()`.
 - **Teste do fluxo pelo caminho real**: o teste abre o seletor com `Panels.open("themes")`, e o estado reage ao `open` (`begin()` ao abrir, `finish()` ao fechar). Por isso qualquer fechamento que não seja o Enter desfaz, e o Esc (`cancel()`) só fecha. O runner passa a importar `qs.features.themeSwitcher.state` (o `ci/rules.py` não confere `tests/`, e o `ThemeSwitcherState` só lê o `Hypr` por propriedades, que não fazem nada sem Hyprland). O `ThemeSwitcherState` fica fora do gate de cobertura (o escopo é o `core/` e as funções puras de `services/`), mas o fluxo inteiro é testado.
 - **Clique fora com o degradê na tela**: o `OverlayPanel` só dispensa quando o clique não cai em nenhum filho direto (`container.childAt`). A fila e o degradê ficam num `Item` sem tamanho (`stage`), que nunca contém o ponto; os cards têm `MouseArea` próprio e ficam com o clique deles.
-- **Degradê e desfoque**: o degradê chega a no máximo 40% de opacidade, abaixo do `ignore_alpha = 0.45` da regra de desfoque do Hyprland; ele nunca é desfocado. A Tarefa 4 confere na tela se a camada sem escurecimento desfoca a tela inteira ou deixa faixas; se sim, o seletor deixa de pedir desfoque (`blur: false` no `OverlayPanel`, com o namespace `lucerna-themes`).
+- **Degradê e desfoque**: o degradê chega a no máximo 40% de opacidade, abaixo do `ignore_alpha = 0.45` da regra de desfoque do Hyprland; ele nunca é desfocado. A Tarefa 4 confere na tela se a camada sem escurecimento desfoca a tela inteira ou deixa faixas; se sim, o seletor deixa de pedir desfoque (`blurBehind: false` no `OverlayPanel`, com o namespace `lucerna-themes`). A sombra dos cards fica em no máximo 35% de opacidade pelo mesmo motivo.
 - **`ci/rules.py` fica como está**: não existe regra de papéis de cor. As linhas `ThemeCard.qml:80-88` e `ThemeSwitcher.qml:121` citadas pelo spec vêm da conferência do `pragma ComponentBehavior: Bound` do plano do CI (Tarefa 22, "papéis" do modelo nos delegates), que foi uma sonda, não uma regra. O código novo segue a mesma regra (delegates com `required property`), e a Tarefa 4 confirma que o `ci/rules.py` não cita esses arquivos.
+- **Tema trocado por fora com o seletor aberto** (`theme set` pelo IPC, as Configurações): o seletor não acompanha. A fila continua onde estava, o Esc volta ao tema da abertura (desfazendo também essa troca) e o Enter aplica o card central por cima dela.
+- **Seletor fechado**: `step`, `pick` e `confirm` não fazem nada (`if (!open) return;`); em especial, um `confirm` perdido não fecha outro painel.
+- **Lista trocada com o seletor aberto**: o centro é reencontrado pelo id (`centerId`); só se o tema do centro sumiu da lista vale a volta do índice.
+- **Volta com fila curta**: com 7 temas ou menos, um card pode pular de um lado para o outro da fila (a distância muda mais de 1). Nesse giro ele não desliza pela tela: o `ThemeCard` posiciona o `x` ele mesmo e liga a animação só quando a distância muda de 1.
 
 ## Arquivos
 
@@ -60,7 +65,7 @@
 | `tests/runner.qml` | imports, `suites` e os getters `Carousel` e `ThemeSwitcherState` |
 | `features/themeSwitcher/ui/ThemeSwitcher.qml` | reescrito: carrossel sobre o `OverlayPanel` |
 | `features/themeSwitcher/ui/ThemeCard.qml` | reescrito: card solto, com distância ao centro, entrada e saída |
-| `core/widgets/OverlayPanel.qml` | só se a Tarefa 4 mostrar o desfoque na tela inteira: `blur` |
+| `core/widgets/OverlayPanel.qml` | só se a Tarefa 4 mostrar o desfoque na tela inteira ou atrás dos cards: `blurBehind` |
 | `CONTRIBUTING.md` | uma linha: o `state` de uma feature pode vir em `t` |
 | `README.md`, `Lucerna — Proposta.md`, `docs/screenshots/themes.jpg` | texto e captura do seletor novo |
 
@@ -184,8 +189,8 @@ Singleton {
 Run: `dev/ci.sh unit && grep -E "SUITE carousel|RESULT|FAIL" ci-out/unit/unit.log`
 Expected: `SUITE carousel casos=3`, `RESULT passed=N failed=0` e "unidade: ok (..., cobertura completa)" (as três funções do `Carousel` entram sozinhas no gate e são chamadas).
 
-Run: `dev/ci.sh lint && python3 ci/rules.py`
-Expected: lint sem avisos; "regras: nenhuma violação".
+Run: `dev/ci.sh lint rules`
+Expected: os dois passam (lint sem avisos; "regras: nenhuma violação").
 
 - [ ] **Passo 5: commit**
 
@@ -208,15 +213,15 @@ git commit -m "Carousel: contas da fila circular do seletor de temas"
 - Consumes: `Carousel.wrap(i, n)` e `Carousel.offset(i, center, n)` da Tarefa 1.
 - Produces (singleton `ThemeSwitcherState`, `import qs.features.themeSwitcher.state`):
   - `readonly property bool open`, `readonly property var screen`, `readonly property var themes` (como hoje);
-  - `property int index` — o card central; `property string openedWith` — o id do tema aplicado ao abrir;
+  - `property int index` — o card central; `property string centerId` — o id do card central, para reencontrá-lo quando a lista muda; `property string openedWith` — o id do tema aplicado ao abrir;
   - `readonly property bool pending` — a espera de 300 ms está armada;
   - `signal opened` — emitido ao abrir, depois de centrar a fila (a tela começa a cascata aqui);
-  - `step(delta: int): void` — gira com volta e rearma a espera;
-  - `pick(i: int): void` — clique num card: no central, `confirm()`; num lateral, `step` até ele;
+  - `step(delta: int): void` — gira com volta e rearma a espera; fechado, não faz nada;
+  - `pick(i: int): void` — clique num card: no central, `confirm()`; num lateral, `step` até ele; fechado, não faz nada;
   - `flush(): void` — para a espera e aplica o card central, se ele não é o tema aplicado;
-  - `confirm(): void` — `flush()` e fecha mantendo;
+  - `confirm(): void` — `flush()` e fecha mantendo; fechado, não faz nada;
   - `cancel(): void` — fecha; o fechamento (este ou qualquer outro que não seja o `confirm`) para a espera e volta ao `openedWith`.
-  - Ficam por enquanto, para a tela antiga seguir compilando até a Tarefa 3: `current`, `currentIndex`, `apply(id)`, `close()` e `openSettings()`.
+  - Ficam por enquanto, para a tela antiga seguir funcionando até a Tarefa 3: `current`, `currentIndex`, `apply(id)`, `close()` e `openSettings()`. O `close()` legado liga `keep` antes de fechar: o Enter da grade faz `apply` e `close()`, e sem isso o `finish()` desfaria a escolha.
   - No runner: `t.ThemeSwitcherState`.
 
 - [ ] **Passo 1: escrever o teste que falha**
@@ -323,14 +328,37 @@ function run(t) {
     });
 
     scenario("themeswitcher: lista que muda com o seletor aberto", "nord", () => {
-        t.eq(S.index, 2);
+        t.eq([S.index, S.centerId], [2, "nord"]);
+        T.themes = [three[2], three[0], three[1]];
+        t.eq([S.index, S.centerId], [0, "nord"], "recentra pelo id do centro");
         T.themes = three.slice(0, 2);
-        t.eq(S.index, 0, "o índice volta para dentro da lista");
+        t.eq([S.index, S.centerId], [0, "catppuccin-mocha"], "sem o tema do centro, a volta do índice");
+        T.themes = [three[1], three[0]];
+        t.eq([S.index, S.centerId], [1, "catppuccin-mocha"]);
         T.themes = [];
         S.step(1);
         t.eq([S.index, S.pending], [0, false], "fila vazia não gira");
         S.confirm();
         t.eq([S.open, T.current], [false, "nord"], "vazia, o Enter só fecha");
+    });
+
+    t.test("themeswitcher: seletor fechado não gira nem fecha outro painel", () => {
+        T.themes = three;
+        P.open("launcher");
+        try {
+            const index = S.index;
+            S.step(1);
+            S.pick(index + 1);
+            t.eq([S.index, S.pending], [index, false], "nada gira nem arma a espera");
+            S.confirm();
+            t.eq(P.opened, ["launcher"], "o confirm perdido não fecha o launcher");
+            t.eq(T.current, theme0, "nada aplicado");
+        } finally {
+            P.close();
+            C.theme = theme0;
+            T.themes = themes0;
+            P.opened = opened0;
+        }
     });
 }
 ```
@@ -380,7 +408,7 @@ por
 - [ ] **Passo 2: rodar e ver falhar**
 
 Run: `dev/ci.sh unit; grep -E "SUITE themeswitcher|FAIL themeswitcher|RESULT" ci-out/unit/unit.log`
-Expected: `SUITE themeswitcher casos=9`, vários `FAIL themeswitcher: ...` (por exemplo "exceção: TypeError: Property 'step' of object ... is not a function" e "esperado [true,\"dracula\",1,false], veio [true,null,...]") e `RESULT passed=N failed=M` com M > 0.
+Expected: `SUITE themeswitcher casos=10`, vários `FAIL themeswitcher: ...` (por exemplo "exceção: TypeError: Property 'step' of object ... is not a function" e "esperado [true,\"dracula\",1,false], veio [true,null,...]") e `RESULT passed=N failed=M` com M > 0.
 
 - [ ] **Passo 3: implementar**
 
@@ -413,8 +441,10 @@ Singleton {
     readonly property string current: ThemeManager.current
     readonly property int currentIndex: themes.findIndex(t => t.id === current)
 
-    // O card central e o tema aplicado quando o seletor abriu.
+    // O card central (o índice e o id, para reencontrá-lo quando a lista
+    // muda) e o tema aplicado quando o seletor abriu.
     property int index: 0
+    property string centerId: ""
     property string openedWith: ""
     // A espera está armada: o card central ainda não foi aplicado.
     readonly property bool pending: applyDelay.running
@@ -431,12 +461,21 @@ Singleton {
             finish();
     }
 
-    // Uma troca na lista (tema novo em themes/) não deixa o índice de fora.
-    onThemesChanged: index = Carousel.wrap(index, themes.length)
+    // Uma troca na lista (tema novo em themes/) mantém o mesmo tema no centro;
+    // se ele saiu da lista, vale a volta do índice.
+    onThemesChanged: {
+        const i = themes.findIndex(t => t.id === centerId);
+        center(i >= 0 ? i : Carousel.wrap(index, themes.length));
+    }
+
+    function center(i: int): void {
+        index = i;
+        centerId = themes[i]?.id ?? "";
+    }
 
     function begin(): void {
         openedWith = ThemeManager.current;
-        index = Math.max(0, themes.findIndex(t => t.id === openedWith));
+        center(Math.max(0, themes.findIndex(t => t.id === openedWith)));
         keep = false;
         opened();
     }
@@ -449,13 +488,15 @@ Singleton {
     }
 
     function step(delta: int): void {
-        if (!themes.length)
+        if (!open || !themes.length)
             return;
-        index = Carousel.wrap(index + delta, themes.length);
+        center(Carousel.wrap(index + delta, themes.length));
         applyDelay.restart();
     }
 
     function pick(i: int): void {
+        if (!open)
+            return;
         if (i === index)
             confirm();
         else
@@ -470,6 +511,8 @@ Singleton {
     }
 
     function confirm(): void {
+        if (!open)
+            return;
         flush();
         keep = true;
         Panels.close();
@@ -490,7 +533,9 @@ Singleton {
         ThemeManager.apply(id);
     }
 
+    // O Enter da grade faz apply e close: fecha mantendo.
     function close(): void {
+        keep = true;
         Panels.close();
     }
 
@@ -506,10 +551,10 @@ O resto do arquivo (`// Integração com o Hyprland` em diante) não muda.
 - [ ] **Passo 4: rodar e ver passar**
 
 Run: `dev/ci.sh unit && grep -E "SUITE themeswitcher|RESULT|FAIL" ci-out/unit/unit.log`
-Expected: `SUITE themeswitcher casos=9`, nenhum `FAIL`, `RESULT passed=N failed=0` e "unidade: ok (..., cobertura completa)".
+Expected: `SUITE themeswitcher casos=10`, nenhum `FAIL`, `RESULT passed=N failed=0` e "unidade: ok (..., cobertura completa)".
 
-Run: `dev/ci.sh lint && python3 ci/rules.py`
-Expected: lint sem avisos (a tela antiga ainda usa `current`, `currentIndex`, `apply`, `close` e `openSettings`, que ficaram); "regras: nenhuma violação".
+Run: `dev/ci.sh lint rules`
+Expected: os dois passam (a tela antiga ainda usa `current`, `currentIndex`, `apply`, `close` e `openSettings`, que ficaram).
 
 - [ ] **Passo 5: commit**
 
@@ -528,8 +573,8 @@ git commit -m "Seletor de temas: girar com espera, confirmar e desfazer no estad
 - Modify: `features/themeSwitcher/state/ThemeSwitcherState.qml` (saem `current`, `currentIndex`, `apply`, `close`, `openSettings` e o `import qs.core.config`)
 
 **Interfaces:**
-- Consumes: `Carousel.offset` e `Carousel.spread` (Tarefa 1); `ThemeSwitcherState.open`, `screen`, `themes`, `index`, `opened`, `step`, `pick`, `confirm`, `cancel` (Tarefa 2).
-- Produces: `ThemeCard { required property var theme; required property int distance; property real shown; signal clicked; function enter(): void; function leave(): void }`. Nada fora da feature depende dele.
+- Consumes: `Carousel.offset` (no `ThemeSwitcher`) e `Carousel.spread` (no `ThemeCard`) da Tarefa 1; `ThemeSwitcherState.open`, `screen`, `themes`, `index`, `opened`, `step`, `pick`, `confirm`, `cancel` (Tarefa 2).
+- Produces: `ThemeCard { required property var theme; required property int distance; required property real centerX; property real shown; signal clicked; function enter(): void; function leave(): void }`. O card posiciona o próprio `x` a partir de `centerX` e `distance`. Nada fora da feature depende dele.
 
 - [ ] **Passo 1: reescrever o card**
 
@@ -541,6 +586,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Effects
 import Quickshell.Widgets
+import qs.core.carousel
 import qs.core.theme
 import qs.core.widgets
 
@@ -554,6 +600,8 @@ Item {
 
     required property var theme
     required property int distance
+    // Centro horizontal da fila, na tela.
+    required property real centerX
     // Entrada e saída (0 → 1), animadas por enter() e leave().
     property real shown: 0
     readonly property var c: theme.colors ?? ({})
@@ -561,6 +609,10 @@ Item {
     readonly property string still: ThemeManager.wallpaperFor(theme.id).static
     // Quanto o card apaga: 0 no centro, 1 no terceiro passo.
     property real dimness: Math.min(reach, 3) / 3
+    // A distância anterior, e se o último giro foi de um passo (desliza) ou
+    // um pulo de um lado da fila para o outro (na volta de fila curta).
+    property int last: 0
+    property bool sliding: true
 
     signal clicked
 
@@ -573,10 +625,26 @@ Item {
     // Sobe da borda de baixo na entrada e desce na saída.
     transform: Translate { y: (1 - card.shown) * 240 }
 
-    // Sem animar enquanto escondido: ao abrir, a fila já está no lugar.
-    Behavior on x { enabled: card.shown > 0; Anim { type: Anim.Spatial } }
+    // O x é posto aqui, não por binding: o pulo é decidido antes de o x mudar.
+    onDistanceChanged: {
+        sliding = Math.abs(distance - last) <= 1;
+        last = distance;
+        place();
+    }
+    onCenterXChanged: place()
+    Component.onCompleted: {
+        last = distance;
+        place();
+    }
+
+    // Sem animar enquanto escondido (ao abrir, a fila já está no lugar) nem no pulo.
+    Behavior on x { enabled: card.shown > 0 && card.sliding; Anim { type: Anim.Spatial } }
     Behavior on scale { enabled: card.shown > 0; Anim { type: Anim.Spatial } }
     Behavior on dimness { enabled: card.shown > 0; Anim { type: Anim.Effects } }
+
+    function place(): void {
+        x = centerX + Carousel.spread(distance, width, ThemeManager.spacing.large, 0.8) - width / 2;
+    }
 
     function enter(): void {
         leaving.stop();
@@ -698,7 +766,7 @@ Item {
         brightness: -0.35 * card.dimness
         shadowEnabled: true
         shadowColor: "#000000"
-        shadowOpacity: 0.45
+        shadowOpacity: 0.35
         shadowBlur: 0.8
         shadowVerticalOffset: 6
 
@@ -784,8 +852,10 @@ OverlayPanel {
 
         // Degradê só atrás da fila, subindo até 40% da altura. No máximo 40%
         // de opacidade: abaixo do ignore_alpha (0,45) da regra de desfoque do
-        // Hyprland (ThemeSwitcherState.blurLua), então nunca é desfocado.
+        // Hyprland (ThemeSwitcherState.blurLua), então nunca é desfocado. Atrás
+        // de todos os cards (os laterais têm z negativo), para não escurecê-los.
         Rectangle {
+            z: -10
             y: panel.height * 0.6
             width: panel.width
             height: panel.height * 0.4
@@ -808,7 +878,7 @@ OverlayPanel {
 
                 theme: tile.modelData
                 distance: Carousel.offset(tile.index, ThemeSwitcherState.index, ThemeSwitcherState.themes.length)
-                x: panel.width / 2 + Carousel.spread(tile.distance, tile.width, ThemeManager.spacing.large, 0.8) - tile.width / 2
+                centerX: panel.width / 2
                 y: panel.rowY - tile.height / 2
                 onClicked: ThemeSwitcherState.pick(tile.index)
                 // A lista trocada com o seletor aberto recria os cards: já visíveis.
@@ -838,7 +908,9 @@ e o bloco logo depois do `Timer { id: applyDelay ... }`:
         ThemeManager.apply(id);
     }
 
+    // O Enter da grade faz apply e close: fecha mantendo.
     function close(): void {
+        keep = true;
         Panels.close();
     }
 
@@ -854,8 +926,8 @@ Expected: nenhuma linha.
 
 - [ ] **Passo 4: lint, unidade e fumaça**
 
-Run: `dev/ci.sh lint unit smoke && python3 ci/rules.py`
-Expected: os três checks passam (lint sem avisos; `SUITE themeswitcher casos=9` e `SUITE carousel casos=3` com `failed=0` e cobertura completa; fumaça sem avisos novos no passo `themes`); "regras: nenhuma violação". A captura da fumaça do passo `themes` fica em `ci-out/smoke/`.
+Run: `dev/ci.sh lint rules unit smoke`
+Expected: os três checks passam (lint sem avisos; `SUITE themeswitcher casos=10` e `SUITE carousel casos=3` com `failed=0` e cobertura completa; fumaça sem avisos novos no passo `themes`; "regras: nenhuma violação"). A captura da fumaça do passo `themes` fica em `ci-out/smoke/`; a fumaça roda com o backend de software, que pode não desenhar o `MultiEffect`, então cards vazios (ou ausentes) nessa captura não indicam falha: o que vale é o log sem avisos e a conferência na tela do Passo 5.
 
 - [ ] **Passo 5: conferência na tela com o teclado**
 
@@ -922,14 +994,14 @@ git commit -m "Seletor de temas em carrossel: fila solta embaixo, com prévia ao
 ### Tarefa 4: desfoque, captura e documentação
 
 **Files:**
-- Modify (só se o critério do Passo 1 mandar): `core/widgets/OverlayPanel.qml:20-21,50-51`, `features/themeSwitcher/ui/ThemeSwitcher.qml` (propriedade `blur`)
+- Modify (só se o critério do Passo 1 mandar): `core/widgets/OverlayPanel.qml:20-21,50-51`, `features/themeSwitcher/ui/ThemeSwitcher.qml` (propriedade `blurBehind`)
 - Modify: `docs/screenshots/themes.jpg`
 - Modify: `README.md:51,53,115`
 - Modify: `Lucerna — Proposta.md:35,42,47,70`
 
 **Interfaces:**
 - Consumes: a tela da Tarefa 3.
-- Produces: se o desfoque for desligado, `OverlayPanel { property bool blur: true }`, com namespace `lucerna-panel-<name>` quando `blur` e `lucerna-<name>` quando não.
+- Produces: se o desfoque for desligado, `OverlayPanel { property bool blurBehind: true }`, com namespace `lucerna-panel-<name>` quando `blurBehind` e `lucerna-<name>` quando não.
 
 - [ ] **Passo 1: conferir o desfoque da camada sem escurecimento**
 
@@ -940,6 +1012,9 @@ dev/test.sh ipc theme set catppuccin-mocha
 dev/test.sh setc "dict(transparencyOverride=None, blurOverride=None)"
 dev/test.sh ipc panels close; sleep 1; dev/test.sh shot desfoque-fechado
 dev/test.sh ipc panels open themes; sleep 1.5; dev/test.sh shot desfoque-aberto; dev/test.sh ipc panels close
+dev/test.sh setc "dict(blurOverride=dict(enabled=False))"
+dev/test.sh ipc panels open themes; sleep 1.5; dev/test.sh shot desfoque-sem; dev/test.sh ipc panels close
+dev/test.sh setc "dict(blurOverride=None)"
 python3 - <<'EOF'
 from PIL import Image, ImageFilter, ImageStat
 def edges(name, box):
@@ -948,11 +1023,17 @@ def edges(name, box):
 # Abaixo da barra e acima do degradê: nada do seletor desenha aí.
 top = (0, 80, 1920, 600)
 a, f = edges("desfoque-aberto", top), edges("desfoque-fechado", top)
-print(f"bordas no topo: aberto {a:.2f}, fechado {f:.2f}, razão {a / f:.2f}")
+print(f"topo: aberto {a:.2f}, fechado {f:.2f}, razão {a / f:.2f}")
+# Os cards de distância 1 e 2 à direita (centros em x = 960 + 308 e
+# 960 + 558,4, escalas 0,8 e 0,64, centro vertical em y = 870): com o
+# desfoque ligado e desligado, o que aparece através deles tem de ser igual.
+side = (1140, 798, 1621, 942)
+a, s = edges("desfoque-aberto", side), edges("desfoque-sem", side)
+print(f"cards laterais: com desfoque {a:.2f}, sem {s:.2f}, razão {a / s:.2f}")
 EOF
 ```
 
-Critério: **desfocou** se a razão ficar abaixo de 0,8, ou se, vendo `desfoque-aberto.png` com o Read, aparecer uma faixa desfocada de borda dura no degradê ou um salto de desfoque atrás dos cards laterais. Com razão de 0,9 ou mais e sem faixa, o desfoque não atrapalha: pular para o Passo 3 sem mexer no código.
+Critério: **desfocou** se alguma das duas razões ficar abaixo de 0,8, ou se, vendo `desfoque-aberto.png` com o Read, aparecer uma faixa desfocada de borda dura no degradê ou um salto de desfoque atrás dos cards laterais. Com as duas razões em 0,9 ou mais e sem faixa, o desfoque não atrapalha: pular para o Passo 3 sem mexer no código.
 
 - [ ] **Passo 2 (só se desfocou): o seletor deixa de pedir desfoque**
 
@@ -961,7 +1042,7 @@ Em `core/widgets/OverlayPanel.qml`, depois de `property string name: "panel"`:
 ```qml
     // Pede o desfoque do Hyprland atrás da camada. Falso num painel sem fundo
     // próprio (o seletor de temas), em que ele pegaria a tela inteira.
-    property bool blur: true
+    property bool blurBehind: true
 ```
 
 e trocar
@@ -975,17 +1056,17 @@ por
 
 ```qml
     // "lucerna-panel-*" recebe o desfoque do Hyprland (ver ThemeSwitcherState);
-    // sem blur, o namespace foge da regra.
-    WlrLayershell.namespace: blur ? `lucerna-panel-${name}` : `lucerna-${name}`
+    // sem blurBehind, o namespace foge da regra.
+    WlrLayershell.namespace: blurBehind ? `lucerna-panel-${name}` : `lucerna-${name}`
 ```
 
 Em `features/themeSwitcher/ui/ThemeSwitcher.qml`, depois de `dim: 0`:
 
 ```qml
-    blur: false
+    blurBehind: false
 ```
 
-Nada mais usa o namespace `lucerna-panel-themes` (`grep -rn "lucerna-panel-themes" --exclude-dir=.git .` só acha o spec e este plano). Rodar de novo o Passo 1: a razão precisa ficar em 0,9 ou mais, sem faixa. Depois, `dev/ci.sh lint smoke`: passam.
+Nada mais usa o namespace `lucerna-panel-themes` (`grep -rn "lucerna-panel-themes" --exclude-dir=.git .` só acha o spec e este plano). Rodar de novo o Passo 1: as duas razões precisam ficar em 0,9 ou mais, sem faixa. Depois, `dev/ci.sh lint smoke`: passam.
 
 - [ ] **Passo 3: a captura do README**
 
@@ -1032,7 +1113,7 @@ Trocam ao vivo pelo seletor em carrossel (`Super+T`): as setas aplicam o tema do
 
 - [ ] **Passo 5: `ci/rules.py` e as regras**
 
-Run: `grep -n "ThemeCard\|ThemeSwitcher" ci/rules.py ci/tests/test_rules.py; python3 ci/rules.py`
+Run: `grep -n "ThemeCard\|ThemeSwitcher" ci/rules.py ci/tests/test_rules.py; dev/ci.sh rules`
 Expected: nenhuma linha do `grep` (não há exceção de papéis de cor a mover; ver "Decisões") e "regras: nenhuma violação" (acentos, espaços e links dos `.md` alterados em dia).
 
 - [ ] **Passo 6: CI completo e commit**
