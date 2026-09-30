@@ -1,5 +1,8 @@
 """Testes do ci/jsoncheck.py."""
 
+import contextlib
+import io
+import json
 import sys
 import tempfile
 import unittest
@@ -81,6 +84,29 @@ class JsonCheckTest(unittest.TestCase):
                 'efeito "d": o shader precisa ser um .qsb (shaders/d.frag)',
             ],
         )
+
+    def test_efeitos_vazio_e_erro(self):
+        self.assertEqual(jsoncheck.check_effects([], self.themes), ["a lista de efeitos está vazia"])
+
+    def run_main(self):
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            code = jsoncheck.main([str(self.themes)])
+        return code, out.getvalue()
+
+    def test_zero_temas_reprova(self):
+        (self.themes / "shaders" / "effects.json").write_text(
+            json.dumps([{"id": "a", "name": "A", "shader": "shaders/t.qsb"}]), encoding="utf-8"
+        )
+        code, out = self.run_main()
+        self.assertEqual(code, 1)
+        self.assertIn("nenhum tema", out)
+
+    def test_effects_json_vazio_reprova(self):
+        (self.themes / "t.json").write_text(json.dumps(theme()), encoding="utf-8")
+        (self.themes / "shaders" / "effects.json").write_text("[]", encoding="utf-8")
+        code, out = self.run_main()
+        self.assertEqual(code, 1)
+        self.assertIn("vazia", out)
 
     def test_temas_do_repositorio(self):
         self.assertEqual(jsoncheck.main([str(ROOT / "themes")]), 0)

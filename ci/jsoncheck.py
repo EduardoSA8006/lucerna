@@ -79,6 +79,8 @@ def check_effects(data, themes):
     """Problemas do catálogo de efeitos (themes/shaders/effects.json)."""
     if not isinstance(data, list):
         return ["não é uma lista"]
+    if not data:
+        return ["a lista de efeitos está vazia"]
     errors, seen = [], set()
     for i, effect in enumerate(data):
         if not isinstance(effect, dict) or not all(isinstance(effect.get(k), str) for k in ("id", "name", "shader")):
@@ -108,7 +110,10 @@ def load(path):
 def main(argv):
     themes = Path(argv[0]) if argv else Path(__file__).resolve().parent.parent / "themes"
     problems = []
-    for path in sorted(themes.glob("*.json")):
+    files = sorted(themes.glob("*.json"))
+    if not files:
+        problems.append((themes, "nenhum tema (*.json) nesta pasta"))
+    for path in files:
         data, error = load(path)
         problems += [(path, p) for p in ([error] if error else check_theme(data, themes))]
     effects = themes / "shaders" / "effects.json"
