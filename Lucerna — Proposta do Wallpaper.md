@@ -63,7 +63,7 @@ O tema diz **o que** está disponível (imagem e, opcionalmente, shader). O usu�
 
 O modo pode ser trocado de três formas:
 
-- **Pelo painel de temas:** um controle no seletor. O `themeSwitcher` grava o modo em `core/config/Config.qml`, e a feature de wallpaper reage à mudança. Uma feature não importa a outra; a comunicação passa pela config.
+- **Pelas Configurações, na página Papel de parede:** o `settings` grava o modo em `core/config/Config.qml`, e a feature de wallpaper reage à mudança. Uma feature não importa a outra; a comunicação passa pela config.
 - **Por um atalho do Hyprland**, via IPC: `qs -c lucerna ipc call wallpaper mode animated` (também `static`, `auto` e `toggle`). Sem monitor, vale para o monitor com foco; `wallpaper modeFor HDMI-A-1 static` escolhe um específico.
 - **Automaticamente**, pelas regras de economia abaixo.
 
