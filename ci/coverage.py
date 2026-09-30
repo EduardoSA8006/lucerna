@@ -161,6 +161,11 @@ def load_scope(folder):
             raise ScopeError(f'tests/coverage.json: "{key}" precisa ser {"um texto" if kind is str else "um objeto"}')
     if not scope["escopo"].endswith("/"):
         raise ScopeError('tests/coverage.json: "escopo" é uma pasta, terminada em / (ex.: "core/")')
+    for item, reason in scope["fora"].items():
+        if not item.endswith("/"):
+            raise ScopeError(f'tests/coverage.json: "fora" → {item} é uma pasta e termina em / (ex.: "core/widgets/")')
+        if not isinstance(reason, str) or not reason.strip():
+            raise ScopeError(f'tests/coverage.json: "fora" → {item} precisa de um motivo')
     for rel, names in scope["serviços"].items():
         if not isinstance(names, list) or not all(isinstance(n, str) for n in names):
             raise ScopeError(f'tests/coverage.json: "serviços" → {rel} precisa ser uma lista de nomes de função')
@@ -210,6 +215,12 @@ def instrument(folder, everything):
         print(f"ERRO: {error}", file=sys.stderr)
         return 1
     files = qml_files(folder)
+    orphans = [p for p in scope["fora"] if not any(f.startswith(p) for f in files)]
+    if orphans:
+        for item in orphans:
+            message = f'tests/coverage.json: "fora" → {item} não cobre nenhum .qml (a pasta mudou de nome ou saiu?)'
+            print(f"ERRO: {message}", file=sys.stderr)
+        return 1
     if not everything:
         files = [f for f in files if in_core(f, scope) or f in scope["serviços"]]
     found, errors = [], []

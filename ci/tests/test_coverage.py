@@ -124,7 +124,10 @@ class InstrumentFolderTest(unittest.TestCase):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
-        files = dict({"tests/coverage.json": json.dumps(SCOPE), "tests/runner.qml": self.RUNNER}, **files)
+        files = dict(
+            {"tests/coverage.json": json.dumps(SCOPE), "tests/runner.qml": self.RUNNER, "core/widgets/W.qml": ""},
+            **files,
+        )
         for rel, content in files.items():
             (root / rel).parent.mkdir(parents=True, exist_ok=True)
             (root / rel).write_text(content, encoding="utf-8")
@@ -171,6 +174,29 @@ class InstrumentFolderTest(unittest.TestCase):
         code, err, _ = self.run_instrument(root, False)
         self.assertEqual(code, 1)
         self.assertIn('tests/coverage.json: falta a chave "fora"', err)
+
+    def scope_error(self, fora):
+        scope = dict(SCOPE, fora=fora)
+        root = self.copy({"core/p/P.qml": QML, "tests/coverage.json": json.dumps(scope)})
+        code, err, _ = self.run_instrument(root, False)
+        self.assertEqual(code, 1)
+        return err
+
+    def test_fora_sem_barra_no_fim_e_erro_com_o_nome(self):
+        err = self.scope_error({"core/widgets": "interface"})
+        self.assertIn("core/widgets", err)
+        self.assertIn("termina em /", err)
+
+    def test_fora_sem_motivo_e_erro_com_o_nome(self):
+        for reason in ("", "  ", None):
+            err = self.scope_error({"core/widgets/": reason})
+            self.assertIn("core/widgets/", err)
+            self.assertIn("motivo", err)
+
+    def test_fora_que_nao_cobre_nenhum_qml_e_erro(self):
+        err = self.scope_error({"core/widgets/": "interface", "core/velha/": "saiu"})
+        self.assertIn("core/velha/ não cobre nenhum .qml", err)
+        self.assertNotIn("core/widgets/ não cobre", err)
 
 
 class BlockingTest(unittest.TestCase):
