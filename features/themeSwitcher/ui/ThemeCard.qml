@@ -19,6 +19,11 @@ Item {
     required property int distance
     // Centro horizontal da fila, na tela.
     required property real centerX
+    // Quantos temas há na fila: um giro de menos de meia fila desliza; só o
+    // pulo de um lado para o outro (na volta da fila) não anima.
+    required property int count
+    // Criado com o seletor já aberto (a lista trocou): nasce visível, no lugar.
+    property bool initiallyShown: false
     // Entrada e saída (0 → 1), animadas por enter() e leave().
     property real shown: 0
     readonly property var c: theme.colors ?? ({})
@@ -26,8 +31,8 @@ Item {
     readonly property string still: ThemeManager.wallpaperFor(theme.id).static
     // Quanto o card apaga: 0 no centro, 1 no terceiro passo.
     property real dimness: Math.min(reach, 3) / 3
-    // A distância anterior, e se o último giro foi de um passo (desliza) ou
-    // um pulo de um lado da fila para o outro (na volta de fila curta).
+    // A distância anterior, e se o último giro foi de menos de meia fila (desliza) ou
+    // um pulo de um lado da fila para o outro (na volta da fila).
     property int last: 0
     property bool sliding: true
 
@@ -44,7 +49,7 @@ Item {
 
     // O x é posto aqui, não por binding: o pulo é decidido antes de o x mudar.
     onDistanceChanged: {
-        sliding = Math.abs(distance - last) <= 1;
+        sliding = Math.abs(distance - last) < count / 2;
         last = distance;
         place();
     }
@@ -52,6 +57,8 @@ Item {
     Component.onCompleted: {
         last = distance;
         place();
+        if (initiallyShown)
+            shown = 1;
     }
 
     // Sem animar enquanto escondido (ao abrir, a fila já está no lugar) nem no pulo.
@@ -178,9 +185,9 @@ Item {
 
         anchors.fill: body
         source: body
-        opacity: card.reach > 3 ? 0 : 1 - 0.6 * card.dimness
-        saturation: -0.7 * card.dimness
-        brightness: -0.35 * card.dimness
+        opacity: card.reach > 3 ? 0 : 1 - 0.45 * card.dimness
+        saturation: -0.5 * card.dimness
+        brightness: -0.2 * card.dimness
         shadowEnabled: true
         shadowColor: "#000000"
         shadowOpacity: 0.35

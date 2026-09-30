@@ -113,7 +113,9 @@ function run(t) {
 
     // Conta as trocas de Config.theme (é o que o ThemeManager.apply grava):
     // desfazer sem nada aplicado, ou girar e voltar antes da espera, não
-    // reaplica o tema.
+    // reaplica o tema. Hoje reaplicar o mesmo tema não tem efeito, e por isso
+    // o teste observa só o Config.theme; se o ThemeManager.apply ganhar efeito
+    // próprio (recarregar, trocar o papel), o teste passa a observar esse efeito.
     scenario("themeswitcher: Esc sem girar, ou girando e voltando, não reaplica", "dracula", () => {
         let applied = 0;
         const count = () => applied++;
@@ -156,6 +158,8 @@ function run(t) {
     });
 
     t.test("themeswitcher: flush com o seletor fechado não aplica nada", () => {
+        const index0 = S.index;
+        const centerId0 = S.centerId;
         T.themes = three;
         try {
             S.center(three.findIndex(x => x.id !== C.theme));
@@ -165,7 +169,8 @@ function run(t) {
         } finally {
             C.theme = theme0;
             T.themes = themes0;
-            P.opened = opened0;
+            S.index = index0;
+            S.centerId = centerId0;
         }
     });
 }

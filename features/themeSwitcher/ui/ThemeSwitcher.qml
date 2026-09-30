@@ -21,7 +21,8 @@ OverlayPanel {
     onDismissed: ThemeSwitcherState.cancel()
 
     // Centro vertical da fila: a base do card central a 120 px da borda de baixo.
-    readonly property real rowY: height - 120 - 180 / 2
+    readonly property real cardHeight: 180
+    readonly property real rowY: height - 120 - cardHeight / 2
 
     // Entrada em cascata, depois de o estado centrar a fila.
     Connections {
@@ -91,13 +92,12 @@ OverlayPanel {
                 theme: tile.modelData
                 distance: Carousel.offset(tile.index, ThemeSwitcherState.index, ThemeSwitcherState.themes.length)
                 centerX: panel.width / 2
+                count: ThemeSwitcherState.themes.length
+                height: panel.cardHeight
                 y: panel.rowY - tile.height / 2
                 onClicked: ThemeSwitcherState.pick(tile.index)
                 // A lista trocada com o seletor aberto recria os cards: já visíveis.
-                Component.onCompleted: {
-                    if (panel.open)
-                        tile.shown = 1;
-                }
+                initiallyShown: panel.open
             }
         }
     }
