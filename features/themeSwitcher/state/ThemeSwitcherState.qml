@@ -10,7 +10,7 @@ import qs.services
 // View model do seletor de temas em carrossel. Ao abrir, guarda o tema
 // aplicado (openedWith) e centra a fila nele. Girar (step) aplica o tema do
 // card central depois de uma espera, para setas seguidas aplicarem só o
-// último; confirm aplica o que faltar e fecha mantendo; qualquer outro
+// último; confirm aplica o que faltar (só com a espera correndo) e fecha mantendo; qualquer outro
 // fechamento (Esc, clique fora, o atalho de novo, outro painel) volta ao tema
 // da abertura. Também mantém as bordas do Hyprland em sintonia com o tema
 // ativo, inclusive na inicialização.
@@ -95,12 +95,15 @@ Singleton {
     function confirm(): void {
         if (!open)
             return;
-        flush();
+        if (pending)
+            flush();
         keep = true;
         Panels.close();
     }
 
     function cancel(): void {
+        if (!open)
+            return;
         Panels.close();
     }
 

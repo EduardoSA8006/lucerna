@@ -59,6 +59,17 @@ function run(t) {
         t.eq([S.open, T.current], [false, "nord"]);
     });
 
+    scenario("themeswitcher: Enter sem girar mantém um tema trocado por fora", "catppuccin-mocha", () => {
+        T.apply("nord");
+        S.confirm();
+        t.eq([S.open, T.current], [false, "nord"], "o theme set externo não é sobrescrito");
+    });
+
+    scenario("themeswitcher: Enter sem girar, com a abertura fora da lista, não aplica o primeiro card", "gruvbox-dark", () => {
+        S.confirm();
+        t.eq([S.open, T.current], [false, "gruvbox-dark"]);
+    });
+
     scenario("themeswitcher: Esc para a espera e volta ao tema da abertura", "catppuccin-mocha", () => {
         S.step(1);
         S.flush();
@@ -148,6 +159,8 @@ function run(t) {
             t.eq([S.index, S.pending], [index, false], "nada gira nem arma a espera");
             S.confirm();
             t.eq(P.opened, ["launcher"], "o confirm perdido não fecha o launcher");
+            S.cancel();
+            t.eq(P.opened, ["launcher"], "o clique fora perdido também não");
             t.eq(T.current, theme0, "nada aplicado");
         } finally {
             P.close();
