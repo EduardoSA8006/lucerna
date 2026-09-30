@@ -111,6 +111,31 @@ function run(t) {
         t.eq([S.open, T.current], [false, "nord"], "vazia, o Enter só fecha");
     });
 
+    // Conta as trocas de Config.theme (é o que o ThemeManager.apply grava):
+    // desfazer sem nada aplicado, ou girar e voltar antes da espera, não
+    // reaplica o tema.
+    scenario("themeswitcher: Esc sem girar, ou girando e voltando, não reaplica", "dracula", () => {
+        let applied = 0;
+        const count = () => applied++;
+        C.themeChanged.connect(count);
+        try {
+            S.cancel();
+            t.eq([S.open, T.current, applied], [false, "dracula", 0], "Esc sem girar");
+            P.open("themes");
+            S.step(1);
+            S.step(-1);
+            t.eq([S.index, S.pending], [1, true], "de volta ao centro, com a espera armada");
+            S.flush();
+            t.eq([T.current, applied], ["dracula", 0], "a espera no tema da abertura não aplica");
+            S.step(-1);
+            S.step(1);
+            S.cancel();
+            t.eq([S.open, S.pending, T.current, applied], [false, false, "dracula", 0], "Esc depois de ir e voltar");
+        } finally {
+            C.themeChanged.disconnect(count);
+        }
+    });
+
     t.test("themeswitcher: seletor fechado não gira nem fecha outro painel", () => {
         T.themes = three;
         P.open("launcher");
@@ -124,6 +149,20 @@ function run(t) {
             t.eq(T.current, theme0, "nada aplicado");
         } finally {
             P.close();
+            C.theme = theme0;
+            T.themes = themes0;
+            P.opened = opened0;
+        }
+    });
+
+    t.test("themeswitcher: flush com o seletor fechado não aplica nada", () => {
+        T.themes = three;
+        try {
+            S.center(three.findIndex(x => x.id !== C.theme));
+            S.flush();
+            t.check(S.centerId !== C.theme, "o card central não é o tema aplicado");
+            t.eq([S.open, C.theme], [false, theme0]);
+        } finally {
             C.theme = theme0;
             T.themes = themes0;
             P.opened = opened0;

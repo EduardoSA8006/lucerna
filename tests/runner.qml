@@ -43,9 +43,9 @@ import "shellshortcuts.test.js" as ShellShortcutsTest
 import "sun.test.js" as SunTest
 import "systemstats.test.js" as SystemStatsTest
 import "theme.test.js" as ThemeTest
+import "themeswitcher.test.js" as ThemeSwitcherTest
 import "videowallpapers.test.js" as VideoWallpapersTest
 import "weather.test.js" as WeatherTest
-import "themeswitcher.test.js" as ThemeSwitcherTest
 
 ShellRoot {
     id: root

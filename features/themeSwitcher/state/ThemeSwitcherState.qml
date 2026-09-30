@@ -84,6 +84,8 @@ Singleton {
     }
 
     function flush(): void {
+        if (!open)
+            return;
         applyDelay.stop();
         const id = themes[index]?.id ?? "";
         if (id && id !== ThemeManager.current)
