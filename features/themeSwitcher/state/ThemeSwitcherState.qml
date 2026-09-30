@@ -3,7 +3,6 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import qs.core.carousel
-import qs.core.config
 import qs.core.panels
 import qs.core.theme
 import qs.services
@@ -21,8 +20,6 @@ Singleton {
     readonly property bool open: Panels.isOpen("themes")
     readonly property var screen: Hypr.focusedScreen
     readonly property var themes: ThemeManager.themes
-    readonly property string current: ThemeManager.current
-    readonly property int currentIndex: themes.findIndex(t => t.id === current)
 
     // O card central (o índice e o id, para reencontrá-lo quando a lista
     // muda) e o tema aplicado quando o seletor abriu.
@@ -110,22 +107,6 @@ Singleton {
 
         interval: 300
         onTriggered: root.flush()
-    }
-
-    function apply(id: string): void {
-        ThemeManager.apply(id);
-    }
-
-    // O Enter da grade faz apply e close: fecha mantendo.
-    function close(): void {
-        keep = true;
-        Panels.close();
-    }
-
-    // Leva à tela de configurações, na parte de aparência.
-    function openSettings(): void {
-        Config.settingsTopic = "appearance";
-        Panels.open("settings");
     }
 
     // Integração com o Hyprland
