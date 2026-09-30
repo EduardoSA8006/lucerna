@@ -12,7 +12,7 @@ desenho completo está em [`Lucerna — Proposta.md`](<Lucerna — Proposta.md>)
 | --- | --- |
 | `features/<feature>/ui` | o `state` da própria feature e o `core`; nunca `qs.services` |
 | `features/<feature>/state` | `qs.services` e o `core` |
-| `services/` | só o Quickshell e o sistema |
+| `services/` | só o Quickshell e o sistema (convenção: o `rules` não confere) |
 | `core/` | só o Quickshell; nunca `qs.features` nem `qs.services` |
 
 Uma feature não importa outra: quando precisam conversar, a conversa passa pelo
@@ -27,6 +27,9 @@ O check `rules` (`ci/rules.py`) confere, além das camadas:
 - **gerados em dia**: os `.qsb` iguais ao que o `dev/shaders.sh` compila e os
   `themes/*.json` iguais ao que o `dev/themes.py` gera. Mudou um `.frag` ou uma
   paleta? Rode o gerador e faça commit do resultado;
+- **supressões do qmllint**: só as três registradas no spec do CI
+  (`// qmllint disable unqualified` nas margens de três janelas); outra
+  supressão reprova, e a exceção nova entra no spec e na lista do `ci/rules.py`;
 - **links locais**: imagens e arquivos citados nos `.md` existem.
 
 O QML segue o estilo compacto do resto do código
@@ -99,7 +102,8 @@ function run(t) {
 - Nada de hora real: passe datas fixas às funções
   (`new Date(2026, 0, 10, 12, 0)`). O `ci/unit.sh` fixa
   `TZ=America/Sao_Paulo`.
-- Se um caso mexe na `Config`, volte o valor ao padrão no fim do caso.
+- Se um caso muda o estado de um singleton (`Config`, `Brightness`,
+  `SystemStats`…), guarde o valor antes e restaure o original no fim do caso.
 
 ## Cobertura
 
