@@ -93,7 +93,9 @@ function run(t) {
   preferência por `t.eq`. `t.object()` cria um QtObject novo, para testes que
   registram objetos.
 - Os singletons vêm em `t` (`t.Format`, `t.Panels`, `t.Monitors`…); os enums
-  usados nos testes, em `t.enums`.
+  usados nos testes, em `t.enums`. O `state` de uma feature também pode vir,
+  quando o teste é do fluxo dela (`t.ThemeSwitcherState`): o runner importa o
+  módulo da feature, e o `rules` não confere `tests/`.
 - Registre o arquivo no `tests/runner.qml`: um
   `import "<unidade>.test.js" as <Unidade>Test` e um item
   `["<unidade>", <Unidade>Test]` em `suites`, com o nome do arquivo. O runner

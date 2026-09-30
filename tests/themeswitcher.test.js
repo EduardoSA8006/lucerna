@@ -1,0 +1,132 @@
+// Testes do fluxo do seletor de temas (features/themeSwitcher/state): abrir,
+// girar com a espera, confirmar e desfazer. A espera de 300 ms não corre
+// aqui: `pending` diz se ela está armada e `flush()` a dispara na hora. Cada
+// caso usa uma fila de três temas e devolve Config.theme, a lista de temas e
+// os painéis abertos ao que eram. Fica por último no runner: trocar de tema
+// anima as cores, e as outras suítes leem cores.
+function run(t) {
+    const S = t.ThemeSwitcherState;
+    const T = t.ThemeManager;
+    const C = t.Config;
+    const P = t.Panels;
+    const theme0 = C.theme;
+    const themes0 = T.themes;
+    const opened0 = P.opened;
+    const three = [{ id: "catppuccin-mocha", name: "Catppuccin Mocha" }, { id: "dracula", name: "Dracula" }, { id: "nord", name: "Nord" }];
+
+    // Aplica `id`, abre o seletor com a fila de três e roda o corpo; no fim,
+    // mesmo com exceção, fecha e restaura.
+    function scenario(name, id, body) {
+        t.test(name, () => {
+            T.themes = three;
+            T.apply(id);
+            P.open("themes");
+            try {
+                body();
+            } finally {
+                P.close();
+                C.theme = theme0;
+                T.themes = themes0;
+                P.opened = opened0;
+            }
+        });
+    }
+
+    scenario("themeswitcher: abrir guarda o tema e centra a fila nele", "dracula", () => {
+        t.eq([S.open, S.openedWith, S.index, S.pending], [true, "dracula", 1, false]);
+    });
+
+    scenario("themeswitcher: girar espera antes de aplicar e aplica só onde parou", "catppuccin-mocha", () => {
+        S.step(1);
+        t.eq([S.index, S.pending, T.current], [1, true, "catppuccin-mocha"], "a espera armada, nada aplicado");
+        S.step(1);
+        S.step(1);
+        t.eq(S.index, 0, "depois do último vem o primeiro");
+        S.step(-1);
+        t.eq([S.index, T.current], [2, "catppuccin-mocha"], "antes do primeiro vem o último");
+        S.flush();
+        t.eq([S.pending, T.current, S.open], [false, "nord", true], "só o tema onde a fila parou");
+    });
+
+    scenario("themeswitcher: Enter aplica o que falta e mantém", "catppuccin-mocha", () => {
+        S.step(1);
+        S.confirm();
+        t.eq([S.open, S.pending, T.current], [false, false, "dracula"]);
+    });
+
+    scenario("themeswitcher: Enter sem girar mantém o tema da abertura", "nord", () => {
+        S.confirm();
+        t.eq([S.open, T.current], [false, "nord"]);
+    });
+
+    scenario("themeswitcher: Esc para a espera e volta ao tema da abertura", "catppuccin-mocha", () => {
+        S.step(1);
+        S.flush();
+        S.step(1);
+        t.eq([T.current, S.pending], ["dracula", true]);
+        S.cancel();
+        t.eq([S.open, S.pending, T.current], [false, false, "catppuccin-mocha"]);
+    });
+
+    scenario("themeswitcher: fechar por outro caminho também desfaz", "catppuccin-mocha", () => {
+        S.step(-1);
+        S.flush();
+        t.eq(T.current, "nord");
+        P.open("launcher");
+        t.eq([S.open, T.current], [false, "catppuccin-mocha"], "outro painel modal");
+        P.open("themes");
+        S.step(1);
+        P.toggle("themes");
+        t.eq([S.open, S.pending, T.current], [false, false, "catppuccin-mocha"], "o atalho de novo, com a espera armada");
+    });
+
+    scenario("themeswitcher: clique num card lateral gira até ele; no central, confirma", "catppuccin-mocha", () => {
+        S.pick(2);
+        t.eq([S.index, S.pending, T.current], [2, true, "catppuccin-mocha"], "gira pelo lado mais curto, com a espera");
+        S.pick(2);
+        t.eq([S.open, S.pending, T.current], [false, false, "nord"]);
+    });
+
+    scenario("themeswitcher: tema da abertura fora da lista", "gruvbox-dark", () => {
+        t.eq([S.openedWith, S.index], ["gruvbox-dark", 0]);
+        S.step(1);
+        S.flush();
+        t.eq(T.current, "dracula");
+        S.cancel();
+        t.eq(T.current, "gruvbox-dark");
+    });
+
+    scenario("themeswitcher: lista que muda com o seletor aberto", "nord", () => {
+        t.eq([S.index, S.centerId], [2, "nord"]);
+        T.themes = [three[2], three[0], three[1]];
+        t.eq([S.index, S.centerId], [0, "nord"], "recentra pelo id do centro");
+        T.themes = three.slice(0, 2);
+        t.eq([S.index, S.centerId], [0, "catppuccin-mocha"], "sem o tema do centro, a volta do índice");
+        T.themes = [three[1], three[0]];
+        t.eq([S.index, S.centerId], [1, "catppuccin-mocha"]);
+        T.themes = [];
+        S.step(1);
+        t.eq([S.index, S.pending], [0, false], "fila vazia não gira");
+        S.confirm();
+        t.eq([S.open, T.current], [false, "nord"], "vazia, o Enter só fecha");
+    });
+
+    t.test("themeswitcher: seletor fechado não gira nem fecha outro painel", () => {
+        T.themes = three;
+        P.open("launcher");
+        try {
+            const index = S.index;
+            S.step(1);
+            S.pick(index + 1);
+            t.eq([S.index, S.pending], [index, false], "nada gira nem arma a espera");
+            S.confirm();
+            t.eq(P.opened, ["launcher"], "o confirm perdido não fecha o launcher");
+            t.eq(T.current, theme0, "nada aplicado");
+        } finally {
+            P.close();
+            C.theme = theme0;
+            T.themes = themes0;
+            P.opened = opened0;
+        }
+    });
+}

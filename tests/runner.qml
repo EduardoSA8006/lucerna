@@ -18,6 +18,7 @@ import qs.core.nightlight
 import qs.core.panels
 import qs.core.theme
 import qs.core.time
+import qs.features.themeSwitcher.state
 import qs.services
 import "appinfo.test.js" as AppInfoTest
 import "audio.test.js" as AudioTest
@@ -44,6 +45,7 @@ import "systemstats.test.js" as SystemStatsTest
 import "theme.test.js" as ThemeTest
 import "videowallpapers.test.js" as VideoWallpapersTest
 import "weather.test.js" as WeatherTest
+import "themeswitcher.test.js" as ThemeSwitcherTest
 
 ShellRoot {
     id: root
@@ -80,7 +82,8 @@ ShellRoot {
         ["appinfo", AppInfoTest],
         ["media", MediaTest],
         ["session", SessionTest],
-        ["weather", WeatherTest]
+        ["weather", WeatherTest],
+        ["themeswitcher", ThemeSwitcherTest]
     ]
 
     function fail(message: string): void {
@@ -177,7 +180,8 @@ ShellRoot {
             get Session() { return Session; },
             get SystemStats() { return SystemStats; },
             get VideoWallpapers() { return VideoWallpapers; },
-            get Weather() { return Weather; }
+            get Weather() { return Weather; },
+            get ThemeSwitcherState() { return ThemeSwitcherState; }
         };
     }
 
