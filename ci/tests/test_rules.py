@@ -72,6 +72,44 @@ class LayersTest(RepoCase):
         self.assertEqual([n for _, n, _ in rules.check_layers(root)], [2, 3])
 
 
+class SuppressionsTest(RepoCase):
+    OSD = "features/osd/ui/Osd.qml"
+
+    def found(self, files):
+        return rules.check_suppressions(self.repo(files))
+
+    def test_aceita_as_tres_registradas(self):
+        files = {
+            "features/settings/ui/MonitorConfirm.qml": "    margins.top: 90 // qmllint disable unqualified\n",
+            self.OSD: "    margins.bottom: 72 // qmllint disable unqualified\n",
+            "features/notifications/ui/NotificationPopups.qml": "    margins { // qmllint disable unqualified\n",
+        }
+        self.assertEqual(self.found(files), [])
+
+    def test_recusa_disable_sozinho_na_linha(self):
+        found = self.found({self.OSD: "Item {\n    // qmllint disable\n    margins.bottom: 72\n}\n"})
+        self.assertEqual([(p, n) for p, n, _ in found], [(self.OSD, 2)])
+        self.assertIn("spec", found[0][2])
+
+    def test_recusa_outra_categoria(self):
+        found = self.found({self.OSD: "    margins.bottom: 72 // qmllint disable missing-property\n"})
+        self.assertEqual(len(found), 1)
+
+    def test_recusa_outro_arquivo(self):
+        found = self.found({"features/bar/ui/Bar.qml": "    margins.bottom: 72 // qmllint disable unqualified\n"})
+        self.assertEqual([(p, n) for p, n, _ in found], [("features/bar/ui/Bar.qml", 1)])
+
+    def test_recusa_outra_linha_do_arquivo_aceito(self):
+        found = self.found({self.OSD: "    width: 10 // qmllint disable unqualified\n"})
+        self.assertEqual(len(found), 1)
+
+    def test_recusa_enable_e_disable_com_texto_depois(self):
+        found = self.found(
+            {self.OSD: "// qmllint enable unqualified\n    margins.bottom: 72 // qmllint disable unqualified extra\n"}
+        )
+        self.assertEqual([n for _, n, _ in found], [1, 2])
+
+
 class WhitespaceTest(RepoCase):
     def test_aponta_tab_espaco_no_fim_crlf_e_falta_de_quebra(self):
         root = self.repo(

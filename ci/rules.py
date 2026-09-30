@@ -57,6 +57,49 @@ def repo_files(root):
     return files
 
 
+# As únicas supressões do qmllint aceitas: arquivo -> trecho de código que
+# precede o comentário `// qmllint disable unqualified`. O motivo (o grupo
+# `margins` do PanelWindow não vem por inteiro nos qmltypes do Quickshell) e o
+# registro estão no spec do CI (docs/superpowers/specs/2026-09-26-ci-design.md).
+QMLLINT_ALLOWED = {
+    "features/settings/ui/MonitorConfirm.qml": "margins.top: 90",
+    "features/osd/ui/Osd.qml": "margins.bottom: 72",
+    "features/notifications/ui/NotificationPopups.qml": "margins {",
+}
+QMLLINT_SUPPRESSION = re.compile(r"qmllint\s+(disable|enable)\b")
+QMLLINT_ALLOWED_COMMENT = "// qmllint disable unqualified"
+
+
+def check_suppressions(root):
+    """Toda supressão do qmllint (`qmllint disable` e `enable`) nos .qml tem de
+    ser uma das de QMLLINT_ALLOWED: no fim da linha do código indicado, com o
+    comentário `// qmllint disable unqualified`."""
+    out = []
+    for rel in repo_files(root):
+        if rel.suffix != ".qml":
+            continue
+        where = rel.as_posix()
+        lines = (root / rel).read_text(encoding="utf-8").splitlines()
+        for number, line in enumerate(lines, 1):
+            match = QMLLINT_SUPPRESSION.search(line)
+            if not match:
+                continue
+            code = line[: match.start()]
+            allowed = QMLLINT_ALLOWED.get(where)
+            if allowed and code.strip() == allowed + " //" and line.rstrip().endswith(QMLLINT_ALLOWED_COMMENT):
+                continue
+            out.append(
+                (
+                    where,
+                    number,
+                    "supressão do qmllint fora da lista: só as três registradas no spec "
+                    "(docs/superpowers/specs/2026-09-26-ci-design.md) são aceitas; "
+                    "conserte o aviso ou registre a exceção no spec e em QMLLINT_ALLOWED do ci/rules.py",
+                )
+            )
+    return out
+
+
 IMPORT_QS = re.compile(r"^\s*import\s+qs\.([\w.]+)")
 
 
@@ -463,6 +506,7 @@ def check_themes(root):
 
 RULES = {
     "camadas": check_layers,
+    "supressões": check_suppressions,
     "espaços": check_whitespace,
     "acentos": check_accents,
     "links": check_links,
