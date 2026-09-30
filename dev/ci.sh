@@ -25,10 +25,23 @@ opts() {
         -v "lucerna-ci-pacman-$1:/var/cache/pacman/pkg" -w /src)
 }
 
+# Só os contêineres lucerna-ci-<job> e lucerna-ci-shell: nunca o lucerna-dev nem o
+# lucerna-polish. O `docker run` roda com o bash como PID 1, que ignora o SIGINT
+# repassado; por isso o Ctrl-C remove o contêiner daqui, e cada execução começa
+# removendo um sobrado da anterior (senão vira "name already in use").
+current=""
+# shellcheck disable=SC2329 # chamada pelo trap
+interrupted() {
+    [ -z "$current" ] || docker rm -f "$current" > /dev/null 2>&1 || true
+    exit 130
+}
+trap interrupted INT TERM
+
 if [ "${1:-}" = shell ]; then
     job=${2:-lint}
     mkdir -p "$repo/ci-out/$job"
     opts "$job"
+    docker rm -f "lucerna-ci-shell" > /dev/null 2>&1 || true
     # shellcheck disable=SC2016 # as variáveis expandem dentro do container
     exec docker run --rm -it --name "lucerna-ci-shell" "${common[@]}" \
         -v "$repo:/src" -v "$repo/ci-out/$job:/out" "$image" \
@@ -51,15 +64,22 @@ for job in "${jobs[@]}"; do
     mkdir -p "$out"
     echo "==> $job"
     opts "$job"
+    current="lucerna-ci-$job"
+    docker rm -f "$current" > /dev/null 2>&1 || true
+    # Em segundo plano com `wait`: o bash só roda o trap depois do comando em
+    # primeiro plano, e o docker run não termina com o SIGINT.
     # shellcheck disable=SC2016 # as variáveis expandem dentro do container
-    if docker run --rm --name "lucerna-ci-$job" "${common[@]}" \
+    docker run --rm --name "$current" "${common[@]}" \
         -v "$repo:/src:ro" -v "$out:/out" "$image" \
-        bash -c 'bash ci/setup.sh "$CI_JOB" && runuser -u "$(id -nu "$CI_UID")" -- bash ci/run.sh "$CI_JOB"'; then
+        bash -c 'bash ci/setup.sh "$CI_JOB" && runuser -u "$(id -nu "$CI_UID")" -- bash ci/run.sh "$CI_JOB"' &
+    if wait "$!"; then
         echo "==> $job: ok"
     else
         echo "==> $job: FALHOU (saída em ci-out/$job)"
         failed+=("$job")
     fi
+    docker rm -f "$current" > /dev/null 2>&1 || true
+    current=""
 done
 
 if [ ${#failed[@]} -gt 0 ]; then
