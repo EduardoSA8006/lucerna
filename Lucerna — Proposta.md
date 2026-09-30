@@ -93,7 +93,7 @@ Regras:
 - Toda conversa com o Hyprland fica em `services/Hypr.qml`.
 - Os imports usam o sistema de módulos do Quickshell, em que cada pasta vira um módulo (`import qs.core.theme`, `import qs.features.bar.state`). Por isso os nomes de pasta são identificadores QML válidos: `themeSwitcher`, e não `theme-switcher`.
 
-O repositório inteiro é a configuração do shell. Fora do código do shell ficam só `dev/`, com o ambiente de teste, e a documentação.
+O repositório inteiro é a configuração do shell. Fora do código do shell ficam `dev/` (o ambiente de teste), `ci/` e `tests/` (os checks do CI), `.github/` e a documentação.
 
 ```
 lucerna/
@@ -159,10 +159,14 @@ lucerna/
 │   ├── wallpapers/             # papéis estáticos
 │   ├── shaders/                # efeitos animados (.frag e .qsb), catálogo e textura de ruído
 │   └── fonts/
+├── ci/                         # os checks do CI (lint, rules, unit, smoke); o dev/ci.sh roda local
+├── tests/                      # testes de unidade (runner.qml e *.test.js) e o escopo da cobertura
 └── dev/                        # ambiente de teste e geradores (não é carregado pelo shell)
     ├── Dockerfile
     ├── hyprland.lua
     ├── run.sh
+    ├── ci.sh                   # roda os checks do CI no archlinux:latest, como no GitHub
+    ├── test.sh                 # conferência visual: container lucerna-polish com a janela na tela
     ├── themes.py               # gera os temas e os papéis estáticos
     └── shaders.sh              # compila os efeitos
 ```
@@ -220,6 +224,17 @@ O sistema de desenvolvimento roda KDE Plasma, não Hyprland. Para testar, o Luce
 - **GPU:** só a GPU Intel é repassada; o container não tem os drivers da NVIDIA.
 - **Tela de bloqueio:** o usuário do container é `dev`, com a senha `lucerna`.
 - **Limitações:** o brilho é só leitura no container, porque ajustá-lo exige uma sessão do logind. A sessão completa (login pelo TTY, `hypridle`, PAM do sistema real) fica para uma VM QEMU com virgl, quando for preciso.
+
+## Qualidade
+
+Todo PR para o `main` passa por quatro checks obrigatórios e só pode ser mesclado com todos verdes; nem o administrador empurra direto no `main`.
+
+- **`lint`**: `qmllint` com a árvore de módulos do Quickshell, sem nenhum aviso aceito; `shellcheck`; `ruff`; os JSON de tema.
+- **`rules`**: as camadas desta proposta, acentos, espaços, shaders e temas gerados em dia, links locais e as supressões do `qmllint` (só as três registradas no spec do CI são aceitas).
+- **`unit`**: testes de unidade no próprio `qs` (`tests/`), com 100% das funções puras de `core/` e dos serviços chamadas.
+- **`smoke`**: o shell num `sway` headless (o Hyprland não sobe sem GPU), com cada painel aberto por IPC e nenhum aviso além dos de ambiente.
+
+Os scripts ficam em `ci/` e rodam igual no GitHub e na máquina (`dev/ci.sh`). O que depende do Hyprland de verdade (workspaces reais, `hyprctl`) fica para o ambiente de teste e para a máquina real.
 
 ## Instalação
 

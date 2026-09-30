@@ -297,6 +297,27 @@ Atalhos no Hyprland aninhado (a tecla de mod é `Alt`, para não brigar com o de
 | `Alt+Shift+R` | Reiniciar o Quickshell |
 | `Alt+Shift+E` | Sair do Hyprland |
 
+### CI
+
+Todo PR para o `main` passa por quatro checks, e só pode ser mesclado com todos verdes:
+
+| Check | O que confere |
+| --- | --- |
+| `lint` | `qmllint` (qualquer aviso reprova), `shellcheck`, `ruff` e os JSON de tema (pelo menos um tema) |
+| `rules` | camadas, acentos, espaços, shaders e temas gerados em dia, links locais e as supressões do `qmllint` (só as três registradas) |
+| `unit` | os testes de `tests/` no `qs`, com 100% das funções do escopo de `tests/coverage.json` chamadas |
+| `smoke` | o shell num `sway` headless: cada painel aberto por IPC, capturas e nenhum aviso fora de `ci/tolerated.txt` |
+
+Os mesmos scripts de `ci/` rodam no GitHub e aqui, no mesmo container (`archlinux:latest`), e cada job começa num container novo:
+
+```sh
+dev/ci.sh              # os quatro
+dev/ci.sh unit         # só um (lint, rules, unit, smoke)
+dev/ci.sh shell lint   # um bash no container de um check, com o repositório em /src
+```
+
+A saída fica em `ci-out/<check>/`. Como escrever um teste e o que a cobertura exige está no [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
 ## Licença
 
 GPL-3.0. O texto está em [`LICENSE`](LICENSE).
