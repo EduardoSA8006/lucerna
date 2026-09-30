@@ -15,12 +15,15 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 9. [x] **Captura de tela e gravação:** área, janela ou tela, com notificação e atalho.
 10. [x] **Visão geral dos workspaces**, com as janelas em miniatura.
 11. [x] **Brilho de monitores externos** por DDC/CI.
-12. [ ] **Instalação e distribuição:** script de instalação (link, trecho do `hyprland.lua`, atalhos padrão), pacote no AUR e verificação no CI (`qmllint`).
+12. [ ] **Instalação e distribuição:** script de instalação (link, trecho do `hyprland.lua`, atalhos padrão) e pacote no AUR. A verificação no CI já está feita: quatro checks obrigatórios (`ci/`, `dev/ci.sh`).
 13. [ ] **Plugins próprios**, na ordem de `Lucerna — Plugins Próprios.md`: `lucerna-sysinfo`, depois `lucerna-spectrum`, depois os demais.
 
 ## Depois
 
 - [ ] Aurora, Brasas, Chama e Vaga-lumes somam luz ao fundo e, num tema claro, estouram para branco. Adaptá-los como o Ondas (que já tem versão clara). Os efeitos próprios dos temas claros (Ondas e Névoa) estão bons.
+- [ ] Sliders das configurações gravam o `Config` a cada movimento (GlassPage, NightLightPage, DisplayPage, MousePage, KeyboardPage, PowerPage e NotificationsPage). Com `blockWrites` não há perda nem corrupção, e a gravação mediu 1,4 ms em NVMe, mas em disco lento o arrasto pode engasgar. Correção prevista: debounce de uns 200 ms, com o reload suspenso durante a espera e um flush ao sair.
+- [ ] Fumaça com o Hyprland de verdade, quando houver runner com GPU: hoje ela roda no `sway` headless, e o que depende do Hyprland (workspaces, visão geral com janelas, `hyprctl`) não é exercitado.
+- [ ] `CHANGELOG`, junto com as releases.
 
 ## Verificar com hardware e entrada reais
 
