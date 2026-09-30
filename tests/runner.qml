@@ -9,6 +9,7 @@ import Quickshell
 import Quickshell.Bluetooth as QsBluetooth
 import Quickshell.Networking as QsNet
 import Quickshell.Services.Notifications as QsNotifications
+import qs.core.carousel
 import qs.core.config
 import qs.core.format
 import qs.core.input
@@ -23,6 +24,7 @@ import "audio.test.js" as AudioTest
 import "bluetooth.test.js" as BluetoothTest
 import "brightness.test.js" as BrightnessTest
 import "capture.test.js" as CaptureTest
+import "carousel.test.js" as CarouselTest
 import "clipboard.test.js" as ClipboardTest
 import "format.test.js" as FormatTest
 import "input.test.js" as InputTest
@@ -56,6 +58,7 @@ ShellRoot {
     readonly property var suites: [
         ["sun", SunTest],
         ["format", FormatTest],
+        ["carousel", CarouselTest],
         ["shellshortcuts", ShellShortcutsTest],
         ["inputactions", InputActionsTest],
         ["nightschedule", NightScheduleTest],
@@ -151,6 +154,7 @@ ShellRoot {
             enums: root.enums(),
             get Config() { return Config; },
             get Format() { return Format; },
+            get Carousel() { return Carousel; },
             get InputActions() { return InputActions; },
             get ShellShortcuts() { return ShellShortcuts; },
             get SearchEngines() { return SearchEngines; },
