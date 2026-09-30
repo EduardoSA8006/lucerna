@@ -49,7 +49,8 @@ Item {
 
     // O x é posto aqui, não por binding: o pulo é decidido antes de o x mudar.
     onDistanceChanged: {
-        sliding = Math.abs(distance - last) < count / 2;
+        // Pulo só na volta da fila (Δ perto de count); com 1 ou 2 temas não há volta.
+        sliding = count <= 2 || Math.abs(distance - last) < count / 2;
         last = distance;
         place();
     }
