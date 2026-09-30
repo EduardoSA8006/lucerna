@@ -11,8 +11,10 @@
 # com código diferente de 0, `panels get` diferente do esperado, painel que não
 # fecha, shell que cai (inclusive no repouso de 5 s depois do último passo),
 # shell que não encerra limpo com `qs kill` (código 0 em 10 s), aviso ou erro
-# fora do ci/tolerated.txt no log final (conferido depois do encerramento) e a
-# unidade da cópia separada que falha.
+# fora do ci/tolerated.txt no log final (conferido depois do encerramento), a
+# unidade da cópia separada que falha e todo `ipc call` ou grim que passa de
+# 10 s (timeout, com o fim do shell.log na saída) ou o dbus-run-session que não
+# sai em 10 s depois do shell.
 #
 # Só encerra os próprios processos (o grupo do sway e o do shell, por PID),
 # nunca por nome: rodada fora do container, não derruba a sessão do usuário.
@@ -23,7 +25,7 @@
 # atual; uma aba, seção ou tópico que não abre só aparece como erro no log (o
 # logcheck) e na captura.
 #
-# Saída em $CI_OUT: shell.log, sway.log, unit-smoke.log, shots/NN-<passo>.png,
+# Saída em $CI_OUT: shell.log, sway.log, kill.log, unit-smoke.log, shots/NN-<passo>.png,
 # coverage.md e summary.md (tabela passo, esperado, veio).
 set -euo pipefail
 
@@ -88,8 +90,21 @@ fail() {
         clean_log
         echo "--- avisos e erros do log até aqui, fora do ci/tolerated.txt ---" >&2
         python3 "$repo/ci/logcheck.py" "$repo/ci/tolerated.txt" "$out/shell.log" "$out/sway.log" >&2 || true
+        # O fim do log é o trecho de um travamento (o que o shell fazia quando parou).
+        echo "--- últimas linhas do shell.log ---" >&2
+        tail -n 15 "$out/shell.log" >&2 2> /dev/null || true
     fi
     exit 1
+}
+
+# why <código>: o texto do código de saída de um comando com `timeout`; o 124 é
+# o timeout (o shell travou ou o comando não respondeu).
+why() {
+    if [ "$1" -eq 124 ]; then
+        echo "timeout de $CMD_TIMEOUT s (o shell travou ou não respondeu; o shell.log tem o trecho)"
+    else
+        echo "código $1"
+    fi
 }
 
 # row <passo> <esperado> <veio>: uma linha da tabela do summary.md.
@@ -152,9 +167,13 @@ row "shell carregado" "Configuration Loaded" "Configuration Loaded"
 
 # alive: o shell (o próprio qs, não o dbus-run-session em volta) está rodando.
 alive() { kill -0 "$shell_pid" 2> /dev/null; }
-ipc() { qs -c lucerna ipc call "$@"; }
+# Todo `ipc call` e todo grim têm timeout: sem ele, um shell travado deixaria o
+# job parado até o limite do workflow, sem diagnóstico.
+CMD_TIMEOUT=10
+ipc() { timeout "$CMD_TIMEOUT" qs -c lucerna ipc call "$@"; }
+shot() { timeout "$CMD_TIMEOUT" grim "$1"; }
 n=0
-grim "$out/shots/00-inicio.png" || fail "o grim não capturou a tela inicial"
+shot "$out/shots/00-inicio.png" || fail "o grim não capturou a tela inicial: $(why $?)"
 
 # step <esperado no panels get> <alvo> <função> [argumentos...]: chama o IPC,
 # confere que o shell continua vivo e que o `panels get` traz o painel
@@ -165,15 +184,15 @@ step() {
     shift
     n=$((n + 1))
     name=$(printf '%02d-%s' "$n" "$(printf '%s-' "$@" | tr -cd 'a-z0-9-' | sed 's/-*$//')")
-    ipc "$@" > /dev/null || fail "ipc call $* saiu com código $?"
+    ipc "$@" > /dev/null || fail "ipc call $* falhou: $(why $?)"
     sleep 1
     alive || fail "o shell caiu depois de: ipc call $*"
-    got=$(ipc panels get) || fail "ipc call panels get saiu com código $?"
+    got=$(ipc panels get) || fail "ipc call panels get falhou: $(why $?)"
     row "ipc call $*" "$expected" "${got:-(nenhum)}"
     [ "$got" = "$expected" ] || fail "depois de \"ipc call $*\", o panels get trouxe \"$got\"; o esperado era \"$expected\""
-    grim "$out/shots/$name.png" || fail "o grim não capturou $name"
-    ipc panels close > /dev/null || fail "ipc call panels close saiu com código $?"
-    got=$(ipc panels get) || fail "ipc call panels get saiu com código $?"
+    shot "$out/shots/$name.png" || fail "o grim não capturou $name: $(why $?)"
+    ipc panels close > /dev/null || fail "ipc call panels close falhou: $(why $?)"
+    got=$(ipc panels get) || fail "ipc call panels get falhou: $(why $?)"
     [ -z "$got" ] || fail "depois de \"ipc call panels close\" (passo $name), o panels get trouxe \"$got\"; o esperado era nenhum painel"
 }
 
@@ -200,14 +219,14 @@ step overview overview toggle
 # panels close) cair no log antes do veredito.
 sleep 5
 alive || fail "o shell caiu no repouso depois do último passo"
-ipc cov dump > "$work/hits-smoke.txt" || fail "não consegui ler a cobertura (ipc call cov dump saiu com código $?)"
+ipc cov dump > "$work/hits-smoke.txt" || fail "não consegui ler a cobertura (ipc call cov dump falhou: $(why $?))"
 alive || fail "o shell caiu no fim da fumaça"
 row "shell vivo depois de 5 s de repouso" "sim" "sim"
 
 # Encerra o shell antes do veredito, pelo PID dele (qs kill --pid, a saída
 # limpa do Quickshell), e espera o fim: o log conferido é o final, com o
 # encerramento, e é o mesmo que vai para o artefato.
-qs kill --pid "$shell_pid" > "$work/kill.log" 2>&1 || true
+qs kill --pid "$shell_pid" > "$out/kill.log" 2>&1 || true
 for _ in $(seq 40); do
     alive || break
     sleep 0.25
@@ -215,6 +234,18 @@ done
 if alive; then
     row "shell encerrado (qs kill)" "em 10 s, código 0" "(não encerrou)"
     fail "o shell não encerrou em 10 s depois do qs kill --pid $shell_pid"
+fi
+# O dbus-run-session sai logo depois do shell; o laço limitado (10 s) evita que
+# o wait prenda o job se ele não sair. Um zumbi (filho já terminado, ainda não
+# recolhido) conta como terminado.
+running() { [ -r "/proc/$1/stat" ] && [ "$(sed 's/.*) //' "/proc/$1/stat" | cut -c1)" != Z ]; }
+for _ in $(seq 40); do
+    running "$qs_pid" || break
+    sleep 0.25
+done
+if running "$qs_pid"; then
+    row "dbus-run-session encerrado" "em 10 s" "(não saiu)"
+    fail "o dbus-run-session não terminou em 10 s depois do shell encerrar (veja shell.log)"
 fi
 code=0
 wait "$qs_pid" || code=$?
