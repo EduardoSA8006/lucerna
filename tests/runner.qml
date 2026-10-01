@@ -9,6 +9,7 @@ import Quickshell
 import Quickshell.Bluetooth as QsBluetooth
 import Quickshell.Networking as QsNet
 import Quickshell.Services.Notifications as QsNotifications
+import qs.core.carousel
 import qs.core.config
 import qs.core.format
 import qs.core.input
@@ -17,12 +18,14 @@ import qs.core.nightlight
 import qs.core.panels
 import qs.core.theme
 import qs.core.time
+import qs.features.themeSwitcher.state
 import qs.services
 import "appinfo.test.js" as AppInfoTest
 import "audio.test.js" as AudioTest
 import "bluetooth.test.js" as BluetoothTest
 import "brightness.test.js" as BrightnessTest
 import "capture.test.js" as CaptureTest
+import "carousel.test.js" as CarouselTest
 import "clipboard.test.js" as ClipboardTest
 import "format.test.js" as FormatTest
 import "input.test.js" as InputTest
@@ -40,6 +43,7 @@ import "shellshortcuts.test.js" as ShellShortcutsTest
 import "sun.test.js" as SunTest
 import "systemstats.test.js" as SystemStatsTest
 import "theme.test.js" as ThemeTest
+import "themeswitcher.test.js" as ThemeSwitcherTest
 import "videowallpapers.test.js" as VideoWallpapersTest
 import "weather.test.js" as WeatherTest
 
@@ -56,6 +60,7 @@ ShellRoot {
     readonly property var suites: [
         ["sun", SunTest],
         ["format", FormatTest],
+        ["carousel", CarouselTest],
         ["shellshortcuts", ShellShortcutsTest],
         ["inputactions", InputActionsTest],
         ["nightschedule", NightScheduleTest],
@@ -77,7 +82,8 @@ ShellRoot {
         ["appinfo", AppInfoTest],
         ["media", MediaTest],
         ["session", SessionTest],
-        ["weather", WeatherTest]
+        ["weather", WeatherTest],
+        ["themeswitcher", ThemeSwitcherTest]
     ]
 
     function fail(message: string): void {
@@ -151,6 +157,7 @@ ShellRoot {
             enums: root.enums(),
             get Config() { return Config; },
             get Format() { return Format; },
+            get Carousel() { return Carousel; },
             get InputActions() { return InputActions; },
             get ShellShortcuts() { return ShellShortcuts; },
             get SearchEngines() { return SearchEngines; },
@@ -173,7 +180,8 @@ ShellRoot {
             get Session() { return Session; },
             get SystemStats() { return SystemStats; },
             get VideoWallpapers() { return VideoWallpapers; },
-            get Weather() { return Weather; }
+            get Weather() { return Weather; },
+            get ThemeSwitcherState() { return ThemeSwitcherState; }
         };
     }
 

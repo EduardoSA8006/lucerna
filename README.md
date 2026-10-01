@@ -48,9 +48,9 @@ Wi-Fi, Bluetooth, som, avisos, bateria e tela, com as seções do lado de fora. 
 
 ### Launcher, temas e barra
 
-| Seletor de temas | Launcher compacto |
+| Seletor de temas em carrossel | Launcher compacto |
 | --- | --- |
-| ![Seletor de temas](docs/screenshots/themes.jpg) | ![Launcher compacto](docs/screenshots/launcher-compact.jpg) |
+| ![Seletor de temas em carrossel](docs/screenshots/themes.jpg) | ![Launcher compacto](docs/screenshots/launcher-compact.jpg) |
 | **Gruvbox Dark** | **Nord** |
 | ![Tema Gruvbox Dark](docs/screenshots/theme-gruvbox.jpg) | ![Tema Nord](docs/screenshots/theme-nord.jpg) |
 
@@ -112,7 +112,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | **Ociosidade** | Escurece, desliga a tela, bloqueia e suspende depois de um tempo sem uso, com tempos próprios na tomada e na bateria, sem precisar do `hypridle`. Segura com mídia tocando, com app em tela cheia e com "Não apagar a tela" (na central lateral, para apresentações). |
 | **Luz noturna** | Tela mais quente à noite, do pôr ao nascer do sol (pela cidade do clima, calculado sem rede), num horário fixo ou sempre, entrando e saindo aos poucos. Na central lateral, liga ou desliga até a próxima virada. Usa o `hyprsunset`, que muda a cor no hardware, sem custo para a GPU. |
 | **Papel de parede** | Imagem com transição na troca e efeito animado por cima (shader, a 30 ou 60 fps, no ritmo da tela, e em meia resolução). Pausa com app em tela cheia, tela bloqueada ou tela apagada, e opcionalmente com qualquer janela aberta; no automático, fica parado na bateria. Modo e origem por monitor. |
-| **Temas** | Doze prontos, nas paletas oficiais: Catppuccin Mocha (padrão), Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green, e os claros Catppuccin Latte e Rosé Pine Dawn. Cada um vem com papel estático, efeito animado, fonte própria e bordas do Hyprland. Trocam ao vivo. |
+| **Temas** | Doze prontos, nas paletas oficiais: Catppuccin Mocha (padrão), Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green, e os claros Catppuccin Latte e Rosé Pine Dawn. Cada um vem com papel estático, efeito animado, fonte própria e bordas do Hyprland. Trocam ao vivo pelo seletor em carrossel (`Super+T`): as setas aplicam o tema do card central depois de uma breve espera, Enter mantém e Esc ou o clique fora desfazem. |
 
 ### Configurações
 

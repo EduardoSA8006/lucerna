@@ -1,147 +1,103 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import qs.core.carousel
 import qs.core.theme
 import qs.core.widgets
 import qs.features.themeSwitcher.state
 
-// Painel de troca rápida de tema. Clicar aplica na hora e mantém o painel
-// aberto para comparar; Enter aplica o selecionado e fecha.
+// Seletor de temas em carrossel, solto na parte de baixo da tela, sem caixa e
+// sem escurecer o resto: só um degradê escuro atrás da fila. ← e → giram a
+// fila (o ThemeSwitcherState aplica o tema do centro depois da espera), Enter
+// mantém, Esc ou clique fora desfaz. Clicar num card lateral gira até ele; no
+// central, é o Enter.
 OverlayPanel {
     id: panel
 
     name: "themes"
     open: ThemeSwitcherState.open
     screen: ThemeSwitcherState.screen
-    onDismissed: ThemeSwitcherState.close()
+    dim: 0
+    onDismissed: ThemeSwitcherState.cancel()
 
-    property int selected: 0
+    // Centro vertical da fila: a base do card central a 120 px da borda de baixo.
+    readonly property real cardHeight: 180
+    readonly property real rowY: height - 120 - cardHeight / 2
 
-    onOpenChanged: {
-        if (open) {
-            selected = Math.max(0, ThemeSwitcherState.currentIndex);
-            grid.forceActiveFocus();
+    // Entrada em cascata, depois de o estado centrar a fila.
+    Connections {
+        target: ThemeSwitcherState
+
+        function onOpened() {
+            stage.forceActiveFocus();
+            for (let i = 0; i < cards.count; i++)
+                (cards.itemAt(i) as ThemeCard)?.enter();
         }
     }
 
-    Surface {
-        level: 0
-        anchors.centerIn: parent
-        anchors.verticalCenterOffset: (1 - panel.progress) * 24
-        width: content.implicitWidth + ThemeManager.spacing.large * 2
-        height: content.implicitHeight + ThemeManager.spacing.large * 2
+    // Saída: todos descem juntos.
+    onOpenChanged: {
+        if (!open) {
+            for (let i = 0; i < cards.count; i++)
+                (cards.itemAt(i) as ThemeCard)?.leave();
+        }
+    }
 
-        Column {
-            id: content
+    // Sem tamanho: o OverlayPanel fecha no clique que não cai em nenhum filho
+    // dele (childAt), e assim o degradê não segura o clique fora. Os cards,
+    // com o próprio MouseArea, ficam com o clique deles.
+    Item {
+        id: stage
 
-            anchors.centerIn: parent
-            spacing: ThemeManager.spacing.normal
+        focus: true
 
-            Item {
-                width: grid.width
-                height: 32
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Left)
+                ThemeSwitcherState.step(-1);
+            else if (event.key === Qt.Key_Right)
+                ThemeSwitcherState.step(1);
+            else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)
+                ThemeSwitcherState.confirm();
+            else
+                return;
+            event.accepted = true;
+        }
 
-                Row {
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: ThemeManager.spacing.small
-
-                    Icon {
-                        icon: Icons.palette
-                        filled: true
-                        color: ThemeManager.colors.accent
-                    }
-
-                    Txt {
-                        text: "Temas"
-                        font.pixelSize: ThemeManager.font.large
-                        font.weight: Font.DemiBold
-                    }
-                }
-
-                IconButton {
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    icon: Icons.tune
-                    label: "Mais ajustes"
-                    onClicked: ThemeSwitcherState.openSettings()
-                }
+        // Degradê só atrás da fila, subindo até 40% da altura. No máximo 40%
+        // de opacidade: abaixo do ignore_alpha (0,45) da regra de desfoque do
+        // Hyprland (ThemeSwitcherState.blurLua), então nunca é desfocado. Atrás
+        // de todos os cards (os laterais têm z negativo), para não escurecê-los.
+        Rectangle {
+            z: -10
+            y: panel.height * 0.6
+            width: panel.width
+            height: panel.height * 0.4
+            gradient: Gradient {
+                GradientStop { position: 0; color: "transparent" }
+                GradientStop { position: 1; color: ThemeManager.alpha("#000000", 0.4) }
             }
+        }
 
-            Item {
-                width: grid.width
-                height: grid.height
+        Repeater {
+            id: cards
 
-                // Anel de seleção que desliza até o cartão escolhido.
-                Rectangle {
-                    readonly property Item target: cards.count > 0 ? cards.itemAt(panel.selected) : null
+            model: ThemeSwitcherState.themes
 
-                    x: (target?.x ?? 0) - 4
-                    y: (target?.y ?? 0) - 4
-                    width: (target?.width ?? 0) + 8
-                    height: (target?.height ?? 0) + 8
-                    scale: target?.scale ?? 1
-                    radius: ThemeManager.radius.normal + 4
-                    color: "transparent"
-                    border.width: 2
-                    border.color: ThemeManager.colors.accent
+            delegate: ThemeCard {
+                id: tile
 
-                    Behavior on x { Anim { type: Anim.FastSpatial } }
-                    Behavior on y { Anim { type: Anim.FastSpatial } }
-                }
+                required property var modelData
+                required property int index
 
-                Grid {
-                    id: grid
-
-                    columns: Math.min(5, Math.max(1, ThemeSwitcherState.themes.length))
-                    spacing: ThemeManager.spacing.normal
-                    focus: true
-
-                    Keys.onPressed: event => {
-                        const count = ThemeSwitcherState.themes.length;
-                        if (event.key === Qt.Key_Right || event.key === Qt.Key_Tab)
-                            panel.selected = (panel.selected + 1) % count;
-                        else if (event.key === Qt.Key_Left || event.key === Qt.Key_Backtab)
-                            panel.selected = (panel.selected - 1 + count) % count;
-                        else if (event.key === Qt.Key_Down)
-                            panel.selected = Math.min(count - 1, panel.selected + columns);
-                        else if (event.key === Qt.Key_Up)
-                            panel.selected = Math.max(0, panel.selected - columns);
-                        else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            ThemeSwitcherState.apply(ThemeSwitcherState.themes[panel.selected].id);
-                            ThemeSwitcherState.close();
-                        } else
-                            return;
-                        event.accepted = true;
-                    }
-
-                    Repeater {
-                        id: cards
-
-                        model: ThemeSwitcherState.themes
-
-                        delegate: ThemeCard {
-                            required property var modelData
-                            required property int index
-
-                            theme: modelData
-                            current: modelData.id === ThemeSwitcherState.current
-                            selected: index === panel.selected
-                            onClicked: {
-                                panel.selected = index;
-                                ThemeSwitcherState.apply(modelData.id);
-                            }
-                        }
-                    }
-                }
-
-            }
-
-            Txt {
-                width: grid.width
-                text: ThemeSwitcherState.themes[panel.selected]?.description ?? ""
-                muted: true
-                wrapMode: Text.WordWrap
-                font.pixelSize: ThemeManager.font.small
+                theme: tile.modelData
+                distance: Carousel.offset(tile.index, ThemeSwitcherState.index, ThemeSwitcherState.themes.length)
+                centerX: panel.width / 2
+                count: ThemeSwitcherState.themes.length
+                height: panel.cardHeight
+                y: panel.rowY - tile.height / 2
+                onClicked: ThemeSwitcherState.pick(tile.index)
+                // A lista trocada com o seletor aberto recria os cards: já visíveis.
+                initiallyShown: panel.open
             }
         }
     }

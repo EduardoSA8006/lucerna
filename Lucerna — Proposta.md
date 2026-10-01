@@ -32,19 +32,19 @@ Com um shell próprio, só roda o que foi escrito, e cada decisão visual e de c
 
 ## Identidade visual
 
-O Lucerna terá vários temas pré-configurados, trocáveis a qualquer momento por um painel de seleção rápida. O tema padrão é o **Catppuccin Mocha**: pastel escuro, malva sobre grafite azulado, cartões sólidos e a fonte Rubik.
+O Lucerna terá vários temas pré-configurados, trocáveis a qualquer momento por um seletor em carrossel. O tema padrão é o **Catppuccin Mocha**: pastel escuro, malva sobre grafite azulado, cartões sólidos e a fonte Rubik.
 
 - **Tema como dado:** cada tema é um arquivo em `themes/` com cores, fontes, raios, espaçamentos e wallpaper. Criar um tema novo é adicionar um arquivo, sem tocar em código.
 - **Um ponto de verdade:** um `ThemeManager` (singleton) carrega o tema ativo e expõe os tokens (cores, fontes, raios, espaçamentos, durações de animação e altura da barra); nenhum componente usa cor, fonte ou espaçamento fixo. As dimensões estruturais de cada painel, como a largura do launcher, ficam no próprio componente.
 - **Temas embutidos:** os dez esquemas mais populares, nas paletas oficiais: Catppuccin Mocha (padrão), Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green, mais as versões claras oficiais Catppuccin Latte e Rosé Pine Dawn (`"dark": false`). Cada um tem um papel estático e um efeito animado que combinam com ele. Os arquivos dos temas e os papéis estáticos são gerados por `dev/themes.py`, a partir das paletas.
 - **Cartões:** sólidos e sem contorno, destacados pelo tom (como no Material 3), com raio de 22 px. O contorno é um token do tema (`surfaces.outline`) e pode ser ligado nas configurações.
 - **Fontes do tema:** um tema pode trazer fontes em `themes/fonts/`, carregadas pelo `FontLoader` sem instalar nada no sistema.
-- **Troca ao vivo:** ao escolher um tema no painel, toda a interface muda na hora, com transição suave, e a escolha fica salva para a próxima sessão.
+- **Troca ao vivo:** no seletor em carrossel, as setas giram a fila e o tema do card central é aplicado de verdade em toda a interface, com transição suave, depois de uma espera curta (setas seguidas aplicam só o último). Enter mantém a escolha, que fica salva para a próxima sessão; Esc ou clique fora voltam ao tema de antes.
 - **Ajustes do usuário por cima do tema:** transparência, desfoque e velocidade das animações podem ser mudados na tela de configurações. Ficam na config como sobreposições do tema (o `ThemeManager` junta os dois), então valem para qualquer tema e podem ser desfeitos.
 - **Integração com o Hyprland:** a troca também ajusta bordas e arredondamento do compositor via `hyprctl eval`, para o visual ficar coeso fora do shell.
 - **Ícones:** Material Symbols Rounded, com o eixo de preenchimento animado para estados ativos e hover (o ícone "se acende").
 - **Vidro:** painéis translúcidos (`transparency` no tema), com o desfoque feito pelo Hyprland por uma regra de camada que o shell aplica sozinho (`hl.layer_rule` com `ignore_alpha`, para o véu escuro atrás dos painéis não ser desfocado). A tela de bloqueio desfoca o próprio wallpaper com o `MultiEffect` do Qt.
-- **Interação:** "state layer" do Material 3 em todo botão: véu no hover e onda (ripple) a partir do ponto do clique. Seleções (launcher, menu de energia, temas, abas) são um destaque único que desliza com mola até o item escolhido.
+- **Interação:** "state layer" do Material 3 em todo botão: véu no hover e onda (ripple) a partir do ponto do clique. Seleções (launcher, menu de energia, abas) são um destaque único que desliza com mola até o item escolhido; no seletor de temas, é a fila que gira com mola.
 - **Movimento:** as curvas e durações do Material 3, as mesmas do Caelestia, em `ThemeManager.anim`, usadas pelos componentes `Anim` e `ColorAnim`. As curvas "expressivas" dão o efeito de mola em movimento e tamanho; opacidade e cor usam curvas que não passam do alvo. O tema só ajusta a velocidade geral (`animation.scale`).
 
 ## Escopo
@@ -67,7 +67,7 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Visão geral | Workspaces em miniatura com as janelas no lugar (`ScreencopyView`, capturadas ao abrir, não ao vivo), ir, mover arrastando e fechar |
 | Captura de tela | Seleção própria (área com alças, janela, tela), sem `slurp`; foto pelo `grim` e vídeo pelo `wf-recorder` (VA-API quando há), com espera, cursor e som. Aviso com abrir e mostrar na pasta; tempo de gravação na barra |
 | Tela de bloqueio | Bloqueio próprio, no visual do tema ativo |
-| Seletor de temas | Painel para trocar rapidamente entre os doze temas |
+| Seletor de temas | Carrossel na parte de baixo da tela: as setas aplicam o tema do card central ao vivo, Enter mantém e Esc desfaz |
 | OSD | Indicadores de volume e brilho na tela |
 | Ociosidade | Escurecer, desligar a tela, bloquear e suspender por tempo sem uso (`IdleMonitor`), com tempos na tomada e na bateria. Segura com mídia tocando, tela cheia e "Não apagar a tela". Substitui o `hypridle` |
 | Menu de energia | Bloquear, suspender, reiniciar e desligar |
