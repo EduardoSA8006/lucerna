@@ -56,28 +56,31 @@ CentralPanel {
             }
         }
 
-        // Quatro colunas sempre: sem um recurso, os outros não esticam.
+        // Os botões dividem a linha. O modelo é a quantidade: ligar um botão
+        // refaz a lista, mas não recria os botões (a onda e a cor seguem).
         Row {
             id: toggles
 
-            readonly property real cell: (width - spacing * 3) / 4
+            readonly property int count: ControlsState.toggles.length
+            readonly property real cell: (width - spacing * (count - 1)) / Math.max(1, count)
 
             width: parent.width
             spacing: ThemeManager.spacing.small
 
             Repeater {
-                model: ControlsState.toggles
+                model: toggles.count
 
                 delegate: ToggleButton {
                     id: toggle
 
-                    required property var modelData
+                    required property int index
+                    readonly property var item: ControlsState.toggles[toggle.index] ?? null
 
                     width: toggles.cell
-                    height: toggles.cell
-                    icon: toggle.modelData.icon
-                    checked: toggle.modelData.checked
-                    onClicked: ControlsState.trigger(toggle.modelData.id)
+                    height: 64
+                    icon: toggle.item?.icon ?? ""
+                    checked: toggle.item?.checked ?? false
+                    onClicked: ControlsState.trigger(toggle.item?.id ?? "")
                 }
             }
         }
@@ -87,15 +90,19 @@ CentralPanel {
         id: network
 
         Column {
+            // Sem placa Wi-Fi (desktop com cabo), a linha só informa.
             ListRow {
                 icon: WifiState.icon
                 title: WifiState.summary
-                detail: "Wi-Fi"
+                detail: WifiState.available ? "Wi-Fi" : "Rede"
                 lit: WifiState.connected
+                enabled: WifiState.available
+                opacity: 1
                 onClicked: CentralState.setControlsPage("wifi")
 
                 Icon {
                     anchors.verticalCenter: parent.verticalCenter
+                    visible: WifiState.available
                     icon: Icons.chevronRight
                     size: 20
                     color: ThemeManager.colors.textMuted

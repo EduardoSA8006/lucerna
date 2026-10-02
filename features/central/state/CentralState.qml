@@ -28,7 +28,11 @@ Singleton {
     property string controlsPage: ""
     property string soundPage: ""
 
-    onOpenChanged: reset()
+    // Zera só ao abrir: na saída, o card continua na página até sumir.
+    onOpenChanged: {
+        if (open)
+            reset();
+    }
 
     Connections {
         target: Panels

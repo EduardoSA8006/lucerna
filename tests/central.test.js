@@ -42,11 +42,12 @@ function run(t) {
         t.eq([S.open, S.entry, S.controlsPage], [true, "", ""], "o nome antigo do IPC");
     });
 
-    scenario("central: fechar volta ao estado inicial", () => {
+    scenario("central: a reabertura começa do zero", () => {
         P.openCentral("rede");
+        S.setControlsPage("bluetooth");
         S.setSoundPage("outputs");
         P.toggleCentral("rede");
-        t.eq([S.open, S.entry, S.controlsPage, S.soundPage], [false, "", "", ""]);
+        t.eq([S.open, S.entry, S.controlsPage, S.soundPage], [false, "", "bluetooth", "outputs"], "na saída, as páginas ficam até o painel sumir");
         P.open("central");
         t.eq([S.open, S.entry, S.controlsPage, S.soundPage], [true, "", "", ""], "aberta sem entrada (panels open central)");
     });
@@ -61,8 +62,9 @@ function run(t) {
 
     scenario("central: outro painel fecha a central e esquece a página", () => {
         P.openCentral("rede");
+        S.setControlsPage("bluetooth");
         P.open("launcher");
-        t.eq([S.open, S.controlsPage, S.entry], [false, "", ""]);
+        t.eq([S.open, S.entry], [false, ""]);
         P.openCentral("");
         t.eq(S.controlsPage, "", "reaberta, começa do zero");
     });
