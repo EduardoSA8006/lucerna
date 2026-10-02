@@ -1,7 +1,7 @@
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
-import qs.features.sidebar.state
+import qs.features.central.state
 
 // Bluetooth: liga/desliga, dispositivos pareados e, ao procurar, os disponíveis.
 Column {

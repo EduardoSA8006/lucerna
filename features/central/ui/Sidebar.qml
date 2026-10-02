@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.core.theme
 import qs.core.widgets
-import qs.features.sidebar.state
+import qs.features.central.state
 
 // Central lateral: cartão na altura da tela que entra pela borda (direita ou
 // esquerda, nas configurações). Trilho de seções do lado de fora, conteúdo do

@@ -55,6 +55,91 @@ function run(t) {
         C.sidebarSection = "wifi";
     });
 
+    t.test("panels: faixa da barra que fica clicável", () => {
+        const T = t.ThemeManager;
+        const hide0 = C.barAutoHide;
+        const style0 = C.barStyle;
+        try {
+            C.barAutoHide = false;
+            C.barStyle = "strip";
+            t.eq(P.barStrip, T.barHeight, "em faixa: a altura da barra");
+            C.barStyle = "island";
+            t.eq(P.barStrip, T.barHeight + T.spacing.small, "flutuante: a barra e a folga de cima");
+            C.barAutoHide = true;
+            t.eq(P.barStrip, 0, "escondida sozinha: nenhuma");
+        } finally {
+            C.barAutoHide = hide0;
+            C.barStyle = style0;
+        }
+    });
+
+    t.test("panels: central pela entrada", () => {
+        P.close();
+        try {
+            P.openCentral("rede");
+            t.eq([P.opened, P.centralEntry], [["central"], "rede"]);
+            P.openCentral("som");
+            t.eq([P.opened, P.centralEntry], [["central"], "som"], "outra entrada troca, aberta");
+            P.openCentral("sound");
+            t.eq(P.centralEntry, "", "entrada desconhecida vale como a vazia");
+            P.close();
+            t.eq(P.centralEntry, "", "fechada, esquece a entrada");
+        } finally {
+            P.close();
+        }
+    });
+
+    t.test("panels: alternar a central", () => {
+        try {
+            P.toggleCentral("notificacoes");
+            t.eq([P.isOpen("central"), P.centralEntry], [true, "notificacoes"]);
+            P.toggleCentral("rede");
+            t.eq([P.isOpen("central"), P.centralEntry], [true, "rede"], "outra entrada troca");
+            P.toggleCentral("rede");
+            t.eq([P.isOpen("central"), P.centralEntry], [false, ""], "a mesma entrada fecha");
+            P.toggleCentral("");
+            t.eq([P.isOpen("central"), P.centralEntry], [true, ""], "o atalho abre no estado inicial");
+            P.toggleCentral("som");
+            t.eq(P.centralEntry, "som");
+            P.toggleCentral("");
+            t.eq(P.isOpen("central"), false, "o atalho fecha de qualquer entrada");
+        } finally {
+            P.close();
+        }
+    });
+
+    t.test("panels: a central é modal", () => {
+        try {
+            P.open("dashboard");
+            P.openCentral("som");
+            t.eq(P.opened, ["central"], "fecha o painel superior");
+            P.open("dashboard");
+            t.eq([P.opened, P.centralEntry], [["dashboard"], ""], "o painel superior fecha a central");
+            P.open("settings");
+            P.openCentral("");
+            t.eq(P.opened, ["central"], "fecha as configurações");
+            P.open("launcher");
+            t.eq(P.opened, ["launcher"], "o launcher fecha a central");
+        } finally {
+            P.close();
+        }
+    });
+
+    t.test("panels: aviso de abertura da central", () => {
+        const got = [];
+        const listen = entry => got.push(entry);
+        P.centralOpened.connect(listen);
+        try {
+            P.openCentral("bluetooth");
+            P.openCentral("wifi");
+            P.toggleCentral("bluetooth");
+        } finally {
+            P.centralOpened.disconnect(listen);
+            P.close();
+        }
+        t.eq(got, ["bluetooth", "", "bluetooth"], "uma vez por abertura ou troca, com a entrada que valeu");
+    });
+
     t.test("panels: janelas registradas", () => {
         const w = t.object();
         P.register(w);

@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
-import qs.features.sidebar.state
+import qs.features.central.state
 
 // Trilho de seções, no estilo do "navigation rail" do Material 3: ícone num
 // indicador em pílula e rótulo embaixo. Rola se não couber.

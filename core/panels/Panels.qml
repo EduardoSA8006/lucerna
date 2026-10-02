@@ -10,7 +10,8 @@ import qs.core.theme
 // Ponte entre features: diz quais painéis estão abertos.
 //
 // Três tipos:
-// - modais (launcher, themes, power): ficam sozinhos, abrir um fecha os outros;
+// - modais (launcher, themes, power, central): ficam sozinhos, abrir um fecha
+//   os outros;
 // - acompanhantes (dashboard, sidebar; quais, vem da config): ficam abertos
 //   juntos, sem cobrir a barra;
 // - base (settings): abrir fecha os outros, mas acompanhantes abertos depois
@@ -163,8 +164,46 @@ Singleton {
         return Config.barStyle === "strip" ? ThemeManager.barHeight + gap : ThemeManager.barHeight + gap * 2;
     }
 
+    // Faixa da barra, a partir do topo, que um modal com keepBar (a central)
+    // deixa fora da camada para a barra continuar clicável. Com a barra
+    // escondida sozinha, nenhuma: ela some com um painel aberto.
+    readonly property real barStrip: Config.barAutoHide ? 0 : topInset - ThemeManager.spacing.small
+
     function isOpen(name: string): bool {
         return opened.includes(name);
+    }
+
+    // Central: os quatro painéis (som, energia, controles e notificações). A
+    // entrada diz por onde ela abriu e o que já vem aberto: "rede" (a lista de
+    // redes), "bluetooth" (os dispositivos), "som", "notificacoes" e "energia"
+    // (o estado inicial); "" é o atalho e o IPC sem entrada.
+    readonly property var centralEntries: ["rede", "bluetooth", "som", "notificacoes", "energia"]
+    property string centralEntry: ""
+
+    // A cada abertura ou troca de entrada, com a entrada que valeu.
+    signal centralOpened(string entry)
+
+    // A central fechada não guarda a entrada: a próxima abertura começa do zero.
+    onOpenedChanged: {
+        if (!opened.includes("central"))
+            centralEntry = "";
+    }
+
+    // Abre a central na entrada (uma desconhecida vale como ""); aberta, troca
+    // de entrada.
+    function openCentral(entry: string): void {
+        centralEntry = centralEntries.includes(entry) ? entry : "";
+        open("central");
+        centralOpened(centralEntry);
+    }
+
+    // Fecha se ela já estiver aberta pela mesma entrada, ou se a pedida é a
+    // vazia (o atalho fecha de qualquer entrada); senão abre ou troca.
+    function toggleCentral(entry: string): void {
+        if (isOpen("central") && (entry === centralEntry || !centralEntries.includes(entry)))
+            dismiss("central");
+        else
+            openCentral(entry);
     }
 
     // Central lateral numa seção (wifi, bluetooth, sound, notifications, battery, display).

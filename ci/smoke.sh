@@ -204,6 +204,10 @@ done
 for section in wifi bluetooth sound notifications battery display; do
     step sidebar sidebar open "$section"
 done
+for entry in "" rede bluetooth som notificacoes energia; do
+    step central central open "$entry"
+done
+step central central toggle som
 for topic in appearance wallpaper displays idle nightlight launcher clipboard capture mouse keyboard glass \
     notifications panels sidebar bar dashboard power shortcuts about; do
     step settings settings open "$topic"

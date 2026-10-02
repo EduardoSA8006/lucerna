@@ -4,7 +4,7 @@ import QtQuick
 import qs.core.format
 import qs.core.theme
 import qs.core.widgets
-import qs.features.sidebar.state
+import qs.features.central.state
 
 // Bateria: carga, estado e perfil de energia.
 Column {

@@ -1,7 +1,7 @@
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
-import qs.features.sidebar.state
+import qs.features.central.state
 
 // Wi-Fi: liga/desliga e redes disponíveis. Clicar numa rede protegida e
 // desconhecida abre o campo de senha ali mesmo.

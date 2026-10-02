@@ -13,8 +13,14 @@ import qs.services
 Singleton {
     id: root
 
-    // Com a central lateral aberta os popups esperam: ficariam por cima dela.
-    readonly property bool sidebarOpen: Panels.isOpen("sidebar")
+    // Com a central lateral ou a central aberta os popups esperam: ficariam
+    // por cima delas.
+    readonly property bool sidebarOpen: Panels.isOpen("sidebar") || Panels.isOpen("central")
+
+    // A central mostra a lista: abrir e fechar contam como ter visto os popups.
+    readonly property bool centralOpen: Panels.isOpen("central")
+
+    onCentralOpenChanged: Notifications.clearPopups()
 
     // A lista de notificações fica na central lateral, na seção "notifications".
     readonly property bool centerOpen: Panels.isOpen("sidebar") && Config.sidebarSection === "notifications"

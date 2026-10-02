@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import qs.core.theme
 import qs.core.widgets
-import qs.features.sidebar.state
+import qs.features.central.state
 
 // Avisos: as notificações, não perturbe e limpar tudo.
 Column {

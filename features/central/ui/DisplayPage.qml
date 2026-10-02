@@ -1,7 +1,7 @@
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
-import qs.features.sidebar.state
+import qs.features.central.state
 
 // Tela: brilho, luz noturna e "não apagar".
 Column {
