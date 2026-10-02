@@ -5,7 +5,8 @@ import qs.core.widgets
 
 // Uma linha de nível: o ícone (ou a imagem do app) à esquerda, o slider e a
 // porcentagem à direita. Com `iconClickable`, o ícone é um botão (silenciar).
-// Com `label` (o nome do app), o nome fica pequeno em cima do slider.
+// Com `label` (o nome do app, quando ele não tem ícone), o nome fica pequeno
+// em cima do slider.
 // Controlado: emite `moved` e `iconClicked`; quem usa decide `value`.
 Item {
     id: root

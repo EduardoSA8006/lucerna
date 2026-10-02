@@ -32,6 +32,8 @@ CentralPanel {
             spacing: ThemeManager.spacing.small
 
             Group {
+                visible: SoundState.available || SoundState.hasMic
+
                 Loader {
                     id: card
 
@@ -70,7 +72,8 @@ CentralPanel {
 
                         icon: Icons.sound
                         image: app.stream?.image ?? ""
-                        label: app.stream?.name ?? ""
+                        // O nome só na falta do ícone do app (a reserva).
+                        label: app.stream?.image ? "" : app.stream?.name ?? ""
                         value: app.stream?.node?.audio?.volume ?? 0
                         muted: app.stream?.node?.audio?.muted ?? false
                         iconClickable: true
