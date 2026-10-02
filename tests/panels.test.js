@@ -1,20 +1,23 @@
-// Testes de core/panels/Panels: modais, acompanhantes e a base (settings).
+// Testes de core/panels/Panels: modais, o acompanhante (dashboard), a base
+// (settings) e a central pela entrada.
 function run(t) {
     const P = t.Panels;
     const C = t.Config;
-    C.panelsTogether = ["dashboard", "sidebar"];
+    const together0 = C.panelsTogether;
+    C.panelsTogether = ["dashboard"];
 
     t.test("panels: tipos de painel", () => {
-        t.check(P.isCompanion("dashboard") && P.isCompanion("sidebar"), "dashboard e sidebar acompanham");
-        t.check(P.isModal("launcher") && P.isModal("themes"), "launcher e themes são modais");
+        t.check(P.isCompanion("dashboard"), "o dashboard acompanha");
+        t.check(P.isModal("launcher") && P.isModal("themes") && P.isModal("central"), "launcher, themes e central são modais");
         t.check(!P.isModal("settings") && !P.isCompanion("settings"), "settings é a base");
+        C.panelsTogether = ["dashboard", "sidebar"];
+        t.check(!P.isCompanion("sidebar"), "um sidebar velho no config não acompanha");
+        C.panelsTogether = ["dashboard"];
     });
 
-    t.test("panels: modal fica sozinho, acompanhantes juntos", () => {
+    t.test("panels: modal fica sozinho", () => {
         P.close();
         P.open("dashboard");
-        P.open("sidebar");
-        t.eq(P.opened, ["dashboard", "sidebar"]);
         P.open("launcher");
         t.eq(P.opened, ["launcher"], "o modal fecha os outros");
         P.open("dashboard");
@@ -38,21 +41,10 @@ function run(t) {
         t.eq(P.opened, ["launcher"]);
         P.toggle("launcher");
         t.eq(P.opened, []);
-        P.open("sidebar");
+        P.open("central");
         P.close();
         t.eq(P.opened, []);
         t.check(!P.anyOpen, "nada aberto");
-    });
-
-    t.test("panels: central lateral numa seção", () => {
-        P.openSidebar("sound");
-        t.eq([C.sidebarSection, P.isOpen("sidebar")], ["sound", true]);
-        P.toggleSidebar("wifi");
-        t.eq([C.sidebarSection, P.isOpen("sidebar")], ["wifi", true], "outra seção troca");
-        P.toggleSidebar("wifi");
-        t.eq(P.isOpen("sidebar"), false, "a mesma seção fecha");
-        P.disturb();
-        C.sidebarSection = "wifi";
     });
 
     t.test("panels: faixa da barra que fica clicável", () => {
@@ -147,4 +139,7 @@ function run(t) {
         P.unregister(w);
         t.check(!P.surfaces.includes(w), "fora");
     });
+
+    P.close();
+    C.panelsTogether = together0;
 }

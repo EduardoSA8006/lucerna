@@ -29,14 +29,8 @@ OverlayPanel {
     Rectangle {
         id: drawer
 
-        // Centralizado no espaço que a central lateral deixa livre.
-        readonly property real gap: ThemeManager.spacing.small
-        readonly property real minX: DashboardState.leftInset + gap
-        readonly property real maxRight: parent.width - DashboardState.rightInset - gap
-
-        width: Math.min(920, maxRight - minX)
-        x: Math.max(minX, Math.min((parent.width - width) / 2, maxRight - width))
-        Behavior on x { Anim { type: Anim.Spatial } }
+        width: Math.min(920, parent.width - ThemeManager.spacing.small * 2)
+        x: (parent.width - width) / 2
         height: content.height + ThemeManager.spacing.large * 2
         y: DashboardState.topOffset - (1 - panel.progress) * (height + DashboardState.topOffset + 16)
         color: ThemeManager.glass(ThemeManager.colors.base, 0)

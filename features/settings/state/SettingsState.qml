@@ -25,12 +25,12 @@ Singleton {
             openedOn = Hypr.focusedScreen;
     }
 
-    // Tópicos da barra lateral. `soon` marca os que ainda não têm opções.
+    // Tópicos da lista à esquerda. `soon` marca os que ainda não têm opções.
     readonly property var topics: [
         { id: "appearance", icon: Icons.palette, label: "Aparência", description: "Tema e animações" },
         { id: "wallpaper", icon: Icons.wallpaper, label: "Papel de parede", description: "Por tema, animado ou seu" },
         { id: "displays", icon: Icons.monitor, label: "Monitores", description: "Disposição, resolução e escala" },
-        { id: "idle", icon: "timer", label: "Tela e ociosidade", description: "Escurecer, desligar e bloquear" },
+        { id: "idle", icon: "timer", label: "Tela e ociosidade", description: "Brilho, escurecer, desligar e bloquear" },
         { id: "nightlight", icon: "nightlight", label: "Luz noturna", description: "Cores quentes à noite" },
         { id: "mouse", icon: Icons.mouse, label: "Mouse", description: "Ponteiro, rolagem e botões" },
         { id: "keyboard", icon: Icons.keyboard, label: "Teclado", description: "Layouts, teclas e atalhos" },
@@ -38,8 +38,7 @@ Singleton {
         { id: "capture", icon: "screenshot_region", label: "Captura de tela", description: "Fotos, gravações e pastas" },
         { id: "glass", icon: Icons.blur, label: "Transparência e desfoque", description: "O vidro dos painéis" },
         { id: "notifications", icon: Icons.bell, label: "Notificações", description: "Popups e não perturbe" },
-        { id: "panels", icon: Icons.panels, label: "Painéis", description: "Abrir juntos e sem sobrepor" },
-        { id: "sidebar", icon: Icons.sidebar, label: "Central lateral", description: "Lado da tela" },
+        { id: "panels", icon: Icons.panels, label: "Painéis", description: "O painel superior junto das configurações" },
         { id: "launcher", icon: Icons.apps, label: "Launcher", description: "Estilo, busca e favoritos" },
         { id: "bar", icon: Icons.toolbar, label: "Barra", description: "Quando aparece e o que mostra" },
         { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Abas, cartões, clima e privacidade" },
@@ -365,32 +364,15 @@ Singleton {
         Config.barShowDate = on;
     }
 
-    // Painéis: quais abrem juntos e se desviam uns dos outros.
+    // Painéis: se o painel superior abre junto das configurações.
     readonly property var companionOptions: [
-        { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Calendário, mídia, desempenho e clima" },
-        { id: "sidebar", icon: Icons.sidebar, label: "Central lateral", description: "Wi-Fi, Bluetooth, som, avisos, bateria e tela" }
+        { id: "dashboard", icon: Icons.dashboard, label: "Painel superior", description: "Calendário, mídia, desempenho e clima" }
     ]
     readonly property var panelsTogether: Config.panelsTogether ?? []
-    readonly property bool avoidOverlap: Config.panelsAvoidOverlap
 
     function setTogether(id: string, on: bool): void {
         const rest = panelsTogether.filter(n => n !== id);
         Config.panelsTogether = on ? rest.concat([id]) : rest;
-    }
-
-    function setAvoidOverlap(on: bool): void {
-        Config.panelsAvoidOverlap = on;
-    }
-
-    // Central lateral
-    readonly property string sidebarSide: Config.sidebarSide
-
-    function setSidebarSide(side: string): void {
-        Config.sidebarSide = side;
-    }
-
-    function previewSidebar(): void {
-        Panels.openSidebar(Config.sidebarSection);
     }
 
     // Notificações

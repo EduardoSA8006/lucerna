@@ -67,7 +67,7 @@ Column {
             wide: true
             icon: "schedule"
             title: "Quando ligar"
-            description: "Entra e sai aos poucos, em 30 minutos. Ligar ou desligar pela central lateral vale até a próxima virada"
+            description: "Entra e sai aos poucos, em 30 minutos. Ligar ou desligar pelos botões da central vale até a próxima virada"
 
             SegmentedControl {
                 width: parent.width

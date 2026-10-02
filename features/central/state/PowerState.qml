@@ -2,15 +2,12 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import qs.core.config
 import qs.core.format
-import qs.core.nightlight
 import qs.core.widgets
 import qs.services
 
-// View model da energia da central (a bateria, o perfil de energia e a
-// bateria dos dispositivos Bluetooth) e, até a barra lateral sair, da seção
-// Tela dela.
+// View model da energia da central: a bateria, o perfil de energia e a
+// bateria dos dispositivos Bluetooth conectados.
 Singleton {
     id: root
 
@@ -44,37 +41,4 @@ Singleton {
 
     // O painel aparece com algo a mostrar.
     readonly property bool any: hasBattery || profilesAvailable || devices.length > 0
-
-    // Tela: uma entrada por tela com brilho ajustável (a integrada e os
-    // monitores externos por DDC/CI).
-    readonly property bool hasBrightness: Brightness.anyAvailable
-    readonly property var brightnessScreens: Brightness.screens
-    readonly property real brightness: Brightness.shownValue
-
-    function setBrightness(id: string, v: real): void {
-        Brightness.setScreen(id, v);
-    }
-
-    // "Não apagar a tela" (a ociosidade fica na feature idle; aqui só o botão).
-    readonly property bool keepAwake: Config.idleInhibit
-    readonly property bool idleEnabled: Config.idleEnabled
-
-    function setKeepAwake(on: bool): void {
-        Config.idleInhibit = on;
-    }
-
-    // Luz noturna: ligar ou desligar agora (até a próxima virada) e a temperatura.
-    readonly property bool nightLightAvailable: NightLight.available
-    readonly property bool nightLightOn: NightSchedule.on
-    readonly property string nightLightStatus: NightSchedule.status
-    readonly property int nightLightTemp: Config.nightLightTemp
-
-    function setNightLight(on: bool): void {
-        NightSchedule.setOn(on);
-    }
-
-    function setNightLightTemp(kelvin: int): void {
-        Config.nightLightTemp = kelvin;
-        NightSchedule.preview();
-    }
 }

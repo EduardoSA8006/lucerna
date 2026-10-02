@@ -7,7 +7,7 @@ import Quickshell.Services.Notifications
 import Quickshell.Widgets
 import qs.core.theme
 
-// Cartão de uma notificação, usado nos popups e na central lateral. Em modo popup,
+// Cartão de uma notificação, usado nos popups e na central. Em modo popup,
 // uma linha de acento mostra o tempo restante (pausa com o mouse em cima).
 Surface {
     id: card

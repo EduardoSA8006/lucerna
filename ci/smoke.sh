@@ -19,11 +19,10 @@
 # Só encerra os próprios processos (o grupo do sway e o do shell, por PID),
 # nunca por nome: rodada fora do container, não derruba a sessão do usuário.
 #
-# O que a fumaça não confere por IPC: a aba do painel superior, a seção do
-# painel lateral e o tópico das configurações que ficaram abertos. Os IPCs
-# dashboard, sidebar e settings só têm open/toggle, nenhum devolve o estado
-# atual; uma aba, seção ou tópico que não abre só aparece como erro no log (o
-# logcheck) e na captura.
+# O que a fumaça não confere por IPC: a aba do painel superior, a página da
+# central e o tópico das configurações que ficaram abertos. Os IPCs dashboard,
+# central e settings não devolvem o estado atual; uma aba, página ou tópico
+# que não abre só aparece como erro no log (o logcheck) e na captura.
 #
 # Saída em $CI_OUT: shell.log, sway.log, kill.log, unit-smoke.log, shots/NN-<passo>.png,
 # coverage.md e summary.md (tabela passo, esperado, veio).
@@ -201,15 +200,12 @@ step launcher launcher open files ""
 for tab in overview media performance weather; do
     step dashboard dashboard open "$tab"
 done
-for section in notifications display; do
-    step sidebar sidebar open "$section"
-done
 for entry in "" rede bluetooth som notificacoes energia; do
     step central central open "$entry"
 done
 step central central toggle som
 for topic in appearance wallpaper displays idle nightlight launcher clipboard capture mouse keyboard glass \
-    notifications panels sidebar bar dashboard power shortcuts about; do
+    notifications panels bar dashboard power shortcuts about; do
     step settings settings open "$topic"
 done
 step themes panels open themes

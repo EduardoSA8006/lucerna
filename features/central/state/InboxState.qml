@@ -2,24 +2,18 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import qs.core.config
 import qs.services
 
-// View model da seção de notificações ("Avisos").
+// View model do painel de notificações da central.
 Singleton {
     id: root
 
     readonly property var list: Notifications.list
-    readonly property bool doNotDisturb: Config.doNotDisturb
 
     SystemClock {
         id: clock
 
         precision: SystemClock.Minutes
-    }
-
-    function setDoNotDisturb(on: bool): void {
-        Config.doNotDisturb = on;
     }
 
     function clearAll(): void {

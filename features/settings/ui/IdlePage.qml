@@ -6,12 +6,45 @@ import qs.core.theme
 import qs.core.widgets
 import qs.features.settings.state
 
-// Tela e ociosidade: depois de quanto tempo parado escurecer, desligar a tela,
-// bloquear e suspender (na tomada e na bateria), e quando não contar.
+// Tela e ociosidade: o brilho de cada tela e, depois de quanto tempo parado,
+// escurecer, desligar a tela, bloquear e suspender (na tomada e na bateria), e
+// quando não contar.
 Column {
     spacing: ThemeManager.spacing.large
 
     Component.onCompleted: IdleSettings.check()
+
+    SettingSection {
+        visible: IdleSettings.brightnessScreens.length > 0
+        title: "Brilho"
+
+        // Uma linha por índice: o Brightness.screens é refeito a cada
+        // mudança de valor, e com a lista como modelo a linha seria recriada
+        // no meio do arrasto.
+        Repeater {
+            model: IdleSettings.brightnessScreens.length
+
+            delegate: SettingRow {
+                id: screenRow
+
+                required property int index
+                readonly property var screen: IdleSettings.brightnessScreens[screenRow.index] ?? ({})
+
+                wide: true
+                icon: screenRow.screen.id === "backlight" ? Icons.brightnessMedium : Icons.monitor
+                title: screenRow.screen.label ?? ""
+                description: screenRow.screen.output ? `${screenRow.screen.output} · pelo DDC/CI` : ""
+
+                Slider {
+                    width: parent.width
+                    from: 0.01
+                    to: 1
+                    value: screenRow.screen.value ?? 0
+                    onMoved: v => IdleSettings.setBrightness(screenRow.screen.id, v)
+                }
+            }
+        }
+    }
 
     SettingSection {
         title: "Ociosidade"
@@ -41,7 +74,7 @@ Column {
         SettingRow {
             icon: "coffee"
             title: "Não apagar a tela"
-            description: "Segura tudo até ser desligado, por exemplo numa apresentação. Também na central lateral, em Tela"
+            description: "Segura tudo até ser desligado, por exemplo numa apresentação. Também nos botões da central"
             dimmed: !Config.idleEnabled
 
             Switch {

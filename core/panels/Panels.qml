@@ -12,19 +12,17 @@ import qs.core.theme
 // Três tipos:
 // - modais (launcher, themes, power, central): ficam sozinhos, abrir um fecha
 //   os outros;
-// - acompanhantes (dashboard, sidebar; quais, vem da config): ficam abertos
-//   juntos, sem cobrir a barra;
-// - base (settings): abrir fecha os outros, mas acompanhantes abertos depois
-//   ficam por cima dela.
+// - acompanhante (o dashboard, se a config deixa): fica aberto junto da base,
+//   sem cobrir a barra;
+// - base (settings): abrir fecha os outros, mas o acompanhante aberto depois
+//   fica por cima dela.
 // Um clique fora de todos (numa janela) fecha os não modais; Esc fecha só o
 // que está com o teclado.
 Singleton {
     id: root
 
-    readonly property var companions: (Config.panelsTogether ?? []).filter(n => ["dashboard", "sidebar"].includes(n))
+    readonly property var companions: (Config.panelsTogether ?? []).filter(n => n === "dashboard")
     readonly property var bases: ["settings"]
-    // Acompanhantes desviam uns dos outros (ver leftInset e rightInset).
-    readonly property bool avoidOverlap: Config.panelsAvoidOverlap
 
     // Nomes abertos, na ordem em que abriram.
     property var opened: []
@@ -32,11 +30,6 @@ Singleton {
     readonly property string current: opened.length ? opened[opened.length - 1] : ""
     readonly property bool anyOpen: opened.length > 0
     readonly property bool modalOpen: opened.some(n => isModal(n))
-
-    // Espaço ocupado nas bordas por um acompanhante (a central lateral), para
-    // os outros desviarem.
-    property real leftInset: 0
-    property real rightInset: 0
 
     // Um painel que deixou de ser acompanhante (mudança na config) não fica
     // aberto junto: sobra só ele.
@@ -204,20 +197,6 @@ Singleton {
             dismiss("central");
         else
             openCentral(entry);
-    }
-
-    // Central lateral numa seção (wifi, bluetooth, sound, notifications, battery, display).
-    function openSidebar(section: string): void {
-        Config.sidebarSection = section;
-        open("sidebar");
-    }
-
-    // Fecha se já estiver aberta nessa seção; senão abre (ou troca) para ela.
-    function toggleSidebar(section: string): void {
-        if (isOpen("sidebar") && Config.sidebarSection === section)
-            dismiss("sidebar");
-        else
-            openSidebar(section);
     }
 
     IpcHandler {

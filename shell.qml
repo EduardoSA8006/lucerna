@@ -40,7 +40,6 @@ ShellRoot {
     Settings {}
     MonitorConfirm {}
     MonitorIdentify {}
-    Sidebar {}
     Lockscreen {}
     ThemeSwitcher {}
 }
