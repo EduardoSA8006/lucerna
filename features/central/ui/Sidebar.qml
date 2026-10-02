@@ -77,7 +77,6 @@ OverlayPanel {
 
                         width: scroller.width
                         sourceComponent: ({
-                            sound: soundPage,
                             notifications: inboxPage,
                             battery: batteryPage,
                             display: displayPage
@@ -117,12 +116,6 @@ OverlayPanel {
                 }
             }
         }
-    }
-
-    Component {
-        id: soundPage
-
-        SoundPage {}
     }
 
     Component {

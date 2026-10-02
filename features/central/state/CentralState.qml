@@ -10,8 +10,8 @@ import qs.services
 // esquerda, controles e notificações à direita) que abrem e fecham juntos. A
 // entrada (Panels.centralEntry) escolhe o que já vem aberto: "rede" abre o
 // card de controles na lista de redes (sem placa Wi-Fi, no estado inicial);
-// "bluetooth", nos dispositivos; as outras, o estado inicial. Abrir e fechar
-// voltam tudo ao estado inicial.
+// "bluetooth", nos dispositivos; as outras, o estado inicial. A abertura volta
+// tudo ao estado inicial (o fechamento não: o card fica na página até sumir).
 Singleton {
     id: root
 

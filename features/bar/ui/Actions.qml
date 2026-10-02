@@ -74,14 +74,14 @@ Row {
         icon: BarState.volumeIcon
         visible: BarState.audioAvailable
         iconSize: 18
-        active: BarState.sectionOpen("sound")
+        active: BarState.entryOpen("som")
         foreground: active ? ThemeManager.colors.accentText : BarState.muted ? ThemeManager.colors.textFaint : ThemeManager.colors.textMuted
         // Clique abre o Som; botão do meio silencia; a roda ajusta o volume.
         onClicked: event => {
             if (event.button === Qt.MiddleButton)
                 BarState.toggleMute();
             else
-                BarState.toggleSection("sound");
+                BarState.toggleEntry("som");
         }
         onWheel: event => BarState.scrollVolume(event.angleDelta.y / 120)
     }

@@ -5,6 +5,7 @@ import qs.core.widgets
 
 // Uma linha de nível: o ícone (ou a imagem do app) à esquerda, o slider e a
 // porcentagem à direita. Com `iconClickable`, o ícone é um botão (silenciar).
+// Com `label` (o nome do app), o nome fica pequeno em cima do slider.
 // Controlado: emite `moved` e `iconClicked`; quem usa decide `value`.
 Item {
     id: root
@@ -12,6 +13,7 @@ Item {
     property string icon
     // Imagem no lugar do ícone (a de um aplicativo); "" usa `icon`.
     property string image
+    property string label
     property real value: 0
     property real from: 0
     property bool muted: false
@@ -21,7 +23,7 @@ Item {
     signal iconClicked
 
     width: parent?.width ?? 0
-    height: 44
+    height: label ? 52 : 44
 
     Clickable {
         id: tile
@@ -66,12 +68,25 @@ Item {
         }
     }
 
+    Txt {
+        anchors.left: slider.left
+        anchors.right: slider.right
+        y: ThemeManager.spacing.tiny
+        visible: root.label !== ""
+        text: root.label
+        muted: true
+        font.pixelSize: ThemeManager.font.small
+    }
+
     Slider {
+        id: slider
+
         anchors.left: tile.right
         anchors.leftMargin: ThemeManager.spacing.small
         anchors.right: percent.left
         anchors.rightMargin: ThemeManager.spacing.small
         anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: root.label ? 8 : 0
         from: root.from
         value: root.value
         opacity: root.muted ? 0.5 : 1
@@ -83,7 +98,7 @@ Item {
 
         anchors.right: parent.right
         anchors.rightMargin: ThemeManager.spacing.small
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenter: slider.verticalCenter
         width: 40
         horizontalAlignment: Text.AlignRight
         text: Format.percent(root.value)

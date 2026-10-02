@@ -22,7 +22,6 @@ Singleton {
     readonly property real margin: ThemeManager.spacing.small
 
     readonly property var sections: [
-        { id: "sound", icon: Icons.sound, label: "Som" },
         { id: "notifications", icon: Icons.bell, label: "Avisos" },
         { id: "battery", icon: Icons.battery[7], label: "Bateria" },
         { id: "display", icon: Icons.brightnessMedium, label: "Tela" }
@@ -59,7 +58,7 @@ Singleton {
     IpcHandler {
         target: "sidebar"
 
-        // Abre numa seção: wifi, bluetooth, sound, notifications, battery, display.
+        // Abre numa seção: notifications, battery, display.
         function open(section: string): void {
             Panels.openSidebar(section);
         }

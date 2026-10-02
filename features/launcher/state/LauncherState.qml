@@ -145,7 +145,7 @@ Singleton {
         { name: "Notificações", description: "Ação do Lucerna", glyph: Icons.bell, keywords: "central avisos", run: () => Panels.openSidebar("notifications") },
         { name: "Wi-Fi", description: "Ação do Lucerna", glyph: Icons.wifiOn, keywords: "rede internet wifi conexão", run: () => Panels.openCentral("rede") },
         { name: "Bluetooth", description: "Ação do Lucerna", glyph: Icons.bluetooth, keywords: "fone dispositivos parear", run: () => Panels.openCentral("bluetooth") },
-        { name: "Som", description: "Ação do Lucerna", glyph: Icons.sound, keywords: "audio volume microfone saída", run: () => Panels.openSidebar("sound") },
+        { name: "Som", description: "Ação do Lucerna", glyph: Icons.sound, keywords: "audio volume microfone saída", run: () => Panels.openCentral("som") },
         { name: Config.doNotDisturb ? "Desativar não perturbe" : "Ativar não perturbe", description: "Ação do Lucerna", glyph: Icons.bellSleep, keywords: "dnd silêncio silenciar", run: () => Config.doNotDisturb = !Config.doNotDisturb },
         { name: "Menu de energia", description: "Ação do Lucerna", glyph: Icons.power, keywords: "desligar reiniciar suspender sair logout power", run: () => Panels.open("power") }
     ].map(a => Object.assign({ kind: "action" }, a))
