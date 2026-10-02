@@ -10,9 +10,20 @@ function run(t) {
         t.check(P.isCompanion("dashboard"), "o dashboard acompanha");
         t.check(P.isModal("launcher") && P.isModal("themes") && P.isModal("central"), "launcher, themes e central são modais");
         t.check(!P.isModal("settings") && !P.isCompanion("settings"), "settings é a base");
-        C.panelsTogether = ["dashboard", "sidebar"];
-        t.check(!P.isCompanion("sidebar"), "um sidebar velho no config não acompanha");
-        C.panelsTogether = ["dashboard"];
+        try {
+            C.panelsTogether = ["dashboard", "sidebar"];
+            t.check(!P.isCompanion("sidebar"), "um sidebar velho no config não acompanha");
+        } finally {
+            C.panelsTogether = ["dashboard"];
+        }
+    });
+
+    t.test("panels: só os nomes de painel valem no IPC", () => {
+        for (const n of ["launcher", "dashboard", "central", "settings", "themes", "power", "clipboard", "capture", "overview"])
+            t.check(P.isPanel(n), n + " é painel");
+        t.check(!P.isPanel("sidebar"), "o sidebar antigo não é painel");
+        t.check(!P.isPanel(""), "nome vazio não é painel");
+        t.check(!P.isPanel("Central"), "o nome tem de ser exato");
     });
 
     t.test("panels: modal fica sozinho", () => {

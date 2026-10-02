@@ -53,16 +53,16 @@ O Lucerna cresce por módulos, começando pelo essencial.
 
 | Componente | Função |
 | --- | --- |
-| Barra | Quatro estilos, escolhidos nas configurações: **faixa** (padrão, de ponta a ponta), **ilha** (só a hora; cresce para os lados com o mouse em cima), **pílula** (flutuante, tudo à mostra) e **três ilhas** (workspaces, hora e ações nos cantos). Workspaces, hora e data (abre o painel superior), rede, volume, bateria e avisos. Fixa por padrão, reservando o espaço; com auto-ocultar, aparece ao encostar o mouse no topo, ao trocar de workspace e na área de trabalho vazia (por monitor) |
-| Painel superior | Desce do topo: visão geral (usuário com atalhos para configurações e energia, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima. Abas reordenáveis; pode ficar aberto junto com a central lateral |
-| Central lateral | Cartão na altura da tela, na borda direita ou esquerda (configurável): trilho de seções (Wi-Fi, Bluetooth, som, avisos, bateria, tela) e o conteúdo de cada uma, como redes disponíveis com senha, dispositivos para parear, saída e entrada de áudio e perfil de energia |
+| Barra | Quatro estilos, escolhidos nas configurações: **faixa** (padrão, de ponta a ponta), **ilha** (só a hora; cresce para os lados com o mouse em cima), **pílula** (flutuante, tudo à mostra) e **três ilhas** (workspaces, hora e ações nos cantos). Workspaces, hora e data (abre o painel superior), rede, volume, bateria e notificações (abrem a central). Fixa por padrão, reservando o espaço; com auto-ocultar, aparece ao encostar o mouse no topo, ao trocar de workspace e na área de trabalho vazia (por monitor) |
+| Painel superior | Desce do topo: visão geral (usuário com atalhos para configurações e energia, relógio, calendário, recursos, mídia), mídia (capa com pulso do áudio, controles, letra sincronizada), desempenho (CPU, GPU, memória, disco, rede) e clima. Abas reordenáveis; pode ficar aberto por cima das configurações |
+| Central | Quatro painéis flutuantes que abrem juntos sobre a área de trabalho, sem escurecer: som (saída e entrada, com troca de dispositivo, e o volume de cada app com áudio aberto), energia (bateria, perfil de energia e a bateria dos dispositivos Bluetooth), controles (Wi-Fi e Bluetooth num card que vira a lista de redes ou de dispositivos, o brilho da tela em foco e os botões de luz noturna, não perturbe, não apagar a tela e configurações) e notificações. O ícone da barra escolhe o que já vem aberto |
 | Launcher | Três estilos: **compacto** (padrão; busca e lista curta de apps e ações), **completo** (categorias de aplicativos, arquivos por tipo e web, favoritos, grade e detalhes do app: ações do `.desktop`, descrição, versão e desenvolvedor) e **tela cheia** (gaveta de apps por categoria). Apps ordenados por uso |
-| Configurações | Tópicos à esquerda e opções à direita: aparência, papel de parede, monitores, tela e ociosidade, luz noturna, mouse, teclado, área de transferência, captura de tela, transparência e desfoque, notificações, painéis, central lateral, launcher, barra, painel superior, energia e bateria, atalhos e sobre |
+| Configurações | Tópicos à esquerda e opções à direita: aparência, papel de parede, monitores, tela e ociosidade, luz noturna, mouse, teclado, área de transferência, captura de tela, transparência e desfoque, notificações, painéis, launcher, barra, painel superior, energia e bateria, atalhos e sobre |
 | Monitores | Disposição arrastando num canvas (encaixe nas bordas, sempre num bloco só) e, por monitor, resolução, taxa, escala, rotação, espelhamento, VRR e 10 bits. Aplicar pede confirmação em todas as telas e volta sozinho em 15 s. Um arranjo salvo por conjunto de monitores, reaplicado ao conectar. Opcionalmente gravado em `~/.config/hypr/lucerna-monitors.lua`, que o `hyprland.lua` inclui, para valer desde o login |
 | Mouse e teclado | Velocidade, aceleração, rolagem, touchpad e velocidade por mouse; layouts, repetição e opções do xkb. Botões extras do mouse e teclas extras mapeados para ações (painéis, mídia, janelas, enviar atalho, rodar comando) e teclas remapeadas de verdade (keymap gerado e validado). Só o que muda vai por cima do `hyprland.lua` |
-| Luz noturna | Temperatura de cor por horário: do pôr ao nascer do sol (calculado localmente, pela cidade do clima), fixo ou sempre, com rampa de 30 min e "até a próxima virada" pela central lateral. Aplicada pelo `hyprsunset` (CTM do Hyprland) |
+| Luz noturna | Temperatura de cor por horário: do pôr ao nascer do sol (calculado localmente, pela cidade do clima), fixo ou sempre, com rampa de 30 min e "até a próxima virada" pelos botões da central. Aplicada pelo `hyprsunset` (CTM do Hyprland) |
 | Papel de parede | Por tema: o próprio (imagem e efeito animado em shader), só a imagem, qualquer um dos dez efeitos (nas cores do tema), uma imagem ou um vídeo/GIF do usuário. Vídeos convertidos uma vez por tela para tocar pela GPU. 30 ou 60 fps, no ritmo da tela; pausa com tela cheia, bloqueio e tela apagada |
-| Notificações | Servidor de notificações próprio; popups e a lista na central lateral |
+| Notificações | Servidor de notificações próprio; popups e a lista na central |
 | Área de transferência | Histórico próprio (texto e imagem, pelo `wl-paste --watch`), num painel à parte: busca, filtro, fixar, apagar, colar direto; persistente e limitado. Ignora senhas marcadas pelos gerenciadores |
 | Visão geral | Workspaces em miniatura com as janelas no lugar (`ScreencopyView`, capturadas ao abrir, não ao vivo), ir, mover arrastando e fechar |
 | Captura de tela | Seleção própria (área com alças, janela, tela), sem `slurp`; foto pelo `grim` e vídeo pelo `wf-recorder` (VA-API quando há), com espera, cursor e som. Aviso com abrir e mostrar na pasta; tempo de gravação na barra |
@@ -89,7 +89,7 @@ A arquitetura é feature-first com separação por camadas. Cada feature vive em
 Regras:
 
 - As dependências só apontam para baixo, e uma feature nunca importa outra.
-- A comunicação entre features passa por `services/` ou `core/`. Exemplo: o botão do launcher na barra chama `Panels.toggle("launcher")` em `core/panels/`, e o launcher reage a `Panels.isOpen("launcher")`. Os modais (launcher, temas, energia) abrem sozinhos; o painel superior e a central lateral podem ficar abertos juntos, desviando um do outro (configurável em Configurações → Painéis); abrir as configurações fecha os dois, mas abertos depois eles ficam por cima dela.
+- A comunicação entre features passa por `services/` ou `core/`. Exemplo: o botão do launcher na barra chama `Panels.toggle("launcher")` em `core/panels/`, e o launcher reage a `Panels.isOpen("launcher")`. Os modais (launcher, temas, energia e a central) abrem sozinhos; o painel superior pode ficar aberto por cima das configurações (configurável em Configurações → Painéis).
 - Toda conversa com o Hyprland fica em `services/Hypr.qml`.
 - Os imports usam o sistema de módulos do Quickshell, em que cada pasta vira um módulo (`import qs.core.theme`, `import qs.features.bar.state`). Por isso os nomes de pasta são identificadores QML válidos: `themeSwitcher`, e não `theme-switcher`.
 
@@ -107,7 +107,7 @@ lucerna/
 │   ├── launcher/SearchEngines.qml # buscadores da web do launcher
 │   ├── format/Format.qml       # números, tamanhos e tempos em pt-BR
 │   ├── time/Sun.qml            # nascer e pôr do sol, sem rede
-│   ├── nightlight/NightSchedule.qml # horário da luz noturna (central lateral, configurações e a feature)
+│   ├── nightlight/NightSchedule.qml # horário da luz noturna (central, configurações e a feature)
 │   └── config/Config.qml       # preferências persistidas
 ├── services/
 │   ├── Hypr.qml                # IPC do Hyprland (dialeto Lua)
@@ -148,7 +148,7 @@ lucerna/
 │   ├── settings/
 │   ├── launcher/
 │   ├── notifications/
-│   ├── sidebar/
+│   ├── central/
 │   ├── lockscreen/
 │   ├── wallpaper/
 │   ├── themeSwitcher/
@@ -176,8 +176,8 @@ lucerna/
 Scripts e outros programas falam com o shell por `IpcHandler`. Os atalhos do shell não precisam: ele mesmo os registra no Hyprland (`hl.bind`), a partir de Configurações → Atalhos, e tira do `hyprland.lua` o que estiver nas mesmas teclas.
 
 ```sh
-qs -c lucerna ipc call panels toggle launcher   # launcher, dashboard, settings, sidebar, themes, power (dismiss fecha só um)
-qs -c lucerna ipc call sidebar open wifi        # bluetooth, sound, notifications, battery, display
+qs -c lucerna ipc call panels toggle launcher   # launcher, dashboard, settings, central, themes, power (dismiss fecha só um)
+qs -c lucerna ipc call central open rede        # bluetooth, som, notificacoes, energia ("" = o estado inicial); toggle, close
 qs -c lucerna ipc call dashboard open weather   # overview, media, performance, weather
 qs -c lucerna ipc call session lock
 qs -c lucerna ipc call brightness up            # up, down, set <0-100>

@@ -19,6 +19,22 @@
 # Um `hyprctl reload` ou fechar a janela derruba a saída do Hyprland aninhado
 # (ele cai no monitor FALLBACK e as capturas saem vazias): dev/test.sh up de novo.
 #
+# Teclas com modificador pelo wtype: o Hyprland aninhado resolve os binds pelo
+# keycode do keymap real, e o wtype numera as teclas do keymap dele na ordem em
+# que os caracteres aparecem, a partir do 1, que é o Esc (`wtype -M alt c`
+# chega como Alt+Esc, o menu de energia). Mande antes caracteres de enchimento
+# distintos (só ASCII: o locale do container não aceita acento no wtype), tantos
+# quanto o código evdev da tecla menos 1 (c = 46, KEY_C: 45; n = 49, KEY_N: 48):
+#   pad=$(printf '%s' {A..Z} {a..z} | tr -d c | cut -c1-45)
+#   dev/test.sh run "wtype '$pad' -M alt c -m alt"; sleep 1; dev/test.sh ipc panels get
+# O enchimento é digitado na janela em foco: faça isso num workspace vazio.
+#
+# Binds do shell: com a config em Lua, o `hyprctl binds -j` mostra
+# `dispatcher: __lua` e o id da função, não o `action run ...`; não dá para
+# achar a ação por grep. Confira a tecla (`key`, `modmask`) no JSON e aperte-a
+# com o wtype como acima, olhando o `panels get`:
+#   dev/test.sh run 'hyprctl binds -j' | python3 -c 'import json,sys; [print(b["modmask"], b["key"]) for b in json.load(sys.stdin)]'
+#
 # Roteiro de referência ("antes-*", a linha de base capturada antes das
 # correções das Tarefas 21 a 28; regenerar a partir do repositório, com o
 # container de pé):
@@ -26,9 +42,9 @@
 #   dev/test.sh see $p panels open launcher
 #   dev/test.sh see $p launcher open files ""
 #   for tab in overview media performance weather; do dev/test.sh see $p dashboard open "$tab"; done
-#   for s in wifi bluetooth sound notifications battery display; do dev/test.sh see $p sidebar open "$s"; done
+#   for e in "" rede bluetooth som notificacoes energia; do dev/test.sh see $p central open "$e"; done
 #   for t in appearance wallpaper displays idle nightlight launcher clipboard capture mouse keyboard glass \
-#       notifications panels sidebar bar dashboard power shortcuts about; do dev/test.sh see $p settings open "$t"; done
+#       notifications panels bar dashboard power shortcuts about; do dev/test.sh see $p settings open "$t"; done
 #   dev/test.sh see $p panels open themes
 #   dev/test.sh see $p panels open power
 #   dev/test.sh see $p clipboard open
@@ -47,7 +63,7 @@
 #   Extras para as Tarefas 22, 24, 26 e 27 (telas que essas conferências
 #   comparam e que o roteiro acima não cobre):
 #   dev/test.sh run 'notify-send "Teste do Lucerna" "Corpo da notificação, comprido o bastante para quebrar em duas linhas"'
-#   dev/test.sh see $p-caixa sidebar open notifications
+#   dev/test.sh see $p-caixa central open notificacoes
 #   # `None` (null) é a forma canônica de voltar ao tema, a mesma do `resetGlass`; o
 #   # `dict()` só deixava uma chave vazia ({}) no config, com o mesmo efeito.
 #   dev/test.sh setc 'dict(transparencyOverride=dict(enabled=True))'; dev/test.sh see $p-vidro settings open glass; dev/test.sh setc 'dict(transparencyOverride=None)'

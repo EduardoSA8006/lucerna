@@ -23,6 +23,9 @@ Singleton {
 
     readonly property var companions: (Config.panelsTogether ?? []).filter(n => n === "dashboard")
     readonly property var bases: ["settings"]
+    // Os painéis que existem. O IPC ignora outros nomes: um `panels open
+    // sidebar` velho fecharia o que estava aberto e deixaria um modal sem janela.
+    readonly property var names: ["launcher", "dashboard", "central", "settings", "themes", "power", "clipboard", "capture", "overview"]
 
     // Nomes abertos, na ordem em que abriram.
     property var opened: []
@@ -41,6 +44,10 @@ Singleton {
 
     function isCompanion(name: string): bool {
         return companions.includes(name);
+    }
+
+    function isPanel(name: string): bool {
+        return names.includes(name);
     }
 
     function isModal(name: string): bool {
@@ -203,7 +210,8 @@ Singleton {
         target: "panels"
 
         function open(name: string): void {
-            root.open(name);
+            if (root.isPanel(name))
+                root.open(name);
         }
 
         function close(): void {
@@ -215,7 +223,8 @@ Singleton {
         }
 
         function toggle(name: string): void {
-            root.toggle(name);
+            if (root.isPanel(name))
+                root.toggle(name);
         }
 
         function get(): string {
