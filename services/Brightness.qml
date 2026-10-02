@@ -28,7 +28,9 @@ Singleton {
     // A integrada tem id "backlight"; as externas, "ddc:<barramento>".
     readonly property var screens: (available ? [{ id: "backlight", label: "Tela integrada", output: "", value: value }] : [])
         .concat(ddc.map(d => ({ id: `ddc:${d.bus}`, label: d.label, output: d.output, value: d.value })))
-    readonly property bool anyAvailable: screens.length > 0
+
+    // A tela em foco (ver focusedId), reativa ao monitor e aos DDC; null se não há.
+    readonly property var focusedScreen: screens.find(s => s.id === focusedId()) ?? null
 
     // O último ajustado, para o OSD mostrar o valor certo.
     property string lastId: "backlight"
@@ -69,10 +71,8 @@ Singleton {
     }
 
     function change(delta: real): void {
-        const id = focusedId();
-        const current = screens.find(s => s.id === id);
-        if (current)
-            setScreen(id, current.value + delta);
+        if (focusedScreen)
+            setScreen(focusedScreen.id, focusedScreen.value + delta);
     }
 
     function parse(text: string): bool {

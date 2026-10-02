@@ -28,9 +28,9 @@ function run(t) {
 
     scenario("central: a entrada escolhe a página dos controles", () => {
         P.openCentral("rede");
-        t.eq([S.open, S.entry, S.controlsPage, S.soundPage], [true, "rede", S.hasWifi ? "wifi" : "", ""], "a lista de redes, se houver placa Wi-Fi");
+        t.eq([S.open, P.centralEntry, S.controlsPage, S.soundPage], [true, "rede", S.hasWifi ? "wifi" : "", ""], "a lista de redes, se houver placa Wi-Fi");
         P.openCentral("bluetooth");
-        t.eq([S.entry, S.controlsPage], ["bluetooth", "bluetooth"], "outra entrada com a central aberta");
+        t.eq([P.centralEntry, S.controlsPage], ["bluetooth", "bluetooth"], "outra entrada com a central aberta");
         for (const entry of ["som", "notificacoes", "energia", ""]) {
             P.openCentral(entry);
             t.eq(S.controlsPage, "", `entrada "${entry}": o estado inicial`);
@@ -39,7 +39,7 @@ function run(t) {
 
     scenario("central: entrada desconhecida abre o estado inicial", () => {
         P.openCentral("wifi");
-        t.eq([S.open, S.entry, S.controlsPage], [true, "", ""], "o nome antigo do IPC");
+        t.eq([S.open, P.centralEntry, S.controlsPage], [true, "", ""], "o nome antigo do IPC");
     });
 
     scenario("central: a reabertura começa do zero", () => {
@@ -47,9 +47,9 @@ function run(t) {
         S.setControlsPage("bluetooth");
         S.setSoundPage("outputs");
         P.toggleCentral("rede");
-        t.eq([S.open, S.entry, S.controlsPage, S.soundPage], [false, "", "bluetooth", "outputs"], "na saída, as páginas ficam até o painel sumir");
+        t.eq([S.open, P.centralEntry, S.controlsPage, S.soundPage], [false, "", "bluetooth", "outputs"], "na saída, as páginas ficam até o painel sumir");
         P.open("central");
-        t.eq([S.open, S.entry, S.controlsPage, S.soundPage], [true, "", "", ""], "aberta sem entrada (panels open central)");
+        t.eq([S.open, P.centralEntry, S.controlsPage, S.soundPage], [true, "", "", ""], "aberta sem entrada (panels open central)");
     });
 
     scenario("central: trocar de entrada fecha as páginas", () => {
@@ -64,7 +64,7 @@ function run(t) {
         P.openCentral("rede");
         S.setControlsPage("bluetooth");
         P.open("launcher");
-        t.eq([S.open, S.entry], [false, ""]);
+        t.eq([S.open, P.centralEntry], [false, ""]);
         P.openCentral("");
         t.eq(S.controlsPage, "", "reaberta, começa do zero");
     });

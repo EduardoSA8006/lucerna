@@ -198,7 +198,7 @@ Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [arg
 
 | Alvo | Funções |
 | --- | --- |
-| `panels` | `open <nome>`, `toggle <nome>`, `dismiss <nome>` (fecha só esse), `close` (fecha todos), `get`. Nomes: `launcher`, `dashboard`, `central`, `settings`, `themes`, `power` |
+| `panels` | `open <nome>`, `toggle <nome>`, `dismiss <nome>` (fecha só esse), `close` (fecha todos), `get`. Nomes: `launcher`, `dashboard`, `central`, `settings`, `themes`, `power`, `clipboard`, `capture`, `overview` |
 | `dashboard` | `open <aba>` (`overview`, `media`, `performance`, `weather`), `toggle` |
 | `central` | `open <entrada>`, `toggle <entrada>` (`rede`, `bluetooth`, `som`, `notificacoes`, `energia`; `""` = o estado inicial), `close` |
 | `settings` | `open <tópico>` (`appearance`, `wallpaper`, `displays`, `idle`, `nightlight`, `launcher`, `clipboard`, `capture`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |

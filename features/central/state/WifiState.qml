@@ -27,8 +27,7 @@ Singleton {
         busy: n.stateChanging,
         secure: Network.isSecure(n),
         needsPassword: Network.needsPassword(n),
-        icon: Icons.level(Icons.wifi, n.signalStrength),
-        signal: Math.round(n.signalStrength * 100)
+        icon: Icons.level(Icons.wifi, n.signalStrength)
     }))
 
     // Rede com o campo de senha aberto.

@@ -196,6 +196,8 @@ step() {
 }
 
 step launcher panels open launcher
+# Nome que já foi painel (a barra lateral saiu): o IPC ignora e nada abre.
+step "" panels open sidebar
 step launcher launcher open files ""
 for tab in overview media performance weather; do
     step dashboard dashboard open "$tab"

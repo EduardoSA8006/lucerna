@@ -31,8 +31,11 @@ Surface {
     x: leftSide ? margin - (1 - shown) * travel : areaWidth - width - margin + (1 - shown) * travel
 
     function enter(): void {
-        leaving.stop();
-        shown = 0;
+        // Reaberta na saída, segue de onde está; senão, entra do zero.
+        if (leaving.running)
+            leaving.stop();
+        else
+            shown = 0;
         entering.restart();
     }
 

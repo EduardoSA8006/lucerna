@@ -17,7 +17,6 @@ Singleton {
 
     readonly property bool open: Panels.isOpen("central")
     readonly property var screen: Hypr.focusedScreen
-    readonly property string entry: Panels.centralEntry
     // Distância do topo da tela: abaixo da barra, como o painel superior.
     readonly property real top: Panels.topInset
     readonly property bool hasWifi: WifiState.available
@@ -40,6 +39,7 @@ Singleton {
         function onCentralOpened(entry) {
             root.controlsPage = root.pageFor(entry, root.hasWifi);
             root.soundPage = "";
+            root.clearWifi();
         }
     }
 
@@ -54,12 +54,16 @@ Singleton {
         return entry === "rede" && hasWifi ? "wifi" : entry === "bluetooth" ? "bluetooth" : "";
     }
 
-    // Também fecha o campo de senha e apaga o erro do Wi-Fi.
+    // Fecha o campo de senha e apaga o erro do Wi-Fi.
+    function clearWifi(): void {
+        WifiState.expanded = null;
+        WifiState.error = "";
+    }
+
     function reset(): void {
         controlsPage = "";
         soundPage = "";
-        WifiState.expanded = null;
-        WifiState.error = "";
+        clearWifi();
     }
 
     function setControlsPage(page: string): void {

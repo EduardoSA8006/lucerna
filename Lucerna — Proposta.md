@@ -176,7 +176,7 @@ lucerna/
 Scripts e outros programas falam com o shell por `IpcHandler`. Os atalhos do shell não precisam: ele mesmo os registra no Hyprland (`hl.bind`), a partir de Configurações → Atalhos, e tira do `hyprland.lua` o que estiver nas mesmas teclas.
 
 ```sh
-qs -c lucerna ipc call panels toggle launcher   # launcher, dashboard, settings, central, themes, power (dismiss fecha só um)
+qs -c lucerna ipc call panels toggle launcher   # launcher, dashboard, settings, central, themes, power, clipboard, capture, overview (dismiss fecha só um)
 qs -c lucerna ipc call central open rede        # bluetooth, som, notificacoes, energia ("" = o estado inicial); toggle, close
 qs -c lucerna ipc call dashboard open weather   # overview, media, performance, weather
 qs -c lucerna ipc call session lock

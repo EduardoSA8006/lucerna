@@ -15,7 +15,7 @@ Singleton {
     id: root
 
     // A tela em foco: a externa desse monitor, se tiver DDC; senão a integrada.
-    readonly property var screenBrightness: Brightness.screens.find(s => s.id === Brightness.focusedId()) ?? null
+    readonly property var screenBrightness: Brightness.focusedScreen
     readonly property bool hasBrightness: screenBrightness !== null
     readonly property real brightness: screenBrightness?.value ?? 0
 
