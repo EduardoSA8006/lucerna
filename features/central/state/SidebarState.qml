@@ -23,7 +23,6 @@ Singleton {
 
     readonly property var sections: [
         { id: "notifications", icon: Icons.bell, label: "Avisos" },
-        { id: "battery", icon: Icons.battery[7], label: "Bateria" },
         { id: "display", icon: Icons.brightnessMedium, label: "Tela" }
     ]
     readonly property int currentIndex: Math.max(0, sections.findIndex(s => s.id === Config.sidebarSection))
@@ -58,7 +57,7 @@ Singleton {
     IpcHandler {
         target: "sidebar"
 
-        // Abre numa seção: notifications, battery, display.
+        // Abre numa seção: notifications, display.
         function open(section: string): void {
             Panels.openSidebar(section);
         }

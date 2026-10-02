@@ -103,4 +103,42 @@ function run(t) {
         K.trigger("settings");
         t.eq([P.opened, S.open], [["settings"], false]);
     });
+
+    const E = t.PowerState;
+    const B = t.Battery;
+
+    t.test("energia: o que aparece sem bateria, sem perfil e sem dispositivos", () => {
+        const simulated0 = B.simulated;
+        const profiles0 = B.profilesAvailable;
+        try {
+            B.simulated = null;
+            B.profilesAvailable = false;
+            t.eq([E.hasBattery, E.profilesAvailable, E.devices.length, E.any], [false, false, 0, false], "desktop sem nada: o painel some");
+            B.profilesAvailable = true;
+            t.eq([E.hasBattery, E.any], [false, true], "só o perfil");
+            t.eq(E.profileButtons.map(b => b.value), B.hasPerformance ? [0, 1, 2] : [0, 1], "desempenho só se o daemon tiver");
+            B.profilesAvailable = false;
+            B.simulated = { percentage: 0.78, onBattery: true };
+            t.eq([E.hasBattery, E.any, E.batteryNote], [true, true, ""], "na bateria, sem o tempo (a simulada não tem)");
+            B.simulated = { percentage: 0.5, onBattery: false };
+            t.eq(E.batteryNote, "Carregando");
+            B.simulated = { percentage: 1, onBattery: false };
+            t.eq(E.batteryNote, "Carregada");
+        } finally {
+            B.simulated = simulated0;
+            B.profilesAvailable = profiles0;
+        }
+    });
+
+    t.test("energia: bateria dos dispositivos Bluetooth", () => {
+        const list = E.withBattery([
+            { name: "WH-1000", address: "AA", icon: "audio-headset", connected: true, batteryAvailable: true, battery: 0.82 },
+            { name: "", address: "BB", icon: "input-mouse", connected: true, batteryAvailable: true, battery: 0.41 },
+            { name: "Teclado", address: "CC", icon: "input-keyboard", connected: true, batteryAvailable: false, battery: 0 },
+            { name: "Caixa", address: "DD", icon: "audio-card", connected: false, batteryAvailable: true, battery: 0.9 }
+        ]);
+        t.eq(list, [{ name: "WH-1000", icon: "headset_mic", battery: 0.82 }, { name: "BB", icon: "mouse", battery: 0.41 }], "conectados e com bateria; sem nome, o endereço");
+        t.eq(E.withBattery([]), []);
+        t.eq(E.withBattery(null), []);
+    });
 }

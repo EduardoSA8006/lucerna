@@ -5,11 +5,11 @@ import qs.core.theme
 import qs.core.widgets
 import qs.features.central.state
 
-// Central: painéis flutuantes sobre a área de trabalho, sem escurecer a tela,
-// que abrem e fecham juntos. À esquerda, o som; à direita, os controles e,
-// embaixo deles, as notificações, na altura que sobra. Cada painel entra
-// deslizando do seu lado, em cascata; a saída é de todos juntos, mais rápida.
-// Esc ou o clique fora de todos os painéis fecham.
+// Central: quatro painéis flutuantes sobre a área de trabalho, sem escurecer a
+// tela, que abrem e fecham juntos. À esquerda, som e energia; à direita,
+// controles e, embaixo deles, as notificações, na altura que sobra. Cada
+// painel entra deslizando do seu lado, em cascata; a saída é de todos juntos,
+// mais rápida. Esc ou o clique fora de todos os painéis fecham.
 OverlayPanel {
     id: panel
 
@@ -25,7 +25,7 @@ OverlayPanel {
     readonly property real margin: ThemeManager.spacing.large
     readonly property real gap: ThemeManager.spacing.normal
     // Os painéis, para a entrada e a saída.
-    readonly property var panels: [sound, controls, inbox]
+    readonly property var panels: [sound, controls, energy, inbox]
 
     onOpenChanged: {
         for (const p of panels) {
@@ -52,7 +52,17 @@ OverlayPanel {
         margin: panel.margin
         areaWidth: panel.width
         y: CentralState.top
-        maxHeight: Math.max(0, panel.height - y - panel.margin)
+        maxHeight: Math.max(0, panel.height - y - panel.margin - (energy.present ? energy.height + panel.gap : 0))
+    }
+
+    EnergyPanel {
+        id: energy
+
+        leftSide: true
+        order: 2
+        margin: panel.margin
+        areaWidth: panel.width
+        y: sound.present ? sound.y + sound.height + panel.gap : CentralState.top
     }
 
     ControlsPanel {

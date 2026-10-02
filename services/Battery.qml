@@ -25,8 +25,6 @@ Singleton {
     readonly property bool full: simulated ? !simulated.onBattery && simulated.percentage >= 1 : device?.state === UPowerDeviceState.FullyCharged
     // Segundos até esvaziar (descarregando) ou encher (carregando); 0 se desconhecido.
     readonly property real timeRemaining: simulated ? 0 : charging ? (device?.timeToFull ?? 0) : (device?.timeToEmpty ?? 0)
-    readonly property real health: device?.healthSupported ? device.healthPercentage / 100 : NaN
-    readonly property real changeRate: simulated ? 0 : device?.changeRate ?? 0
 
     // Perfil de energia (power-profiles-daemon): 0 economia, 1 equilibrado, 2 desempenho.
     // No modo de desenvolvimento a troca é simulada, e o perfil simulado fica aqui.
@@ -34,6 +32,17 @@ Singleton {
     readonly property int profile: simulatedProfile >= 0 ? simulatedProfile : PowerProfiles.profile
     readonly property bool hasPerformance: PowerProfiles.hasPerformanceProfile
     readonly property var profileNames: ["Economia", "Equilibrado", "Desempenho"]
+
+    // O power-profiles-daemon responde no D-Bus do sistema? O PowerProfiles do
+    // Quickshell não diz; sem ele, a central esconde os botões de perfil. Pelo
+    // sh: sem busctl ou sem o D-Bus do sistema (o CI), sai com erro, calado.
+    property bool profilesAvailable: false
+
+    Process {
+        running: true
+        command: ["sh", "-c", "command -v busctl > /dev/null && { busctl --system introspect net.hadess.PowerProfiles /net/hadess/PowerProfiles || busctl --system introspect org.freedesktop.UPower.PowerProfiles /org/freedesktop/UPower/PowerProfiles; } > /dev/null 2>&1"]
+        onExited: code => root.profilesAvailable = code === 0
+    }
 
     function setProfile(value: int): void {
         if (value === profile)

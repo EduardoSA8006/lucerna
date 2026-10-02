@@ -92,9 +92,9 @@ Row {
         label: BarState.batteryShowPercent ? `${BarState.batteryPercent}%` : ""
         visible: BarState.batteryAvailable
         iconSize: 18
-        active: BarState.sectionOpen("battery")
+        active: BarState.entryOpen("energia")
         foreground: active ? ThemeManager.colors.accentText : BarState.batteryLow ? ThemeManager.colors.danger : ThemeManager.colors.textMuted
-        onClicked: BarState.toggleSection("battery")
+        onClicked: BarState.toggleEntry("energia")
     }
 
     IconButton {

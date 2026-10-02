@@ -8,7 +8,9 @@ import qs.core.nightlight
 import qs.core.widgets
 import qs.services
 
-// View model das seções Bateria e Tela.
+// View model da energia da central (a bateria, o perfil de energia e a
+// bateria dos dispositivos Bluetooth) e, até a barra lateral sair, da seção
+// Tela dela.
 Singleton {
     id: root
 
@@ -16,24 +18,31 @@ Singleton {
     readonly property bool hasBattery: Battery.available
     readonly property real percentage: Battery.percentage
     readonly property bool charging: Battery.charging
-    readonly property string icon: Battery.charging ? Icons.batteryCharging : Icons.level(Icons.battery, Battery.percentage)
-    readonly property string status: !hasBattery ? "Sem bateria (ligado na tomada)" : Battery.full ? "Carregada" : Battery.charging ? "Carregando" : Battery.onBattery ? "Na bateria" : "Na tomada"
-    readonly property string remaining: Battery.timeRemaining > 0 ? `${Format.duration(Battery.timeRemaining)} ${Battery.charging ? "para carregar" : "restantes"}` : ""
-    readonly property string health: isFinite(Battery.health) ? Format.percent(Battery.health) : ""
-    readonly property string rate: Math.abs(Battery.changeRate) > 0.1 ? `${Format.number(Math.abs(Battery.changeRate), 1)} W` : ""
+    // Embaixo da porcentagem: carregada, carregando ou o tempo restante.
+    readonly property string batteryNote: Battery.full ? "Carregada" : Battery.charging ? "Carregando" : Battery.timeRemaining > 0 ? Format.duration(Battery.timeRemaining) : ""
 
-    // Perfil de energia
+    // Perfil de energia: um botão por perfil, o de desempenho só se houver.
+    readonly property bool profilesAvailable: Battery.profilesAvailable
     readonly property int profile: Battery.profile
-    readonly property var profiles: [
-        { label: "Economia", value: 0 },
-        { label: "Equilibrado", value: 1 },
-        ...(Battery.hasPerformance ? [{ label: "Desempenho", value: 2 }] : [])
+    readonly property var profileButtons: [
+        { value: 0, icon: Icons.eco },
+        { value: 1, icon: Icons.balance },
+        ...(Battery.hasPerformance ? [{ value: 2, icon: Icons.rocket }] : [])
     ]
-    readonly property string profileDescription: ["Menos consumo, menos desempenho", "O padrão do sistema", "Desempenho máximo, mais consumo"][profile] ?? ""
 
     function setProfile(value: int): void {
         Battery.setProfile(value);
     }
+
+    // Dispositivos Bluetooth conectados que informam a bateria.
+    readonly property var devices: withBattery(Bluetooth.devices)
+
+    function withBattery(list: var): var {
+        return (list ?? []).filter(d => d.connected && d.batteryAvailable).map(d => ({ name: d.name || d.address, icon: Icons.forDevice(d.icon), battery: d.battery }));
+    }
+
+    // O painel aparece com algo a mostrar.
+    readonly property bool any: hasBattery || profilesAvailable || devices.length > 0
 
     // Tela: uma entrada por tela com brilho ajustável (a integrada e os
     // monitores externos por DDC/CI).

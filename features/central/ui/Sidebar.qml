@@ -78,7 +78,6 @@ OverlayPanel {
                         width: scroller.width
                         sourceComponent: ({
                             notifications: inboxPage,
-                            battery: batteryPage,
                             display: displayPage
                         })[SidebarState.current]
 
@@ -122,12 +121,6 @@ OverlayPanel {
         id: inboxPage
 
         InboxPage {}
-    }
-
-    Component {
-        id: batteryPage
-
-        BatteryPage {}
     }
 
     Component {

@@ -201,7 +201,7 @@ step launcher launcher open files ""
 for tab in overview media performance weather; do
     step dashboard dashboard open "$tab"
 done
-for section in notifications battery display; do
+for section in notifications display; do
     step sidebar sidebar open "$section"
 done
 for entry in "" rede bluetooth som notificacoes energia; do
