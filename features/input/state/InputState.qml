@@ -174,7 +174,9 @@ Singleton {
     }
 
     // As ações do shell que os binds chamam.
-    function run(id: string): void {
+    function run(name: string): void {
+        // `action run sidebar` de um hyprland.lua antigo segue valendo.
+        const id = InputActions.renamed[name] ?? name;
         switch (id) {
         case "launcher":
         case "dashboard":

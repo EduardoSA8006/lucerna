@@ -55,14 +55,7 @@ Singleton {
     }
 
     function setKeys(id: string, keys: var): void {
-        const all = Object.assign({}, Config.shellShortcuts ?? {});
-        const defaults = ShellShortcuts.defaultKeys(id);
-        const isDefault = keys.length === defaults.length && keys.every((k, i) => ShellShortcuts.same(k, defaults[i]));
-        if (isDefault)
-            delete all[id];
-        else
-            all[id] = keys;
-        Config.shellShortcuts = all;
+        Config.shellShortcuts = ShellShortcuts.withKeys(Config.shellShortcuts, id, keys);
     }
 
     // De quem é a combinação hoje, fora o próprio atalho: { kind: "shell", id },

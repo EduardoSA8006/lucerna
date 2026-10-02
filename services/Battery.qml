@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.UPower
+import qs.core.config
 
 // Bateria do notebook, via UPower. `available` é falso em desktops.
 //
@@ -23,10 +24,11 @@ Singleton {
     readonly property bool onBattery: simulated ? simulated.onBattery : UPower.onBattery
     readonly property bool charging: simulated ? !simulated.onBattery && simulated.percentage < 1 : (device?.state === UPowerDeviceState.Charging || device?.state === UPowerDeviceState.PendingCharge)
     readonly property bool full: simulated ? !simulated.onBattery && simulated.percentage >= 1 : device?.state === UPowerDeviceState.FullyCharged
-    // Bateria baixa: abaixo do limite e sem carregar (a barra e a central
-    // mostram em vermelho). O limite fica só aqui.
-    readonly property real low: 0.15
-    readonly property bool isLow: percentage < low && !charging
+    // Bateria baixa: no limite das configurações ou abaixo, e sem carregar (a
+    // barra e a central mostram em vermelho). Arredondada como o aviso da
+    // feature energy, para o vermelho e o aviso coincidirem.
+    readonly property real low: Config.batteryLowLevel / 100
+    readonly property bool isLow: Math.round(percentage * 100) / 100 <= low && !charging
     // Segundos até esvaziar (descarregando) ou encher (carregando); 0 se desconhecido.
     readonly property real timeRemaining: simulated ? 0 : charging ? (device?.timeToFull ?? 0) : (device?.timeToEmpty ?? 0)
 

@@ -130,17 +130,23 @@ function run(t) {
         }
     });
 
-    t.test("energia: bateria baixa pelo limite do serviço", () => {
+    t.test("energia: bateria baixa pelo limite das configurações", () => {
         const simulated0 = B.simulated;
+        const level0 = C.batteryLowLevel;
         try {
-            B.simulated = { percentage: B.low - 0.01, onBattery: true };
-            t.eq([B.isLow, E.low], [true, true], "abaixo do limite, na bateria");
-            B.simulated = { percentage: B.low - 0.01, onBattery: false };
+            C.batteryLowLevel = 20;
+            t.eq(B.low, 0.2, "o limite segue Config.batteryLowLevel");
+            B.simulated = { percentage: 0.2, onBattery: true };
+            t.eq([B.isLow, E.low], [true, true], "no limite, na bateria (como o aviso)");
+            B.simulated = { percentage: 0.204, onBattery: true };
+            t.eq(B.isLow, true, "arredonda como o aviso (20%)");
+            B.simulated = { percentage: 0.21, onBattery: true };
+            t.eq([B.isLow, E.low], [false, false], "acima do limite");
+            B.simulated = { percentage: 0.1, onBattery: false };
             t.eq([B.isLow, E.low], [false, false], "carregando não é baixa");
-            B.simulated = { percentage: B.low, onBattery: true };
-            t.eq([B.isLow, E.low], [false, false], "no limite ainda não");
         } finally {
             B.simulated = simulated0;
+            C.batteryLowLevel = level0;
         }
     });
 

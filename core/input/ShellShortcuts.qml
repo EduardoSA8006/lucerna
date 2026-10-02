@@ -52,6 +52,22 @@ Singleton {
         });
     }
 
+    // As mudanças do usuário com as teclas novas de um atalho: as padrão
+    // apagam a mudança (restaurar), as outras ficam no id. A chave do nome
+    // antigo sai sempre, senão o `effective` voltaria a lê-la.
+    function withKeys(overrides: var, id: string, keys: var): var {
+        const all = Object.assign({}, overrides ?? {});
+        const old = renamed[id];
+        if (old)
+            delete all[old];
+        const defaults = defaultKeys(id);
+        if (keys.length === defaults.length && keys.every((k, i) => same(k, defaults[i])))
+            delete all[id];
+        else
+            all[id] = keys;
+        return all;
+    }
+
     function defaultKeys(id: string): var {
         return defaults.find(d => d.id === id)?.keys ?? [];
     }

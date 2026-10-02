@@ -47,6 +47,9 @@ Singleton {
     function edit(entry: var): void {
         mode = entry.trigger.startsWith("mouse:") ? "mouse" : "key";
         draft = JSON.parse(JSON.stringify(entry));
+        // Um bind salvo com o nome antigo de uma ação mostra a ação nova.
+        if (draft.action?.id)
+            draft.action.id = InputActions.renamed[draft.action.id] ?? draft.action.id;
         original = entry;
     }
 

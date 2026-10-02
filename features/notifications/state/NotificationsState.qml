@@ -18,6 +18,17 @@ Singleton {
     readonly property bool centralOpen: Panels.isOpen("central")
 
     onCentralOpenChanged: Notifications.clearPopups()
+
+    // O que chega com a central aberta já está na lista: sai na hora, sem
+    // sobrar popup para piscar quando a central fecha.
+    Connections {
+        target: Notifications
+
+        function onPopupsChanged(): void {
+            if (root.centralOpen && Notifications.popups.length > 0)
+                Notifications.clearPopups();
+        }
+    }
     readonly property var screen: Hypr.focusedScreen
     readonly property real topOffset: Panels.topInset
     readonly property var popups: Notifications.popups
