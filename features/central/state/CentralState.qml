@@ -39,6 +39,13 @@ Singleton {
         }
     }
 
+    // O Wi-Fi procura redes enquanto a página dele está à mostra.
+    Binding {
+        target: Network
+        property: "scanning"
+        value: root.open && root.controlsPage === "wifi"
+    }
+
     function pageFor(entry: string, hasWifi: bool): string {
         return entry === "rede" && hasWifi ? "wifi" : entry === "bluetooth" ? "bluetooth" : "";
     }
@@ -76,7 +83,7 @@ Singleton {
         }
 
         function close(): void {
-            Panels.dismiss("central");
+            root.close();
         }
     }
 }

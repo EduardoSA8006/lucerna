@@ -169,6 +169,7 @@ ShellRoot {
             get NightSchedule() { return NightSchedule; },
             get Panels() { return Panels; },
             get CentralState() { return CentralState; },
+            get ControlsState() { return ControlsState; },
             get ThemeManager() { return ThemeManager; },
             get Sun() { return Sun; },
             get AppInfo() { return AppInfo; },

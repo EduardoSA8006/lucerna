@@ -64,9 +64,9 @@ Row {
         icon: BarState.networkIcon
         visible: BarState.networkAvailable
         iconSize: 18
-        active: BarState.sectionOpen("wifi")
+        active: BarState.entryOpen("rede")
         foreground: active ? ThemeManager.colors.accentText : BarState.online ? ThemeManager.colors.textMuted : ThemeManager.colors.textFaint
-        onClicked: BarState.toggleSection("wifi")
+        onClicked: BarState.toggleEntry("rede")
     }
 
     IconButton {

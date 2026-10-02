@@ -199,6 +199,15 @@ Singleton {
         return Panels.isOpen("sidebar") && Config.sidebarSection === section;
     }
 
+    // Abre a central na entrada (ou fecha, se ela já estiver aberta por ela).
+    function toggleEntry(entry: string): void {
+        Panels.toggleCentral(entry);
+    }
+
+    function entryOpen(entry: string): bool {
+        return Panels.isOpen("central") && Panels.centralEntry === entry;
+    }
+
     // Gravação de tela em andamento: o tempo, e parar pela barra.
     readonly property bool recording: Capture.recording
     property string recordingTime: "0:00"

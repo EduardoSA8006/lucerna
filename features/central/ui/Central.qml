@@ -6,7 +6,8 @@ import qs.core.widgets
 import qs.features.central.state
 
 // Central: painéis flutuantes sobre a área de trabalho, sem escurecer a tela,
-// que abrem e fecham juntos. À direita, as notificações, na altura que sobra.
+// que abrem e fecham juntos. À direita, os controles e, embaixo deles, as
+// notificações, na altura que sobra.
 // Cada painel entra deslizando do seu lado, em cascata; a saída é de todos
 // juntos, mais rápida. Esc ou o clique fora de todos os painéis fecham; a
 // barra fica fora da camada e continua clicável.
@@ -25,7 +26,7 @@ OverlayPanel {
     readonly property real margin: ThemeManager.spacing.large
     readonly property real gap: ThemeManager.spacing.normal
     // Os painéis, para a entrada e a saída.
-    readonly property var panels: [inbox]
+    readonly property var panels: [controls, inbox]
 
     onOpenChanged: {
         for (const p of panels) {
@@ -44,6 +45,18 @@ OverlayPanel {
         id: focusSink
     }
 
+    ControlsPanel {
+        id: controls
+
+        leftSide: false
+        order: 1
+        margin: panel.margin
+        areaWidth: panel.width
+        y: CentralState.top
+        // Em tela baixa, a lista encurta e sobra lugar para as notificações.
+        maxListHeight: Math.min(360, panel.height * 0.35)
+    }
+
     InboxPanel {
         id: inbox
 
@@ -51,7 +64,7 @@ OverlayPanel {
         order: 3
         margin: panel.margin
         areaWidth: panel.width
-        y: CentralState.top
+        y: controls.y + controls.height + panel.gap
         height: Math.max(0, panel.height - y - panel.margin)
     }
 }

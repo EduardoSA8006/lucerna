@@ -1,15 +1,24 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
 import qs.features.central.state
 
-// Bluetooth: liga/desliga, dispositivos pareados e, ao procurar, os disponíveis.
+// Bluetooth no card de controles da central: voltar, o título e o
+// liga/desliga no topo; embaixo, procurar, os pareados e, procurando, os
+// disponíveis, que rolam dentro de `maxListHeight`.
 Column {
-    spacing: ThemeManager.spacing.normal
+    id: root
 
-    SectionHeader {
+    property real maxListHeight: 360
+
+    width: parent?.width ?? 0
+    spacing: ThemeManager.spacing.small
+
+    PageHeader {
         title: "Bluetooth"
-        subtitle: BluetoothState.status
+        onBack: CentralState.setControlsPage("")
 
         Switch {
             visible: BluetoothState.available
@@ -24,29 +33,35 @@ Column {
         text: !BluetoothState.available ? "Nenhum adaptador Bluetooth encontrado" : "O Bluetooth está desligado"
     }
 
-    Column {
-        width: parent.width
+    TonalButton {
         visible: BluetoothState.enabled
-        spacing: ThemeManager.spacing.normal
+        icon: BluetoothState.searching ? Icons.bluetoothSearching : Icons.sync
+        text: BluetoothState.searching ? "Parar de procurar" : "Procurar dispositivos"
+        onClicked: BluetoothState.toggleSearch()
+    }
 
-        TonalButton {
-            icon: BluetoothState.searching ? Icons.bluetoothSearching : Icons.sync
-            text: BluetoothState.searching ? "Parar de procurar" : "Procurar dispositivos"
-            onClicked: BluetoothState.toggleSearch()
-        }
-
-        Txt {
-            visible: BluetoothState.paired.length > 0
-            text: "PAREADOS"
-            faint: true
-            font.pixelSize: ThemeManager.font.small
-            font.weight: Font.DemiBold
-            font.letterSpacing: 1
-        }
+    Flickable {
+        width: root.width
+        height: Math.min(devices.implicitHeight, root.maxListHeight)
+        visible: BluetoothState.enabled
+        contentHeight: devices.implicitHeight
+        boundsBehavior: Flickable.StopAtBounds
+        clip: true
 
         Column {
-            width: parent.width
+            id: devices
+
+            width: root.width
             spacing: 2
+
+            Txt {
+                visible: BluetoothState.paired.length > 0
+                text: "PAREADOS"
+                faint: true
+                font.pixelSize: ThemeManager.font.small
+                font.weight: Font.DemiBold
+                font.letterSpacing: 1
+            }
 
             Repeater {
                 model: BluetoothState.paired
@@ -56,12 +71,12 @@ Column {
 
                     required property var modelData
 
-                    icon: modelData.icon
-                    title: modelData.name
-                    detail: modelData.busy ? "Conectando…" : modelData.detail
-                    lit: modelData.connected
-                    busy: modelData.busy
-                    onClicked: BluetoothState.toggleConnection(modelData)
+                    icon: row.modelData.icon
+                    title: row.modelData.name
+                    detail: row.modelData.busy ? "Conectando…" : row.modelData.detail
+                    lit: row.modelData.connected
+                    busy: row.modelData.busy
+                    onClicked: BluetoothState.toggleConnection(row.modelData)
 
                     IconButton {
                         visible: row.hovered
@@ -72,39 +87,35 @@ Column {
                     }
                 }
             }
-        }
 
-        Txt {
-            visible: BluetoothState.searching
-            text: "DISPONÍVEIS"
-            faint: true
-            font.pixelSize: ThemeManager.font.small
-            font.weight: Font.DemiBold
-            font.letterSpacing: 1
-        }
+            Txt {
+                visible: BluetoothState.searching
+                text: "DISPONÍVEIS"
+                faint: true
+                font.pixelSize: ThemeManager.font.small
+                font.weight: Font.DemiBold
+                font.letterSpacing: 1
+            }
 
-        Txt {
-            visible: BluetoothState.searching && BluetoothState.others.length === 0
-            text: "Procurando…"
-            muted: true
-        }
-
-        Column {
-            width: parent.width
-            visible: BluetoothState.searching
-            spacing: 2
+            Txt {
+                visible: BluetoothState.searching && BluetoothState.others.length === 0
+                text: "Procurando…"
+                muted: true
+            }
 
             Repeater {
-                model: BluetoothState.others
+                model: BluetoothState.searching ? BluetoothState.others : []
 
                 delegate: ListRow {
+                    id: other
+
                     required property var modelData
 
-                    icon: modelData.icon
-                    title: modelData.name
-                    detail: modelData.busy ? "Pareando…" : "Toque para parear"
-                    busy: modelData.busy
-                    onClicked: BluetoothState.toggleConnection(modelData)
+                    icon: other.modelData.icon
+                    title: other.modelData.name
+                    detail: other.modelData.busy ? "Pareando…" : "Toque para parear"
+                    busy: other.modelData.busy
+                    onClicked: BluetoothState.toggleConnection(other.modelData)
                 }
             }
         }

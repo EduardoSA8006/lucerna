@@ -77,8 +77,6 @@ OverlayPanel {
 
                         width: scroller.width
                         sourceComponent: ({
-                            wifi: wifiPage,
-                            bluetooth: bluetoothPage,
                             sound: soundPage,
                             notifications: inboxPage,
                             battery: batteryPage,
@@ -119,18 +117,6 @@ OverlayPanel {
                 }
             }
         }
-    }
-
-    Component {
-        id: wifiPage
-
-        WifiPage {}
-    }
-
-    Component {
-        id: bluetoothPage
-
-        BluetoothPage {}
     }
 
     Component {

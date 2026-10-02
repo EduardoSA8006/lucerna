@@ -22,8 +22,6 @@ Singleton {
     readonly property real margin: ThemeManager.spacing.small
 
     readonly property var sections: [
-        { id: "wifi", icon: Icons.wifiOn, label: "Wi-Fi" },
-        { id: "bluetooth", icon: Icons.bluetooth, label: "Bluetooth" },
         { id: "sound", icon: Icons.sound, label: "Som" },
         { id: "notifications", icon: Icons.bell, label: "Avisos" },
         { id: "battery", icon: Icons.battery[7], label: "Bateria" },
@@ -56,13 +54,6 @@ Singleton {
 
     function isShowing(id: string): bool {
         return open && current === id;
-    }
-
-    // Wi-Fi procura redes enquanto a seção está à mostra.
-    Binding {
-        target: Network
-        property: "scanning"
-        value: root.isShowing("wifi")
     }
 
     IpcHandler {

@@ -10,10 +10,8 @@ import qs.features.central.state
 // cima, com as ações de cada uma. Ocupa a altura que recebe e rola; sem
 // notificações, só o ícone.
 CentralPanel {
-    id: root
-
     Item {
-        id: header
+        id: headerRow
 
         width: parent.width
         height: 36
@@ -49,7 +47,7 @@ CentralPanel {
     ListView {
         id: list
 
-        y: header.height + ThemeManager.spacing.small
+        y: headerRow.height + ThemeManager.spacing.small
         width: parent.width
         height: Math.max(0, parent.height - y)
         clip: true

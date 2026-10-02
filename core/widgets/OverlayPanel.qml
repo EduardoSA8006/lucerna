@@ -14,6 +14,9 @@ import qs.core.theme
 // Não modal (acompanhante ou base, ver Panels): não escurece nem cobre a tela;
 // só `inputItem` recebe o mouse, então a barra e os outros painéis seguem
 // clicáveis. O clique fora é tratado pelo Panels.
+//
+// Modal com `keepBar` (a central): a máscara de entrada é a tela inteira menos
+// a faixa da barra (Panels.barStrip), que continua clicável.
 PanelWindow {
     id: root
 
