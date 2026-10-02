@@ -22,6 +22,7 @@ import qs.features.themeSwitcher.state
 import qs.services
 import "appinfo.test.js" as AppInfoTest
 import "audio.test.js" as AudioTest
+import "audiostreams.test.js" as AudioStreamsTest
 import "bluetooth.test.js" as BluetoothTest
 import "brightness.test.js" as BrightnessTest
 import "capture.test.js" as CaptureTest
@@ -79,6 +80,7 @@ ShellRoot {
         ["network", NetworkTest],
         ["bluetooth", BluetoothTest],
         ["audio", AudioTest],
+        ["audiostreams", AudioStreamsTest],
         ["appinfo", AppInfoTest],
         ["media", MediaTest],
         ["session", SessionTest],
@@ -167,6 +169,7 @@ ShellRoot {
             get Sun() { return Sun; },
             get AppInfo() { return AppInfo; },
             get Audio() { return Audio; },
+            get AudioStreams() { return AudioStreams; },
             get Bluetooth() { return Bluetooth; },
             get Brightness() { return Brightness; },
             get Capture() { return Capture; },
