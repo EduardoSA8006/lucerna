@@ -23,6 +23,10 @@ Singleton {
     readonly property bool onBattery: simulated ? simulated.onBattery : UPower.onBattery
     readonly property bool charging: simulated ? !simulated.onBattery && simulated.percentage < 1 : (device?.state === UPowerDeviceState.Charging || device?.state === UPowerDeviceState.PendingCharge)
     readonly property bool full: simulated ? !simulated.onBattery && simulated.percentage >= 1 : device?.state === UPowerDeviceState.FullyCharged
+    // Bateria baixa: abaixo do limite e sem carregar (a barra e a central
+    // mostram em vermelho). O limite fica só aqui.
+    readonly property real low: 0.15
+    readonly property bool isLow: percentage < low && !charging
     // Segundos até esvaziar (descarregando) ou encher (carregando); 0 se desconhecido.
     readonly property real timeRemaining: simulated ? 0 : charging ? (device?.timeToFull ?? 0) : (device?.timeToEmpty ?? 0)
 

@@ -77,7 +77,7 @@ Singleton {
     readonly property string wind: "air"
     readonly property string rain: "water_drop"
 
-    // Central lateral
+    // Central
     readonly property string wifiOn: "wifi"
     readonly property string bluetooth: "bluetooth"
     readonly property string bluetoothConnected: "bluetooth_connected"
@@ -88,6 +88,7 @@ Singleton {
     readonly property string speaker: "speaker"
     readonly property string sound: "graphic_eq"
     readonly property string sidebar: "view_sidebar"
+    readonly property string central: "tune"
     readonly property string panels: "stacks"
     readonly property string monitor: "desktop_windows"
     readonly property string resolution: "aspect_ratio"

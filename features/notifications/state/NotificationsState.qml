@@ -9,32 +9,20 @@ import qs.core.format
 import qs.core.panels
 import qs.services
 
-// View model das notificações: popups e central lateral.
+// View model das notificações: os popups (a lista fica na central).
 Singleton {
     id: root
 
-    // Com a central lateral ou a central aberta os popups esperam: ficariam
-    // por cima delas.
-    readonly property bool sidebarOpen: Panels.isOpen("sidebar") || Panels.isOpen("central")
-
-    // A central mostra a lista: abrir e fechar contam como ter visto os popups.
+    // A central mostra a lista de notificações: com ela aberta, os popups
+    // esperam (ficariam por cima dela); abrir e fechar contam como tê-los visto.
     readonly property bool centralOpen: Panels.isOpen("central")
 
     onCentralOpenChanged: Notifications.clearPopups()
-
-    // A lista de notificações fica na central lateral, na seção "notifications".
-    readonly property bool centerOpen: Panels.isOpen("sidebar") && Config.sidebarSection === "notifications"
     readonly property var screen: Hypr.focusedScreen
     readonly property real topOffset: Panels.topInset
     readonly property var popups: Notifications.popups
     readonly property var list: Notifications.list
     readonly property bool doNotDisturb: Config.doNotDisturb
-
-    // Abrir a central conta como ter visto os popups.
-    onCenterOpenChanged: {
-        if (centerOpen)
-            Notifications.clearPopups();
-    }
 
     // O "não perturbe" e o tempo dos popups são salvos na config e repassados ao serviço.
     Binding {

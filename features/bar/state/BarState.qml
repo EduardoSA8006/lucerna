@@ -151,7 +151,7 @@ Singleton {
     readonly property bool batteryAvailable: Battery.available
     readonly property int batteryPercent: Math.round(Battery.percentage * 100)
     readonly property bool batteryShowPercent: Config.batteryShowPercent
-    readonly property bool batteryLow: Battery.percentage < 0.15 && !Battery.charging
+    readonly property bool batteryLow: Battery.isLow
     readonly property string batteryIcon: Battery.charging ? Icons.batteryCharging : batteryLow ? Icons.batteryAlert : Icons.level(Icons.battery, Battery.percentage)
 
     // Notificações
@@ -188,15 +188,6 @@ Singleton {
 
         interval: 280
         onTriggered: Panels.open("dashboard")
-    }
-
-    // Abre a central lateral na seção (ou fecha, se já estiver nela).
-    function toggleSection(section: string): void {
-        Panels.toggleSidebar(section);
-    }
-
-    function sectionOpen(section: string): bool {
-        return Panels.isOpen("sidebar") && Config.sidebarSection === section;
     }
 
     // Abre a central na entrada (ou fecha, se ela já estiver aberta por ela).

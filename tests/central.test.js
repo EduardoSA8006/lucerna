@@ -130,6 +130,20 @@ function run(t) {
         }
     });
 
+    t.test("energia: bateria baixa pelo limite do serviço", () => {
+        const simulated0 = B.simulated;
+        try {
+            B.simulated = { percentage: B.low - 0.01, onBattery: true };
+            t.eq([B.isLow, E.low], [true, true], "abaixo do limite, na bateria");
+            B.simulated = { percentage: B.low - 0.01, onBattery: false };
+            t.eq([B.isLow, E.low], [false, false], "carregando não é baixa");
+            B.simulated = { percentage: B.low, onBattery: true };
+            t.eq([B.isLow, E.low], [false, false], "no limite ainda não");
+        } finally {
+            B.simulated = simulated0;
+        }
+    });
+
     t.test("energia: bateria dos dispositivos Bluetooth", () => {
         const list = E.withBattery([
             { name: "WH-1000", address: "AA", icon: "audio-headset", connected: true, batteryAvailable: true, battery: 0.82 },

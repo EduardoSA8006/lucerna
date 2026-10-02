@@ -3,8 +3,9 @@ import qs.core.theme
 import qs.core.widgets
 import qs.features.bar.state
 
-// Ações da barra: rede, volume, bateria e avisos. Cada uma abre a seção dela
-// na central lateral. Gravando a tela, aparece antes o tempo, que para ao clicar.
+// Ações da barra: rede, volume, bateria e notificações. Cada uma abre a
+// central pela sua entrada (o mesmo ícone de novo fecha). Gravando a tela,
+// aparece antes o tempo, que para ao clicar.
 Row {
     anchors.verticalCenter: parent?.verticalCenter
     spacing: 2
@@ -102,7 +103,7 @@ Row {
         icon: BarState.bellIcon
         iconSize: 18
         label: BarState.notificationCount > 0 ? `${BarState.notificationCount}` : ""
-        active: BarState.sectionOpen("notifications")
-        onClicked: BarState.toggleSection("notifications")
+        active: BarState.entryOpen("notificacoes")
+        onClicked: BarState.toggleEntry("notificacoes")
     }
 }

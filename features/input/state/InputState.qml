@@ -186,11 +186,11 @@ Singleton {
         case "overview":
             Panels.toggle(id);
             break;
-        case "sidebar":
-            Panels.toggleSidebar(Config.sidebarSection);
+        case "central":
+            Panels.toggleCentral("");
             break;
         case "notifications":
-            Panels.toggleSidebar("notifications");
+            Panels.toggleCentral("notificacoes");
             break;
         case "lock":
             Session.lock();

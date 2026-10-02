@@ -142,7 +142,7 @@ Singleton {
         { name: "Painel", description: "Ação do Lucerna", glyph: Icons.dashboard, keywords: "dashboard calendário clima desempenho mídia música", run: () => Panels.open("dashboard") },
         { name: "Configurações", description: "Ação do Lucerna", glyph: Icons.settings, keywords: "ajustes preferências transparência desfoque blur opacidade animações settings", run: () => Panels.open("settings") },
         { name: "Trocar tema", description: "Ação do Lucerna", glyph: Icons.palette, keywords: "theme cores aparência", run: () => Panels.open("themes") },
-        { name: "Notificações", description: "Ação do Lucerna", glyph: Icons.bell, keywords: "central avisos", run: () => Panels.openSidebar("notifications") },
+        { name: "Notificações", description: "Ação do Lucerna", glyph: Icons.bell, keywords: "central avisos", run: () => Panels.openCentral("notificacoes") },
         { name: "Wi-Fi", description: "Ação do Lucerna", glyph: Icons.wifiOn, keywords: "rede internet wifi conexão", run: () => Panels.openCentral("rede") },
         { name: "Bluetooth", description: "Ação do Lucerna", glyph: Icons.bluetooth, keywords: "fone dispositivos parear", run: () => Panels.openCentral("bluetooth") },
         { name: "Som", description: "Ação do Lucerna", glyph: Icons.sound, keywords: "audio volume microfone saída", run: () => Panels.openCentral("som") },

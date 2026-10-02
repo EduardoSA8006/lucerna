@@ -17,7 +17,7 @@ Singleton {
         { id: "dashboard", keys: [{ mods: mod, trigger: "d" }] },
         { id: "settings", keys: [{ mods: mod, trigger: "s" }] },
         { id: "notifications", keys: [{ mods: mod, trigger: "n" }] },
-        { id: "sidebar", keys: [{ mods: mod, trigger: "c" }] },
+        { id: "central", keys: [{ mods: mod, trigger: "c" }] },
         { id: "overview", keys: [{ mods: mod, trigger: "Tab" }] },
         { id: "clipboard", keys: [{ mods: mod, trigger: "v" }] },
         { id: "themes", keys: [{ mods: mod, trigger: "t" }] },
@@ -39,10 +39,17 @@ Singleton {
         { id: "brightness-down", keys: [{ mods: "", trigger: "XF86MonBrightnessDown" }] }
     ]
 
+    // Ids que mudaram de nome (o novo → o antigo): a tecla que o usuário
+    // salvou no antigo vale no novo até ele mudar a do novo.
+    readonly property var renamed: ({ central: "sidebar" })
+
     // [{ id, keys, custom }] com as mudanças do usuário por cima dos padrões.
     function effective(overrides: var): var {
         const own = overrides ?? {};
-        return defaults.map(d => ({ id: d.id, keys: own[d.id] ?? d.keys, custom: own[d.id] !== undefined }));
+        return defaults.map(d => {
+            const mine = own[d.id] ?? own[renamed[d.id]];
+            return { id: d.id, keys: mine ?? d.keys, custom: mine !== undefined };
+        });
     }
 
     function defaultKeys(id: string): var {

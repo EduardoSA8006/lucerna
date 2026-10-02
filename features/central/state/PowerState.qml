@@ -18,6 +18,7 @@ Singleton {
     readonly property bool hasBattery: Battery.available
     readonly property real percentage: Battery.percentage
     readonly property bool charging: Battery.charging
+    readonly property bool low: Battery.isLow
     // Embaixo da porcentagem: carregada, carregando ou o tempo restante.
     readonly property string batteryNote: Battery.full ? "Carregada" : Battery.charging ? "Carregando" : Battery.timeRemaining > 0 ? Format.duration(Battery.timeRemaining) : ""
 

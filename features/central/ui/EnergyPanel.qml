@@ -55,7 +55,7 @@ CentralPanel {
                     width: parent.width
                     height: 10
                     value: PowerState.percentage
-                    color: PowerState.charging ? ThemeManager.colors.success : PowerState.percentage < 0.15 ? ThemeManager.colors.danger : ThemeManager.colors.accent
+                    color: PowerState.charging ? ThemeManager.colors.success : PowerState.low ? ThemeManager.colors.danger : ThemeManager.colors.accent
                 }
             }
         }
@@ -67,19 +67,21 @@ CentralPanel {
             width: parent.width
             spacing: ThemeManager.spacing.small
 
+            // Pela quantidade, como os outros botões: cada um lê o seu perfil.
             Repeater {
-                model: PowerState.profileButtons
+                model: PowerState.profileButtons.length
 
                 delegate: ToggleButton {
                     id: profile
 
-                    required property var modelData
+                    required property int index
+                    readonly property var item: PowerState.profileButtons[profile.index] ?? null
 
                     width: (profiles.width - profiles.spacing * (PowerState.profileButtons.length - 1)) / PowerState.profileButtons.length
                     height: 44
-                    icon: profile.modelData.icon
-                    checked: profile.modelData.value === PowerState.profile
-                    onClicked: PowerState.setProfile(profile.modelData.value)
+                    icon: profile.item?.icon ?? ""
+                    checked: profile.item?.value === PowerState.profile
+                    onClicked: PowerState.setProfile(profile.item?.value ?? PowerState.profile)
                 }
             }
         }
