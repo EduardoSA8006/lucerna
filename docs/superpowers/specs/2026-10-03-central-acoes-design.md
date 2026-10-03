@@ -53,7 +53,7 @@ Decisões do usuário:
 | Wi-Fi | o `WifiState.summary` de hoje: o nome da rede, "Não conectado", "Cabo", "Desligado" ou "Bloqueado" | sem placa Wi-Fi (vira "Rede", com o estado da conexão cabeada, sem página e sem clique — como hoje) |
 | Bluetooth | o `summary` de hoje: o dispositivo conectado, "N conectados", "Ligado" ou "Desligado" | sem adaptador |
 | Saída de áudio | o nome do dispositivo de saída | sem saída de áudio |
-| Bateria | `78% · 1 h 52 min` (sem estimativa, só `78%`), `40% · Carregando` ou `100% · Carregada`; sem bateria, vira "Energia" com o nome do perfil atual ("Economia", "Equilibrado", "Desempenho"; nomes novos no `PowerState`) ou, sem perfil, "N dispositivos" | `PowerState.any` falso (sem bateria, sem perfil e sem dispositivo BT com bateria) |
+| Bateria | `78% · 1 h 52 min` (sem estimativa, só `78%`), `40% · Carregando` ou `100% · Carregada`; sem bateria, vira "Energia" com o nome do perfil atual ("Economia", "Equilibrado", "Turbo"; os nomes vêm de `Battery.profileNames`) ou, sem perfil, "N dispositivos" | `PowerState.any` falso (sem bateria, sem perfil e sem dispositivo BT com bateria) |
 | Microfone | o nome da entrada, ou "Mudo" | sem entrada |
 | Luz noturna | "Ligada" / "Desligada" | sem o hyprsunset (`NightLight.available`), como hoje |
 | Não perturbe | "Ligado" / "Desligado" | — |
@@ -76,7 +76,7 @@ A setinha (ou o corpo, nos tiles sem liga/desliga) troca **o card inteiro**, til
 - **Bluetooth:** como hoje (procurar, pareados e disponíveis, conectar, desconectar, esquecer).
 - **Saída de áudio:** a lista de saídas (a atual marcada) e, embaixo, o volume de cada app com áudio aberto (ícone do app, slider, porcentagem; o nome só na falta do ícone; clicar no ícone silencia o app) — o conteúdo do painel de Som de hoje.
 - **Microfone:** o volume do microfone num `PillSlider` (com o mudo no ícone) e a lista de entradas.
-- **Bateria:** o conteúdo do painel de Energia de hoje: a porcentagem grande com o tempo (ou "Carregando"/"Carregada") e a barra; os botões de perfil (o atual cheio); as baterias dos dispositivos Bluetooth. Sem bateria, só o que existir.
+- **Bateria:** reformulada em `.superpowers/sdd/2026-10-03-bateria/design.md`: o card em forma de bateria, cheio até a carga na cor dela, com a porcentagem e o tempo (ou "Carregando"/"Carregada") por cima; os perfis em botões de texto (o atual cheio); o consumo da última hora num gráfico (o histórico do UPower); as baterias dos dispositivos Bluetooth. Sem bateria, só o que existir.
 
 Fechar a central volta tudo ao estado inicial na próxima abertura (como hoje: página, senha e erro do Wi-Fi zerados).
 
