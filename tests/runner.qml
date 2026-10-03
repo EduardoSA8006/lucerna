@@ -16,6 +16,7 @@ import qs.core.input
 import qs.core.launcher
 import qs.core.nightlight
 import qs.core.panels
+import qs.core.shapes
 import qs.core.theme
 import qs.core.time
 import qs.features.central.state
@@ -25,6 +26,7 @@ import "appinfo.test.js" as AppInfoTest
 import "audio.test.js" as AudioTest
 import "audiostreams.test.js" as AudioStreamsTest
 import "battery.test.js" as BatteryTest
+import "blobshapes.test.js" as BlobShapesTest
 import "bluetooth.test.js" as BluetoothTest
 import "brightness.test.js" as BrightnessTest
 import "capture.test.js" as CaptureTest
@@ -65,6 +67,7 @@ ShellRoot {
         ["sun", SunTest],
         ["format", FormatTest],
         ["carousel", CarouselTest],
+        ["blobshapes", BlobShapesTest],
         ["shellshortcuts", ShellShortcutsTest],
         ["inputactions", InputActionsTest],
         ["nightschedule", NightScheduleTest],
@@ -165,6 +168,7 @@ ShellRoot {
             get Config() { return Config; },
             get Format() { return Format; },
             get Carousel() { return Carousel; },
+            get BlobShapes() { return BlobShapes; },
             get InputActions() { return InputActions; },
             get ShellShortcuts() { return ShellShortcuts; },
             get SearchEngines() { return SearchEngines; },

@@ -1,11 +1,13 @@
 import QtQuick
 import QtQuick.Shapes
+import qs.core.shapes
 import qs.core.theme
 
 // Forma orgânica de "lobos" (tipo biscoito ou flor), desenhada com curva polar:
 // r(θ) = raio · (1 + amplitude · cos(lobos · θ)). Substitui o qt6-m3shapes com
 // recursos do próprio Qt. `pulse` (0 a 1) infla os lobos, para reagir ao áudio;
-// `spinning` gira devagar.
+// `spinning` gira devagar. Com `morphing`, ignora `lobes` e `amplitude`: a cada
+// ~6 s vira outra forma de BlobShapes.shapes, misturando as duas curvas em ~1,2 s.
 Item {
     id: root
 
@@ -15,7 +17,13 @@ Item {
     property color color: ThemeManager.colors.raised
     property bool spinning: false
     property real spinDuration: 24000
+    property bool morphing: false
     readonly property int steps: 144
+
+    // A mistura: de shapes[shapeFrom] (morph = 0) para shapes[shapeTo] (morph = 1).
+    property int shapeFrom: 0
+    property int shapeTo: 0
+    property real morph: 0
 
     property real animatedPulse: pulse
 
@@ -25,16 +33,36 @@ Item {
     implicitHeight: 100
 
     readonly property var points: {
-        const cx = width / 2, cy = height / 2;
-        const a = amplitude + animatedPulse * 0.08;
-        const r = Math.min(width, height) / 2 / (1 + a);
-        const out = [];
-        for (let i = 0; i <= steps; i++) {
-            const t = i / steps * Math.PI * 2;
-            const rr = r * (1 + a * Math.cos(lobes * t));
-            out.push(Qt.point(cx + rr * Math.cos(t), cy + rr * Math.sin(t)));
+        const extra = animatedPulse * 0.08;
+        const grow = s => ({ lobes: s.lobes, amplitude: s.amplitude + extra });
+        const a = morphing ? BlobShapes.shapes[shapeFrom] : { lobes: lobes, amplitude: amplitude };
+        const b = morphing ? BlobShapes.shapes[shapeTo] : a;
+        return BlobShapes.outline(width, height, grow(a), grow(b), morph, steps);
+    }
+
+    // A troca começa da forma em que a anterior parou (shapeFrom = shapeTo e
+    // morph = 0 dão a mesma curva), sem salto.
+    Timer {
+        interval: 6000
+        running: root.morphing && root.visible
+        repeat: true
+        onTriggered: {
+            root.shapeFrom = root.shapeTo;
+            root.morph = 0;
+            root.shapeTo = BlobShapes.next(root.shapeTo, BlobShapes.shapes.length, Math.random());
+            morphAnim.restart();
         }
-        return out;
+    }
+
+    NumberAnimation {
+        id: morphAnim
+
+        target: root
+        property: "morph"
+        from: 0
+        to: 1
+        duration: 1200 * ThemeManager.anim.scale
+        easing.type: Easing.InOutCubic
     }
 
     Shape {
