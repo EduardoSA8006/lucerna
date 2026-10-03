@@ -42,7 +42,7 @@
 #   dev/test.sh see $p panels open launcher
 #   dev/test.sh see $p launcher open files ""
 #   for tab in overview media performance weather; do dev/test.sh see $p dashboard open "$tab"; done
-#   for e in "" rede bluetooth som notificacoes energia; do dev/test.sh see $p central open "$e"; done
+#   for e in "" rede bluetooth som energia microfone notificacoes; do dev/test.sh see $p central open "$e"; done
 #   for t in appearance wallpaper displays idle nightlight launcher clipboard capture mouse keyboard glass \
 #       notifications panels bar dashboard power shortcuts about; do dev/test.sh see $p settings open "$t"; done
 #   dev/test.sh see $p panels open themes

@@ -202,7 +202,9 @@ step launcher launcher open files ""
 for tab in overview media performance weather; do
     step dashboard dashboard open "$tab"
 done
-for entry in "" rede bluetooth som notificacoes energia; do
+# Cada entrada abre a página do recurso (Wi-Fi, Bluetooth, saída de áudio,
+# bateria, microfone); sem o recurso, como no CI, o estado inicial.
+for entry in "" rede bluetooth som energia microfone notificacoes; do
     step central central open "$entry"
 done
 step central central toggle som
