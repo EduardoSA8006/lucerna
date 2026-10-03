@@ -26,7 +26,6 @@ Singleton {
     property int cpuThreads: 0
     property real cpuUsage: 0
     property real cpuTemp: NaN
-    property var cpuHistory: []
 
     // Memória, em bytes
     property real memTotal: 0
@@ -82,7 +81,6 @@ Singleton {
         const total = fields.reduce((a, b) => a + b, 0);
         if (lastCpu && total > lastCpu.total) {
             cpuUsage = Math.max(0, Math.min(1, 1 - (idle - lastCpu.idle) / (total - lastCpu.total)));
-            cpuHistory = push(cpuHistory, cpuUsage);
         }
         lastCpu = { idle: idle, total: total };
     }

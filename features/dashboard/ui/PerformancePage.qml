@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Widgets
 import qs.core.format
 import qs.core.theme
 import qs.core.widgets
@@ -41,62 +42,67 @@ Item {
             Layout.fillWidth: true
             spacing: ThemeManager.spacing.normal
 
-            // CPU: modelo, temperatura, histórico e o uso numa forma orgânica.
+            // CPU: o card coberto da esquerda até o uso por um véu claro (a
+            // cor do texto, bem transparente), com o modelo, a temperatura e o
+            // uso por cima; a bolha atrás da % muda de forma.
             Surface {
+                id: cpuCard
+
                 Layout.fillWidth: true
                 Layout.preferredHeight: 156
-                clip: true
 
-                Sparkline {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    height: 70
-                    values: PerformanceState.cpuHistory
-                    maxValue: 1
-                    color: ThemeManager.alpha(ThemeManager.colors.accent, 0.5)
+                // O véu, recortado no formato do card, dentro da borda.
+                ClippingRectangle {
+                    anchors.fill: parent
+                    anchors.margins: cpuCard.border.width
+                    radius: cpuCard.radius - cpuCard.border.width
+                    color: "transparent"
+
+                    Rectangle {
+                        width: parent.width * Math.max(0, Math.min(1, cpuNumber.shown))
+                        height: parent.height
+                        color: ThemeManager.alpha(ThemeManager.colors.text, 0.1)
+                    }
+                }
+
+                Row {
+                    x: ThemeManager.spacing.normal + 2
+                    y: ThemeManager.spacing.normal + 2
+                    width: usage.x - x - ThemeManager.spacing.normal
+                    spacing: ThemeManager.spacing.small
+
+                    Icon {
+                        id: cpuIcon
+
+                        anchors.verticalCenter: parent.verticalCenter
+                        icon: Icons.cpu
+                        size: 18
+                        color: ThemeManager.colors.accent
+                    }
+
+                    Txt {
+                        id: cpuTitle
+
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "CPU"
+                        font.pixelSize: ThemeManager.font.large
+                        font.weight: Font.DemiBold
+                    }
+
+                    Txt {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: parent.width - cpuIcon.width - cpuTitle.width - parent.spacing * 2
+                        text: [PerformanceState.cpuModel, PerformanceState.cpuThreads].filter(x => x).join(" · ")
+                        muted: true
+                        font.pixelSize: ThemeManager.font.small + 1
+                    }
                 }
 
                 Column {
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.margins: ThemeManager.spacing.normal + 2
+                    x: ThemeManager.spacing.normal + 2
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: ThemeManager.spacing.normal + 2
                     spacing: ThemeManager.spacing.small
-
-                    Row {
-                        spacing: ThemeManager.spacing.normal
-
-                        CircularGauge {
-                            width: 44
-                            height: 44
-                            thickness: 4
-                            value: PerformanceState.cpuUsage
-
-                            Icon {
-                                anchors.centerIn: parent
-                                icon: Icons.cpu
-                                size: 18
-                                color: ThemeManager.colors.accent
-                            }
-                        }
-
-                        Column {
-                            anchors.verticalCenter: parent.verticalCenter
-
-                            Txt {
-                                text: "CPU"
-                                color: ThemeManager.colors.accent
-                                font.pixelSize: ThemeManager.font.large
-                                font.weight: Font.DemiBold
-                            }
-
-                            Txt {
-                                text: [PerformanceState.cpuModel, PerformanceState.cpuThreads].filter(x => x).join(" · ")
-                                muted: true
-                                font.pixelSize: ThemeManager.font.small + 1
-                            }
-                        }
-                    }
 
                     Row {
                         spacing: ThemeManager.spacing.small
@@ -122,41 +128,39 @@ Item {
                     }
                 }
 
-                Column {
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.rightMargin: ThemeManager.spacing.large
-                    spacing: 2
+                Txt {
+                    anchors.horizontalCenter: usage.horizontalCenter
+                    anchors.bottom: usage.top
+                    text: "Uso"
+                    muted: true
+                    font.pixelSize: ThemeManager.font.small + 1
+                }
 
-                    Txt {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "Uso"
-                        muted: true
-                        font.pixelSize: ThemeManager.font.small + 1
+                Item {
+                    id: usage
+
+                    anchors.right: parent.right
+                    anchors.rightMargin: ThemeManager.spacing.large + 4
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.verticalCenterOffset: 8
+                    width: 64
+                    height: 64
+
+                    Blob {
+                        anchors.fill: parent
+                        morphing: true
+                        pulse: PerformanceState.cpuUsage
+                        color: ThemeManager.colors.track
+                        spinning: true
+                        spinDuration: 30000
                     }
 
-                    Item {
-                        width: 96
-                        height: 96
-
-                        Blob {
-                            anchors.fill: parent
-                            lobes: 7
-                            amplitude: 0.05
-                            pulse: PerformanceState.cpuUsage
-                            color: ThemeManager.colors.track
-                            spinning: true
-                            spinDuration: 30000
-                        }
-
-                        Txt {
-                            anchors.centerIn: parent
-                            text: Format.percent(cpuNumber.shown)
-                            mono: true
-                            color: ThemeManager.colors.accent
-                            font.pixelSize: ThemeManager.font.large + 6
-                            font.weight: Font.DemiBold
-                        }
+                    Txt {
+                        anchors.centerIn: parent
+                        text: Format.percent(cpuNumber.shown)
+                        mono: true
+                        font.pixelSize: ThemeManager.font.large + 10
+                        font.weight: Font.DemiBold
                     }
                 }
             }

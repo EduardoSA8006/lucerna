@@ -3,16 +3,15 @@
 function run(t) {
     const S = t.SystemStats;
 
-    // Nenhuma das funções abaixo é pura: parseStat grava lastCpu/cpuHistory/
-    // cpuUsage; parseMeminfo grava memTotal/memUsed/swapTotal/swapUsed;
-    // parseNetdev grava rxTotal/txTotal/lastNet; parseCpuinfo grava cpuModel/
-    // cpuThreads; pickTempSensor grava tempPath; parseGpus grava gpus; parseDf
-    // grava disks. Guarda o estado de antes para restaurar no fim (a suíte
-    // roda no mesmo processo que as seguintes, e o singleton pode já ter
-    // valores reais lidos pelo FileView antes deste teste rodar).
+    // Nenhuma das funções abaixo é pura: parseStat grava lastCpu/cpuUsage;
+    // parseMeminfo grava memTotal/memUsed/swapTotal/swapUsed; parseNetdev
+    // grava rxTotal/txTotal/lastNet; parseCpuinfo grava cpuModel/cpuThreads;
+    // pickTempSensor grava tempPath; parseGpus grava gpus; parseDf grava
+    // disks. Guarda o estado de antes para restaurar no fim (a suíte roda no
+    // mesmo processo que as seguintes, e o singleton pode já ter valores reais
+    // lidos pelo FileView antes deste teste rodar).
     const original = {
         lastCpu: S.lastCpu,
-        cpuHistory: S.cpuHistory,
         cpuUsage: S.cpuUsage,
         memTotal: S.memTotal,
         memUsed: S.memUsed,
@@ -37,12 +36,10 @@ function run(t) {
 
     t.test("systemstats: uso de CPU entre duas leituras do /proc/stat", () => {
         S.lastCpu = null;
-        S.cpuHistory = [];
         S.parseStat("cpu  100 0 100 700 100 0 0 0 0 0\ncpu0 1 2 3 4\n");
         t.eq(S.lastCpu, { idle: 800, total: 1000 });
         S.parseStat("cpu  200 0 200 1300 300 0 0 0 0 0\n");
         t.near(S.cpuUsage, 0.2, 1e-9);
-        t.eq(S.cpuHistory.length, 1);
     });
 
     t.test("systemstats: memória e swap do /proc/meminfo", () => {
@@ -94,7 +91,6 @@ function run(t) {
     });
 
     S.lastCpu = original.lastCpu;
-    S.cpuHistory = original.cpuHistory;
     S.cpuUsage = original.cpuUsage;
     S.memTotal = original.memTotal;
     S.memUsed = original.memUsed;
@@ -110,7 +106,7 @@ function run(t) {
     S.disks = original.disks;
 
     t.test("systemstats: estado original restaurado", () => {
-        t.eq([S.lastCpu, S.cpuHistory, S.cpuUsage, S.memTotal, S.memUsed, S.swapTotal, S.swapUsed, S.rxTotal, S.txTotal, S.lastNet, S.cpuModel, S.cpuThreads, S.tempPath, S.gpus, S.disks],
-             [original.lastCpu, original.cpuHistory, original.cpuUsage, original.memTotal, original.memUsed, original.swapTotal, original.swapUsed, original.rxTotal, original.txTotal, original.lastNet, original.cpuModel, original.cpuThreads, original.tempPath, original.gpus, original.disks]);
+        t.eq([S.lastCpu, S.cpuUsage, S.memTotal, S.memUsed, S.swapTotal, S.swapUsed, S.rxTotal, S.txTotal, S.lastNet, S.cpuModel, S.cpuThreads, S.tempPath, S.gpus, S.disks],
+             [original.lastCpu, original.cpuUsage, original.memTotal, original.memUsed, original.swapTotal, original.swapUsed, original.rxTotal, original.txTotal, original.lastNet, original.cpuModel, original.cpuThreads, original.tempPath, original.gpus, original.disks]);
     });
 }

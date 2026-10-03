@@ -15,7 +15,6 @@ Singleton {
     readonly property string cpuThreads: SystemStats.cpuThreads ? `${SystemStats.cpuThreads} threads` : ""
     readonly property real cpuUsage: SystemStats.cpuUsage
     readonly property string cpuUsageText: Format.percent(cpuUsage)
-    readonly property var cpuHistory: SystemStats.cpuHistory
     readonly property bool hasTemp: isFinite(SystemStats.cpuTemp)
     readonly property string cpuTempText: hasTemp ? `${Math.round(SystemStats.cpuTemp)} °C` : "—"
     // Escala de 30 a 100 °C para a barra de temperatura.
