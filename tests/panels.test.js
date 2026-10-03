@@ -83,6 +83,8 @@ function run(t) {
             t.eq([P.opened, P.centralEntry], [["central"], "rede"]);
             P.openCentral("som");
             t.eq([P.opened, P.centralEntry], [["central"], "som"], "outra entrada troca, aberta");
+            P.openCentral("microfone");
+            t.eq(P.centralEntry, "microfone", "a entrada só do IPC");
             P.openCentral("sound");
             t.eq(P.centralEntry, "", "entrada desconhecida vale como a vazia");
             P.close();

@@ -173,11 +173,12 @@ Singleton {
         return opened.includes(name);
     }
 
-    // Central: os quatro painéis (som, energia, controles e notificações). A
-    // entrada diz por onde ela abriu e o que já vem aberto: "rede" (a lista de
-    // redes), "bluetooth" (os dispositivos), "som", "notificacoes" e "energia"
-    // (o estado inicial); "" é o atalho e o IPC sem entrada.
-    readonly property var centralEntries: ["rede", "bluetooth", "som", "notificacoes", "energia"]
+    // Central: os dois painéis (ações e notificações). A entrada diz por onde
+    // ela abriu e qual página do painel de ações já vem aberta: "rede" (o
+    // Wi-Fi), "bluetooth", "som" (a saída de áudio), "energia" (a bateria) e
+    // "microfone" (só pelo IPC); "notificacoes" e "" (o atalho e o IPC sem
+    // entrada) abrem o estado inicial.
+    readonly property var centralEntries: ["rede", "bluetooth", "som", "notificacoes", "energia", "microfone"]
     property string centralEntry: ""
 
     // A cada abertura ou troca de entrada, com a entrada que valeu.
