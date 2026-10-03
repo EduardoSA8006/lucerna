@@ -5,11 +5,12 @@ import qs.core.theme
 import qs.core.widgets
 import qs.features.central.state
 
-// Central: quatro painéis flutuantes sobre a área de trabalho, sem escurecer a
-// tela, que abrem e fecham juntos. À esquerda, som e energia; à direita,
-// controles e, embaixo deles, as notificações, na altura que sobra. Cada
-// painel entra deslizando do seu lado, em cascata; a saída é de todos juntos,
-// mais rápida. Esc ou o clique fora de todos os painéis fecham.
+// Central: dois painéis flutuantes na direita, sobre a área de trabalho, sem
+// escurecer a tela, que abrem e fecham juntos: as ações em cima (na altura do
+// conteúdo, até deixar o mínimo das notificações) e as notificações embaixo,
+// na altura que sobra. Cada painel entra deslizando da direita, em cascata; a
+// saída é dos dois juntos, mais rápida. Esc ou o clique fora dos painéis
+// fecham.
 OverlayPanel {
     id: panel
 
@@ -21,11 +22,13 @@ OverlayPanel {
     keepBar: true
     onDismissed: CentralState.close()
 
-    // Distância das bordas da tela e entre os dois painéis de uma coluna.
+    // Distância das bordas da tela e entre os dois painéis.
     readonly property real margin: ThemeManager.spacing.large
     readonly property real gap: ThemeManager.spacing.normal
+    // Altura mínima das notificações.
+    readonly property real inboxMin: 160
     // Os painéis, para a entrada e a saída.
-    readonly property var panels: [sound, controls, energy, inbox]
+    readonly property var panels: [actions, inbox]
 
     onOpenChanged: {
         for (const p of panels) {
@@ -44,47 +47,23 @@ OverlayPanel {
         id: focusSink
     }
 
-    SoundPanel {
-        id: sound
+    ActionsPanel {
+        id: actions
 
-        leftSide: true
         order: 0
         margin: panel.margin
         areaWidth: panel.width
         y: CentralState.top
-        maxHeight: Math.max(0, panel.height - y - panel.margin - (energy.present ? energy.height + panel.gap : 0))
-    }
-
-    EnergyPanel {
-        id: energy
-
-        leftSide: true
-        order: 2
-        margin: panel.margin
-        areaWidth: panel.width
-        y: sound.present ? sound.y + sound.height + panel.gap : CentralState.top
-    }
-
-    ControlsPanel {
-        id: controls
-
-        leftSide: false
-        order: 1
-        margin: panel.margin
-        areaWidth: panel.width
-        y: CentralState.top
-        // Em tela baixa, a lista encurta e sobra lugar para as notificações.
-        maxListHeight: Math.min(360, panel.height * 0.35)
+        maxHeight: Math.max(0, panel.height - y - panel.margin - panel.gap - panel.inboxMin)
     }
 
     InboxPanel {
         id: inbox
 
-        leftSide: false
-        order: 3
+        order: 1
         margin: panel.margin
         areaWidth: panel.width
-        y: controls.y + controls.height + panel.gap
+        y: actions.y + actions.height + panel.gap
         height: Math.max(0, panel.height - y - panel.margin)
     }
 }

@@ -74,7 +74,7 @@ Column {
         SettingRow {
             icon: "coffee"
             title: "Não apagar a tela"
-            description: "Segura tudo até ser desligado, por exemplo numa apresentação. Também nos botões da central"
+            description: "Segura tudo até ser desligado, por exemplo numa apresentação. Também no tile da central"
             dimmed: !Config.idleEnabled
 
             Switch {

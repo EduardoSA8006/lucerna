@@ -2,21 +2,19 @@ import QtQuick
 import qs.core.theme
 import qs.core.widgets
 
-// Um dos quatro painéis da central: o vidro dos painéis do shell, 400 px de
-// largura, colado na borda do seu lado (`leftSide`) a `margin` dela. Entra
-// deslizando desse lado, com um atraso pela ordem (`order`: 40 ms por passo,
-// na escala das animações), e sai junto com os outros, mais rápido.
-// `present` falso esconde o painel (nada a mostrar). Os filhos vão para
-// dentro da margem interna (`padding`).
+// Um dos dois painéis da central: o vidro dos painéis do shell, `panelWidth`
+// de largura, colado na borda direita a `margin` dela. Entra deslizando da
+// direita, com um atraso pela ordem (`order`: 40 ms por passo, na escala das
+// animações), e sai junto com o outro, mais rápido. Os filhos vão para dentro
+// da margem interna (`padding`).
 Surface {
     id: root
 
-    required property bool leftSide
     required property int order
     required property real margin
     // Largura da tela, para colar na borda direita.
     required property real areaWidth
-    property bool present: true
+    property real panelWidth: 440
     // Entrada e saída (0 → 1), animadas por enter() e leave().
     property real shown: 0
     readonly property real padding: ThemeManager.spacing.normal
@@ -24,11 +22,11 @@ Surface {
     default property alias content: body.data
 
     level: 0
-    width: 400
+    width: panelWidth
     radius: ThemeManager.radius.large
-    visible: present && shown > 0
+    visible: shown > 0
     opacity: Math.min(1, shown)
-    x: leftSide ? margin - (1 - shown) * travel : areaWidth - width - margin + (1 - shown) * travel
+    x: areaWidth - width - margin + (1 - shown) * travel
 
     function enter(): void {
         // Reaberta na saída, segue de onde está; senão, entra do zero.

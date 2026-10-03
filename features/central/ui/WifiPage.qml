@@ -5,20 +5,18 @@ import qs.core.theme
 import qs.core.widgets
 import qs.features.central.state
 
-// Wi-Fi no card de controles da central: voltar, o título e o liga/desliga no
-// topo; embaixo, as redes, que rolam dentro de `maxListHeight`. Clicar numa
-// rede protegida e desconhecida abre o campo de senha ali mesmo.
+// Página do Wi-Fi no painel de ações da central: voltar, o título e o
+// liga/desliga no topo; embaixo, as redes (o card rola, se passar da altura).
+// Clicar numa rede protegida e desconhecida abre o campo de senha ali mesmo.
 Column {
     id: root
-
-    property real maxListHeight: 360
 
     width: parent?.width ?? 0
     spacing: ThemeManager.spacing.small
 
     PageHeader {
         title: "Wi-Fi"
-        onBack: CentralState.setControlsPage("")
+        onBack: CentralState.setPage("")
 
         Switch {
             visible: WifiState.available
@@ -49,117 +47,109 @@ Column {
         text: "Procurando redes…"
     }
 
-    Flickable {
+    Column {
+        id: networks
+
         width: root.width
-        height: Math.min(networks.implicitHeight, root.maxListHeight)
         visible: WifiState.enabled && !WifiState.hardwareBlocked && WifiState.networks.length > 0
-        contentHeight: networks.implicitHeight
-        boundsBehavior: Flickable.StopAtBounds
-        clip: true
+        spacing: 2
 
-        Column {
-            id: networks
+        Repeater {
+            model: WifiState.networks
 
-            width: root.width
-            spacing: 2
+            delegate: Column {
+                id: entry
 
-            Repeater {
-                model: WifiState.networks
+                required property var modelData
+                readonly property bool open: WifiState.expanded === entry.modelData.network
 
-                delegate: Column {
-                    id: entry
+                width: parent?.width ?? 0
+                spacing: 4
 
-                    required property var modelData
-                    readonly property bool open: WifiState.expanded === entry.modelData.network
+                ListRow {
+                    id: row
 
-                    width: parent?.width ?? 0
-                    spacing: 4
+                    icon: entry.modelData.icon
+                    title: entry.modelData.name
+                    detail: entry.modelData.connected ? "Conectada" : entry.modelData.busy ? "Conectando…" : entry.modelData.known ? "Salva" : entry.modelData.secure ? "Protegida" : "Aberta"
+                    lit: entry.modelData.connected
+                    busy: entry.modelData.busy
+                    onClicked: WifiState.activate(entry.modelData)
 
-                    ListRow {
-                        id: row
+                    Icon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: entry.modelData.secure
+                        icon: Icons.lock
+                        size: 16
+                        color: ThemeManager.colors.textFaint
+                    }
 
-                        icon: entry.modelData.icon
-                        title: entry.modelData.name
-                        detail: entry.modelData.connected ? "Conectada" : entry.modelData.busy ? "Conectando…" : entry.modelData.known ? "Salva" : entry.modelData.secure ? "Protegida" : "Aberta"
-                        lit: entry.modelData.connected
-                        busy: entry.modelData.busy
-                        onClicked: WifiState.activate(entry.modelData)
+                    IconButton {
+                        visible: entry.modelData.known && row.hovered
+                        icon: Icons.trash
+                        iconSize: 18
+                        foreground: ThemeManager.colors.textMuted
+                        onClicked: WifiState.forget(entry.modelData)
+                    }
+                }
 
-                        Icon {
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: entry.modelData.secure
-                            icon: Icons.lock
-                            size: 16
-                            color: ThemeManager.colors.textFaint
-                        }
+                // Senha, para redes protegidas ainda não salvas.
+                Item {
+                    width: parent.width
+                    height: entry.open ? 52 : 0
+                    clip: true
+                    visible: height > 0
 
-                        IconButton {
-                            visible: entry.modelData.known && row.hovered
-                            icon: Icons.trash
-                            iconSize: 18
-                            foreground: ThemeManager.colors.textMuted
-                            onClicked: WifiState.forget(entry.modelData)
+                    Behavior on height { Anim { type: Anim.FastSpatial } }
+
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.right: connect.left
+                        anchors.rightMargin: ThemeManager.spacing.small
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.leftMargin: ThemeManager.spacing.small
+                        height: 42
+                        radius: 21
+                        color: ThemeManager.alpha(ThemeManager.colors.text, 0.06)
+                        border.width: password.activeFocus ? 2 : 0
+                        border.color: ThemeManager.colors.accent
+
+                        TextInput {
+                            id: password
+
+                            anchors.fill: parent
+                            anchors.leftMargin: ThemeManager.spacing.normal + 2
+                            anchors.rightMargin: ThemeManager.spacing.normal
+                            verticalAlignment: TextInput.AlignVCenter
+                            echoMode: TextInput.Password
+                            color: ThemeManager.colors.text
+                            font.family: ThemeManager.font.sans
+                            font.pixelSize: ThemeManager.font.normal
+                            clip: true
+                            onAccepted: WifiState.submitPassword(entry.modelData, text)
+
+                            Txt {
+                                anchors.verticalCenter: parent.verticalCenter
+                                visible: !password.text
+                                text: "Senha"
+                                faint: true
+                            }
                         }
                     }
 
-                    // Senha, para redes protegidas ainda não salvas.
-                    Item {
-                        width: parent.width
-                        height: entry.open ? 52 : 0
-                        clip: true
-                        visible: height > 0
+                    TonalButton {
+                        id: connect
 
-                        Behavior on height { Anim { type: Anim.FastSpatial } }
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Conectar"
+                        onClicked: WifiState.submitPassword(entry.modelData, password.text)
+                    }
 
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.right: connect.left
-                            anchors.rightMargin: ThemeManager.spacing.small
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.leftMargin: ThemeManager.spacing.small
-                            height: 42
-                            radius: 21
-                            color: ThemeManager.alpha(ThemeManager.colors.text, 0.06)
-                            border.width: password.activeFocus ? 2 : 0
-                            border.color: ThemeManager.colors.accent
-
-                            TextInput {
-                                id: password
-
-                                anchors.fill: parent
-                                anchors.leftMargin: ThemeManager.spacing.normal + 2
-                                anchors.rightMargin: ThemeManager.spacing.normal
-                                verticalAlignment: TextInput.AlignVCenter
-                                echoMode: TextInput.Password
-                                color: ThemeManager.colors.text
-                                font.family: ThemeManager.font.sans
-                                font.pixelSize: ThemeManager.font.normal
-                                clip: true
-                                onAccepted: WifiState.submitPassword(entry.modelData, text)
-
-                                Txt {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    visible: !password.text
-                                    text: "Senha"
-                                    faint: true
-                                }
-                            }
-                        }
-
-                        TonalButton {
-                            id: connect
-
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "Conectar"
-                            onClicked: WifiState.submitPassword(entry.modelData, password.text)
-                        }
-
-                        onVisibleChanged: {
-                            if (visible) {
-                                password.text = "";
-                                password.forceActiveFocus();
-                            }
+                    onVisibleChanged: {
+                        if (visible) {
+                            password.text = "";
+                            password.forceActiveFocus();
                         }
                     }
                 }

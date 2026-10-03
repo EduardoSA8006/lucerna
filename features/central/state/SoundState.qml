@@ -5,9 +5,9 @@ import Quickshell
 import qs.core.widgets
 import qs.services
 
-// View model do painel de som da central: saída e entrada (o dispositivo, o
-// volume, o mudo e a lista para trocar) e o volume de cada app com áudio
-// aberto.
+// View model do som da central (o slider de volume, os tiles de saída e de
+// microfone e as páginas deles): saída e entrada (o dispositivo, o volume, o
+// mudo e a lista para trocar) e o volume de cada app com áudio aberto.
 Singleton {
     id: root
 
@@ -29,9 +29,6 @@ Singleton {
     // é o ícone do app no tema de ícones ("" se não houver). Sem nome, vale
     // o de reserva.
     readonly property var streams: AudioStreams.list.map(s => Object.assign({ image: s.icon ? Quickshell.iconPath(s.icon, true) : "" }, s, { name: s.name || "Aplicativo" }))
-
-    // O painel aparece com algo a mostrar.
-    readonly property bool any: available || hasMic || streams.length > 0
 
     function setVolume(v: real): void {
         Audio.setVolume(v);

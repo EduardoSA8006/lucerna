@@ -13,10 +13,11 @@ Singleton {
     readonly property bool enabled: Network.wifiEnabled
     readonly property bool hardwareBlocked: !Network.wifiHardwareEnabled
     readonly property bool wired: Network.kind === "wired"
-    // Card de controles: o nome da rede, "Cabo" (no cabo, sem Wi-Fi
-    // conectado) ou o estado; o ícone e se há conexão.
+    // Tile das ações: o nome da rede, "Cabo" (no cabo, sem Wi-Fi conectado)
+    // ou o estado; sem placa Wi-Fi, o tile "Rede" diz "Cabo" ou
+    // "Desconectado". O ícone e se há conexão.
     readonly property bool connected: Network.wifiNetwork !== null || wired
-    readonly property string summary: Network.wifiNetwork ? Network.wifiNetwork.name : wired ? "Cabo" : !available ? "Sem placa Wi-Fi" : hardwareBlocked ? "Bloqueado" : !enabled ? "Desligado" : "Não conectado"
+    readonly property string summary: Network.wifiNetwork ? Network.wifiNetwork.name : wired ? "Cabo" : !available ? "Desconectado" : hardwareBlocked ? "Bloqueado" : !enabled ? "Desligado" : "Não conectado"
     readonly property string icon: Network.wifiNetwork ? Icons.level(Icons.wifi, Network.signal) : wired ? Icons.ethernet : !available || !enabled || hardwareBlocked ? Icons.wifiOff : Icons.wifi[0]
 
     readonly property var networks: Network.wifiNetworks.map(n => ({

@@ -14,7 +14,7 @@ Singleton {
     readonly property bool available: Bluetooth.available
     readonly property bool enabled: Bluetooth.enabled
     property bool searching: false
-    // Card de controles: o dispositivo conectado (ou quantos), ou o estado; o
+    // Tile das ações: o dispositivo conectado (ou quantos), ou o estado; o
     // ícone e se há algum conectado.
     readonly property bool connected: Bluetooth.connected.length > 0
     readonly property string summary: !available ? "Sem adaptador" : !enabled ? "Desligado" : Bluetooth.connected.length === 1 ? (Bluetooth.connected[0].name || Bluetooth.connected[0].address) : connected ? `${Bluetooth.connected.length} conectados` : "Ligado"
@@ -35,7 +35,7 @@ Singleton {
     }
 
     // Parar de procurar ao sair da página.
-    readonly property bool showing: CentralState.open && CentralState.controlsPage === "bluetooth"
+    readonly property bool showing: CentralState.open && CentralState.page === "bluetooth"
     onShowingChanged: {
         if (!showing)
             searching = false;

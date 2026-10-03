@@ -5,20 +5,18 @@ import qs.core.theme
 import qs.core.widgets
 import qs.features.central.state
 
-// Bluetooth no card de controles da central: voltar, o título e o
+// Página do Bluetooth no painel de ações da central: voltar, o título e o
 // liga/desliga no topo; embaixo, procurar, os pareados e, procurando, os
-// disponíveis, que rolam dentro de `maxListHeight`.
+// disponíveis (o card rola, se passar da altura).
 Column {
     id: root
-
-    property real maxListHeight: 360
 
     width: parent?.width ?? 0
     spacing: ThemeManager.spacing.small
 
     PageHeader {
         title: "Bluetooth"
-        onBack: CentralState.setControlsPage("")
+        onBack: CentralState.setPage("")
 
         Switch {
             visible: BluetoothState.available
@@ -40,83 +38,75 @@ Column {
         onClicked: BluetoothState.toggleSearch()
     }
 
-    Flickable {
+    Column {
+        id: devices
+
         width: root.width
-        height: Math.min(devices.implicitHeight, root.maxListHeight)
         visible: BluetoothState.enabled
-        contentHeight: devices.implicitHeight
-        boundsBehavior: Flickable.StopAtBounds
-        clip: true
+        spacing: 2
 
-        Column {
-            id: devices
+        Txt {
+            visible: BluetoothState.paired.length > 0
+            text: "PAREADOS"
+            faint: true
+            font.pixelSize: ThemeManager.font.small
+            font.weight: Font.DemiBold
+            font.letterSpacing: 1
+        }
 
-            width: root.width
-            spacing: 2
+        Repeater {
+            model: BluetoothState.paired
 
-            Txt {
-                visible: BluetoothState.paired.length > 0
-                text: "PAREADOS"
-                faint: true
-                font.pixelSize: ThemeManager.font.small
-                font.weight: Font.DemiBold
-                font.letterSpacing: 1
-            }
+            delegate: ListRow {
+                id: row
 
-            Repeater {
-                model: BluetoothState.paired
+                required property var modelData
 
-                delegate: ListRow {
-                    id: row
+                icon: row.modelData.icon
+                title: row.modelData.name
+                detail: row.modelData.busy ? "Conectando…" : row.modelData.detail
+                lit: row.modelData.connected
+                busy: row.modelData.busy
+                onClicked: BluetoothState.toggleConnection(row.modelData)
 
-                    required property var modelData
-
-                    icon: row.modelData.icon
-                    title: row.modelData.name
-                    detail: row.modelData.busy ? "Conectando…" : row.modelData.detail
-                    lit: row.modelData.connected
-                    busy: row.modelData.busy
-                    onClicked: BluetoothState.toggleConnection(row.modelData)
-
-                    IconButton {
-                        visible: row.hovered
-                        icon: Icons.trash
-                        iconSize: 18
-                        foreground: ThemeManager.colors.textMuted
-                        onClicked: BluetoothState.forget(row.modelData)
-                    }
+                IconButton {
+                    visible: row.hovered
+                    icon: Icons.trash
+                    iconSize: 18
+                    foreground: ThemeManager.colors.textMuted
+                    onClicked: BluetoothState.forget(row.modelData)
                 }
             }
+        }
 
-            Txt {
-                visible: BluetoothState.searching
-                text: "DISPONÍVEIS"
-                faint: true
-                font.pixelSize: ThemeManager.font.small
-                font.weight: Font.DemiBold
-                font.letterSpacing: 1
-            }
+        Txt {
+            visible: BluetoothState.searching
+            text: "DISPONÍVEIS"
+            faint: true
+            font.pixelSize: ThemeManager.font.small
+            font.weight: Font.DemiBold
+            font.letterSpacing: 1
+        }
 
-            Txt {
-                visible: BluetoothState.searching && BluetoothState.others.length === 0
-                text: "Procurando…"
-                muted: true
-            }
+        Txt {
+            visible: BluetoothState.searching && BluetoothState.others.length === 0
+            text: "Procurando…"
+            muted: true
+        }
 
-            Repeater {
-                model: BluetoothState.searching ? BluetoothState.others : []
+        Repeater {
+            model: BluetoothState.searching ? BluetoothState.others : []
 
-                delegate: ListRow {
-                    id: other
+            delegate: ListRow {
+                id: other
 
-                    required property var modelData
+                required property var modelData
 
-                    icon: other.modelData.icon
-                    title: other.modelData.name
-                    detail: other.modelData.busy ? "Pareando…" : "Toque para parear"
-                    busy: other.modelData.busy
-                    onClicked: BluetoothState.toggleConnection(other.modelData)
-                }
+                icon: other.modelData.icon
+                title: other.modelData.name
+                detail: other.modelData.busy ? "Pareando…" : "Toque para parear"
+                busy: other.modelData.busy
+                onClicked: BluetoothState.toggleConnection(other.modelData)
             }
         }
     }

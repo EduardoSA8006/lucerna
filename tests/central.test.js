@@ -1,8 +1,7 @@
-// Testes da central (features/central/state): o que cada entrada abre e a
-// volta ao estado inicial; as Tarefas 3 e 5 acrescentam os botões dos
-// controles e o que some no painel de energia. Abre pelo Panels, como a barra
-// e os atalhos; cada caso fecha a central e devolve os painéis abertos ao que
-// eram.
+// Testes da central (features/central/state): a página que cada entrada
+// abre, a volta ao estado inicial, os tiles do painel de Ações e a linha de
+// estado da bateria. Abre pelo Panels, como a barra e os atalhos; cada caso
+// fecha a central e devolve os painéis abertos ao que eram.
 function run(t) {
     const S = t.CentralState;
     const P = t.Panels;
@@ -20,77 +19,125 @@ function run(t) {
         });
     }
 
+    // O que existe na máquina: tudo, nada, ou tudo menos um recurso.
+    const all = { wifi: true, bluetooth: true, output: true, input: true, power: true };
+    const none = { wifi: false, bluetooth: false, output: false, input: false, power: false };
+    const without = key => Object.assign({}, all, { [key]: false });
+
     t.test("central: a página de cada entrada", () => {
-        t.eq([S.pageFor("rede", true), S.pageFor("rede", false)], ["wifi", ""], "sem placa Wi-Fi (desktop com cabo), sem subpágina");
-        t.eq([S.pageFor("bluetooth", true), S.pageFor("bluetooth", false)], ["bluetooth", "bluetooth"]);
-        t.eq(["som", "notificacoes", "energia", ""].map(e => S.pageFor(e, true)), ["", "", "", ""]);
+        const entries = ["rede", "bluetooth", "som", "energia", "microfone", "notificacoes", ""];
+        t.eq(entries.map(e => S.pageFor(e, all)), ["wifi", "bluetooth", "output", "battery", "input", "", ""]);
+        t.eq(entries.map(e => S.pageFor(e, none)), ["", "", "", "", "", "", ""], "sem o recurso, o estado inicial");
+        t.eq([S.pageFor("rede", without("wifi")), S.pageFor("som", without("output")), S.pageFor("energia", without("power")), S.pageFor("microfone", without("input")), S.pageFor("bluetooth", without("bluetooth"))], ["", "", "", "", ""], "só o recurso da entrada falta");
+        t.eq([S.pageFor("som", without("wifi")), S.pageFor("wifi", all), S.pageFor("sound", all)], ["output", "", ""], "outro recurso faltando não muda; nome antigo ou desconhecido, estado inicial");
     });
 
-    scenario("central: a entrada escolhe a página dos controles", () => {
+    t.test("central: a página volta ao estado inicial quando o recurso some", () => {
+        const pages = ["", "wifi", "bluetooth", "output", "input", "battery"];
+        t.eq(pages.map(p => S.pageIfPresent(p, all)), pages, "com tudo, a página fica");
+        t.eq(pages.map(p => S.pageIfPresent(p, none)), ["", "", "", "", "", ""]);
+        t.eq([S.pageIfPresent("wifi", without("wifi")), S.pageIfPresent("bluetooth", without("bluetooth")), S.pageIfPresent("output", without("output")), S.pageIfPresent("input", without("input")), S.pageIfPresent("battery", without("power"))], ["", "", "", "", ""], "o recurso da página sumiu");
+        t.eq([S.pageIfPresent("output", without("wifi")), S.pageIfPresent("battery", without("input"))], ["output", "battery"], "outro recurso sumiu: a página fica");
+        t.eq(S.pageIfPresent("x", all), "", "página desconhecida");
+    });
+
+    scenario("central: a entrada escolhe a página", () => {
+        const has = S.has;
         P.openCentral("rede");
-        t.eq([S.open, P.centralEntry, S.controlsPage, S.soundPage], [true, "rede", S.hasWifi ? "wifi" : "", ""], "a lista de redes, se houver placa Wi-Fi");
-        P.openCentral("bluetooth");
-        t.eq([P.centralEntry, S.controlsPage], ["bluetooth", "bluetooth"], "outra entrada com a central aberta");
-        for (const entry of ["som", "notificacoes", "energia", ""]) {
+        t.eq([S.open, P.centralEntry, S.page], [true, "rede", has.wifi ? "wifi" : ""], "a lista de redes, se houver placa Wi-Fi");
+        for (const [entry, page] of [["bluetooth", "bluetooth"], ["som", "output"], ["energia", "battery"], ["microfone", "input"]]) {
             P.openCentral(entry);
-            t.eq(S.controlsPage, "", `entrada "${entry}": o estado inicial`);
+            t.eq([P.centralEntry, S.page], [entry, S.pageFor(entry, S.has)], `entrada "${entry}" com a central aberta`);
+        }
+        t.eq(S.pageFor("som", S.has), has.output ? "output" : "", "a página do som segue o que existe");
+        for (const entry of ["notificacoes", ""]) {
+            P.openCentral(entry);
+            t.eq(S.page, "", `entrada "${entry}": o estado inicial`);
         }
     });
 
     scenario("central: entrada desconhecida abre o estado inicial", () => {
         P.openCentral("wifi");
-        t.eq([S.open, P.centralEntry, S.controlsPage], [true, "", ""], "o nome antigo do IPC");
+        t.eq([S.open, P.centralEntry, S.page], [true, "", ""], "o nome antigo do IPC");
     });
 
     scenario("central: a reabertura começa do zero", () => {
         P.openCentral("rede");
-        S.setControlsPage("bluetooth");
-        S.setSoundPage("outputs");
+        S.setPage("battery");
         P.toggleCentral("rede");
-        t.eq([S.open, P.centralEntry, S.controlsPage, S.soundPage], [false, "", "bluetooth", "outputs"], "na saída, as páginas ficam até o painel sumir");
+        t.eq([S.open, P.centralEntry, S.page], [false, "", "battery"], "na saída, a página fica até o painel sumir");
         P.open("central");
-        t.eq([S.open, P.centralEntry, S.controlsPage, S.soundPage], [true, "", "", ""], "aberta sem entrada (panels open central)");
+        t.eq([S.open, P.centralEntry, S.page], [true, "", ""], "aberta sem entrada (panels open central)");
     });
 
-    scenario("central: trocar de entrada fecha as páginas", () => {
-        P.openCentral("som");
-        S.setSoundPage("inputs");
-        S.setControlsPage("bluetooth");
+    scenario("central: trocar de entrada troca a página", () => {
+        P.openCentral("rede");
+        S.setPage("bluetooth");
         P.openCentral("notificacoes");
-        t.eq([S.controlsPage, S.soundPage], ["", ""]);
+        t.eq(S.page, "");
     });
 
     scenario("central: outro painel fecha a central e esquece a página", () => {
         P.openCentral("rede");
-        S.setControlsPage("bluetooth");
+        S.setPage("bluetooth");
         P.open("launcher");
         t.eq([S.open, P.centralEntry], [false, ""]);
         P.openCentral("");
-        t.eq(S.controlsPage, "", "reaberta, começa do zero");
+        t.eq(S.page, "", "reaberta, começa do zero");
     });
 
     const K = t.ControlsState;
     const C = t.Config;
+    const extras = { nightlight: true, awake: true };
+    const ids = has => K.tilesFor(Object.assign({}, extras, has)).map(x => x.id);
 
-    t.test("controles: botões de ícone", () => {
+    t.test("ações: os tiles e o que some", () => {
+        t.eq(ids(all), ["wifi", "bluetooth", "output", "battery", "input", "nightlight", "dnd", "awake"], "tudo, na ordem");
+        t.eq(ids(without("power")), ["wifi", "bluetooth", "output", "input", "nightlight", "dnd", "awake"], "sem bateria, perfil e dispositivos");
+        t.eq(ids(without("input")), ["wifi", "bluetooth", "output", "battery", "nightlight", "dnd", "awake"], "sem microfone");
+        t.eq(ids(without("output")), ["wifi", "bluetooth", "battery", "input", "nightlight", "dnd", "awake"], "sem saída de áudio");
+        t.eq(ids(without("bluetooth")), ["wifi", "output", "battery", "input", "nightlight", "dnd", "awake"], "sem adaptador Bluetooth");
+        t.eq(ids(without("wifi")), ["network", "bluetooth", "output", "battery", "input", "nightlight", "dnd", "awake"], "sem placa Wi-Fi, vira Rede");
+        t.eq(K.tilesFor(Object.assign({}, all, { nightlight: false, awake: true })).map(x => x.id), ["wifi", "bluetooth", "output", "battery", "input", "dnd", "awake"], "sem o hyprsunset");
+        t.eq(K.tilesFor(Object.assign({}, all, { nightlight: true, awake: false })).map(x => x.id), ["wifi", "bluetooth", "output", "battery", "input", "nightlight", "dnd"], "com a ociosidade do shell desligada");
+        t.eq(K.tilesFor(Object.assign({}, none, { nightlight: false, awake: false })).map(x => x.id), ["network", "dnd"], "o mínimo");
+    });
+
+    t.test("ações: título, página e liga/desliga de cada tile", () => {
+        const tiles = K.tilesFor(Object.assign({}, extras, all));
+        t.eq(tiles.map(x => [x.id, x.title, x.page, x.toggles]), [
+            ["wifi", "Wi-Fi", "wifi", true],
+            ["bluetooth", "Bluetooth", "bluetooth", true],
+            ["output", "Saída de áudio", "output", false],
+            ["battery", t.PowerState.title, "battery", false],
+            ["input", "Microfone", "input", true],
+            ["nightlight", "Luz noturna", "", true],
+            ["dnd", "Não perturbe", "", true],
+            ["awake", "Não apagar a tela", "", true]
+        ]);
+        const net = K.tilesFor(Object.assign({}, extras, without("wifi")))[0];
+        t.eq([net.title, net.page, net.toggles, net.clickable, net.checked], ["Rede", "", false, false, false], "Rede: sem página e sem clique");
+        t.eq(tiles.filter(x => x.id === "output" || x.id === "battery").map(x => x.checked), [false, false], "sem liga/desliga, sempre neutros");
+        t.check(tiles.every(x => x.clickable && typeof x.status === "string" && x.icon !== ""), "os outros clicáveis, com linha de estado e ícone");
+    });
+
+    t.test("ações: ligado e desligado", () => {
         const dnd0 = C.doNotDisturb;
         const idle0 = C.idleEnabled;
         const awake0 = C.idleInhibit;
-        // A luz noturna depende do hyprsunset da máquina; fica fora da conta.
-        const ids = () => K.toggles.map(b => b.id).filter(id => id !== "nightlight");
-        const checked = id => K.toggles.find(b => b.id === id)?.checked;
+        const tile = id => K.tilesFor(Object.assign({}, extras, all)).find(x => x.id === id);
         try {
-            C.idleEnabled = false;
-            t.eq(ids(), ["dnd", "settings"], "sem a ociosidade do shell, sem o não apagar a tela");
             C.idleEnabled = true;
             C.idleInhibit = false;
             C.doNotDisturb = false;
-            t.eq(ids(), ["dnd", "awake", "settings"]);
-            t.eq([checked("dnd"), checked("awake"), checked("settings")], [false, false, false], "vazios");
-            K.trigger("dnd");
-            K.trigger("awake");
+            t.eq([tile("dnd").checked, tile("dnd").status, tile("awake").checked, tile("awake").status], [false, "Desligado", false, "Desligado"]);
+            K.activate("dnd");
+            K.activate("awake");
             t.eq([C.doNotDisturb, C.idleInhibit], [true, true]);
-            t.eq([checked("dnd"), checked("awake"), checked("settings")], [true, true, false], "cheios; configurações nunca");
+            t.eq([tile("dnd").checked, tile("dnd").status, tile("awake").checked, tile("awake").status], [true, "Ligado", true, "Ligado"], "cheios");
+            t.eq(K.tiles.find(x => x.id === "dnd")?.checked, true, "a lista viva acompanha");
+            C.idleEnabled = false;
+            t.eq(K.tiles.some(x => x.id === "awake"), false, "a lista viva sem a ociosidade do shell");
         } finally {
             C.doNotDisturb = dnd0;
             C.idleEnabled = idle0;
@@ -98,9 +145,19 @@ function run(t) {
         }
     });
 
-    scenario("controles: o botão de configurações abre as configurações e fecha a central", () => {
+    scenario("ações: o corpo dos tiles sem liga/desliga abre a página", () => {
         P.openCentral("");
-        K.trigger("settings");
+        K.activate("output");
+        t.eq(S.page, "output");
+        K.activate("battery");
+        t.eq(S.page, "battery");
+        K.activate("network");
+        t.eq(S.page, "battery", "a Rede não tem clique");
+    });
+
+    scenario("ações: a engrenagem abre as configurações e fecha a central", () => {
+        P.openCentral("");
+        K.openSettings();
         t.eq([P.opened, S.open], [["settings"], false]);
     });
 
@@ -124,6 +181,34 @@ function run(t) {
             t.eq(E.batteryNote, "Carregando");
             B.simulated = { percentage: 1, onBattery: false };
             t.eq(E.batteryNote, "Carregada");
+        } finally {
+            B.simulated = simulated0;
+            B.profilesAvailable = profiles0;
+        }
+    });
+
+    t.test("energia: a linha de estado do tile", () => {
+        const battery = (extra) => Object.assign({ hasBattery: true, percentage: 0.78, full: false, charging: false, timeRemaining: 0, profilesAvailable: true, profile: 1, devices: 0 }, extra);
+        t.eq(E.statusLine(battery({ timeRemaining: 6720 })), "78% · 1 h 52 min", "com o tempo");
+        t.eq(E.statusLine(battery({})), "78%", "sem estimativa");
+        t.eq(E.statusLine(battery({ percentage: 0.4, charging: true, timeRemaining: 3600 })), "40% · Carregando", "carregando");
+        t.eq(E.statusLine(battery({ percentage: 1, full: true })), "100% · Carregada", "carregada");
+        const desktop = (extra) => Object.assign(battery({ hasBattery: false }), extra);
+        t.eq([0, 1, 2].map(profile => E.statusLine(desktop({ profile }))), ["Economia", "Equilibrado", "Desempenho"], "sem bateria, o perfil");
+        t.eq([E.statusLine(desktop({ profilesAvailable: false, devices: 2 })), E.statusLine(desktop({ profilesAvailable: false, devices: 1 }))], ["2 dispositivos", "1 dispositivo"], "só dispositivos");
+    });
+
+    t.test("energia: o tile pela bateria simulada", () => {
+        const simulated0 = B.simulated;
+        const profiles0 = B.profilesAvailable;
+        try {
+            B.simulated = { percentage: 0.78, onBattery: true };
+            t.eq([E.title, E.status], ["Bateria", "78%"], "a simulada não tem o tempo");
+            B.simulated = { percentage: 0.5, onBattery: false };
+            t.eq(E.status, "50% · Carregando");
+            B.simulated = null;
+            B.profilesAvailable = true;
+            t.eq([E.title, E.status], ["Energia", E.statusLine({ hasBattery: false, profilesAvailable: true, profile: B.profile, devices: E.devices.length })], "sem bateria, Energia com o perfil");
         } finally {
             B.simulated = simulated0;
             B.profilesAvailable = profiles0;
