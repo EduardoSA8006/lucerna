@@ -45,6 +45,8 @@ Column {
             id: label
 
             required property color tint
+            // O tempo fica mais apagado sobre o vazio; sobre a cor, cheio.
+            property real noteOpacity: 0.8
 
             width: body.width
             height: body.height
@@ -78,7 +80,7 @@ Column {
                 anchors.verticalCenter: parent.verticalCenter
                 text: PowerState.batteryNote
                 color: label.tint
-                opacity: 0.8
+                opacity: label.noteOpacity
                 font.weight: Font.Medium
             }
         }
@@ -96,7 +98,8 @@ Column {
                 tint: ThemeManager.colors.text
             }
 
-            // A parte cheia leva a cópia do texto no contraste dela, cortada
+            // A parte cheia leva a cópia do texto na cor de mais contraste com
+            // ela (ThemeManager.onColor), cortada
             // na largura dela.
             Rectangle {
                 width: body.width * Math.max(0, Math.min(1, card.shown))
@@ -107,7 +110,8 @@ Column {
                 Behavior on color { ColorAnim {} }
 
                 CardLabel {
-                    tint: ThemeManager.colors.accentText
+                    tint: ThemeManager.onColor(card.fill)
+                    noteOpacity: 1
                 }
             }
         }

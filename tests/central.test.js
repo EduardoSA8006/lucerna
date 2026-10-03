@@ -319,6 +319,13 @@ function run(t) {
         t.eq(E.chartPoints([at(5000, 3), at(4600, 2)], 4600, 3600), [], "do futuro fica de fora");
     });
 
+    t.test("energia: o gráfico só com as amostras da fase atual", () => {
+        const list = [{ time: 1, value: 9, state: 2 }, { time: 2, value: 25, state: 1 }, { time: 3, value: 8, state: 6 }, { time: 4, value: 20, state: 5 }, { time: 5, value: 1, state: 0 }, { time: 6, value: 1, state: 4 }];
+        t.eq(E.phase(list, false).map(p => p.time), [1, 3], "descarregando: as de descarga");
+        t.eq(E.phase(list, true).map(p => p.time), [2, 4], "carregando: as de carga");
+        t.eq(E.phase([], true), []);
+    });
+
     t.test("energia: o consumo ao lado do gráfico", () => {
         t.eq(E.consumption(8.146, false), "8,1 W", "na bateria");
         t.eq(E.consumption(25.3, true), "Carregando · 25,3 W", "carregando, a potência de carga");
@@ -326,7 +333,7 @@ function run(t) {
     });
 
     scenario("energia: o histórico só é pedido com a página da bateria aberta", () => {
-        const simulated0 = B.simulated;
+        const saved = { simulated: B.simulated, history: B.history, historyAt: B.historyAt, upowerHistory: B.upowerHistory };
         try {
             B.simulated = { percentage: 0.5, onBattery: true };
             t.eq(B.historyActive, false, "fechada");
@@ -338,7 +345,10 @@ function run(t) {
             P.close();
             t.eq(B.historyActive, false, "a central fechou");
         } finally {
-            B.simulated = simulated0;
+            B.simulated = saved.simulated;
+            B.history = saved.history;
+            B.historyAt = saved.historyAt;
+            B.upowerHistory = saved.upowerHistory;
         }
     });
 }

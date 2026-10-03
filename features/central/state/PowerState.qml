@@ -30,7 +30,7 @@ Singleton {
 
     // Gráfico do consumo da última hora: os pontos (x e y de 0 a 1) e o valor
     // de agora.
-    readonly property var chart: chartPoints(Battery.history, Battery.historyAt, Battery.historySpan)
+    readonly property var chart: chartPoints(phase(Battery.history, charging), Battery.historyAt, Battery.historySpan)
     readonly property string consumptionText: consumption(Battery.rate, charging)
 
     // O histórico ({ time, value }, do mais antigo ao mais novo) na janela de
@@ -49,6 +49,13 @@ Singleton {
             return [];
         const top = Math.max(...points.map(p => p.value));
         return points.map(p => ({ x: (p.time - start) / span, y: top > 0 ? p.value / top : 0 }));
+    }
+
+    // Só as amostras da fase de agora: carregando, as de carga (estado 1 ou 5
+    // do UPower); senão, as de descarga (2 ou 6).
+    function phase(list: var, charging: bool): var {
+        const states = charging ? [1, 5] : [2, 6];
+        return list.filter(p => states.includes(p.state));
     }
 
     // "8,1 W"; carregando, "Carregando · 25,3 W"; sem a medida, só o estado.

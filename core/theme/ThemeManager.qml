@@ -269,6 +269,25 @@ Singleton {
         return Qt.rgba(c.r, c.g, c.b, a);
     }
 
+    // Luminância relativa (WCAG) de uma cor, de 0 (preto) a 1 (branco).
+    function luminance(c: color): real {
+        const lin = v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+        return 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+    }
+
+    // Contraste (WCAG) entre duas cores, de 1 a 21.
+    function contrast(a: color, b: color): real {
+        const la = luminance(a);
+        const lb = luminance(b);
+        return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+    }
+
+    // O texto sobre uma cor cheia (aviso, erro, sucesso): accentText, text
+    // ou base, o que der mais contraste com ela (no empate, o primeiro).
+    function onColor(c: color): color {
+        return [colors.accentText, colors.text, colors.base].reduce((best, x) => contrast(c, x) > contrast(c, best) ? x : best);
+    }
+
     function parse(text: string): var {
         if (!text)
             return {};
