@@ -7,8 +7,8 @@ import qs.core.widgets
 import qs.services
 
 // View model da energia da central: o tile "Bateria" (ou "Energia", sem
-// bateria) e a página dele: a bateria, o perfil de energia e a bateria dos
-// dispositivos Bluetooth conectados.
+// bateria) e a página dele: o card da bateria, o perfil de energia, o gráfico
+// do consumo e a bateria dos dispositivos Bluetooth conectados.
 Singleton {
     id: root
 
@@ -19,14 +19,52 @@ Singleton {
     readonly property bool low: Battery.isLow
     // Embaixo da porcentagem: carregada, carregando ou o tempo restante.
     readonly property string batteryNote: note(snapshot)
+    // A cor do card: "accent", "warning", "danger" ou "success".
+    readonly property string cardBand: band(percentage, charging, low)
 
-    // Perfil de energia: um botão por perfil, o de desempenho só se houver.
+    // Carregando, verde; bateria baixa (o limite das configurações), erro;
+    // acima de 50%, o destaque; senão, aviso. Arredonda como a porcentagem.
+    function band(percentage: real, charging: bool, low: bool): string {
+        return charging ? "success" : low ? "danger" : Math.round(percentage * 100) > 50 ? "accent" : "warning";
+    }
+
+    // Gráfico do consumo da última hora: os pontos (x e y de 0 a 1) e o valor
+    // de agora.
+    readonly property var chart: chartPoints(Battery.history, Battery.historyAt, Battery.historySpan)
+    readonly property string consumptionText: consumption(Battery.rate, charging)
+
+    // O histórico ({ time, value }, do mais antigo ao mais novo) na janela de
+    // `span` segundos até `now`: x pelo tempo, y pelo maior valor. O último
+    // ponto antes da janela entra na borda esquerda e o último dela se estende
+    // até agora (o UPower só grava quando o valor muda). Menos de dois pontos,
+    // nenhum.
+    function chartPoints(list: var, now: real, span: real): var {
+        const start = now - span;
+        const before = list.filter(p => p.time < start);
+        const points = [...before.slice(-1).map(p => ({ time: start, value: p.value })), ...list.filter(p => p.time >= start && p.time <= now)];
+        const last = points[points.length - 1];
+        if (last && last.time < now)
+            points.push({ time: now, value: last.value });
+        if (points.length < 2)
+            return [];
+        const top = Math.max(...points.map(p => p.value));
+        return points.map(p => ({ x: (p.time - start) / span, y: top > 0 ? p.value / top : 0 }));
+    }
+
+    // "8,1 W"; carregando, "Carregando · 25,3 W"; sem a medida, só o estado.
+    function consumption(rate: real, charging: bool): string {
+        const watts = rate > 0 ? `${Format.number(rate, 1)} W` : "";
+        return [charging ? "Carregando" : "", watts].filter(x => x).join(" · ");
+    }
+
+    // Perfil de energia: um botão de texto por perfil, o Turbo só se houver.
+    // O ícone fica para o tile "Energia" de um desktop.
     readonly property bool profilesAvailable: Battery.profilesAvailable
     readonly property int profile: Battery.profile
     readonly property var profileButtons: [
-        { value: 0, icon: Icons.eco },
-        { value: 1, icon: Icons.balance },
-        ...(Battery.hasPerformance ? [{ value: 2, icon: Icons.rocket }] : [])
+        { value: 0, label: Battery.profileNames[0], icon: Icons.eco },
+        { value: 1, label: Battery.profileNames[1], icon: Icons.balance },
+        ...(Battery.hasPerformance ? [{ value: 2, label: Battery.profileNames[2], icon: Icons.rocket }] : [])
     ]
 
     function setProfile(value: int): void {

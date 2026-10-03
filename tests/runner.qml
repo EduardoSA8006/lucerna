@@ -24,6 +24,7 @@ import qs.services
 import "appinfo.test.js" as AppInfoTest
 import "audio.test.js" as AudioTest
 import "audiostreams.test.js" as AudioStreamsTest
+import "battery.test.js" as BatteryTest
 import "bluetooth.test.js" as BluetoothTest
 import "brightness.test.js" as BrightnessTest
 import "capture.test.js" as CaptureTest
@@ -84,6 +85,7 @@ ShellRoot {
         ["bluetooth", BluetoothTest],
         ["audio", AudioTest],
         ["audiostreams", AudioStreamsTest],
+        ["battery", BatteryTest],
         ["appinfo", AppInfoTest],
         ["media", MediaTest],
         ["session", SessionTest],

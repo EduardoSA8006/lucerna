@@ -268,9 +268,9 @@ Singleton {
     readonly property int saverBelow: Config.saverBelow
     readonly property bool batteryLightMode: Config.batteryLightMode
     readonly property var profileOptions: [
-        { label: "Economia", value: 0 },
-        { label: "Equilibrado", value: 1 },
-        ...(Battery.hasPerformance ? [{ label: "Desempenho", value: 2 }] : [])
+        { label: Battery.profileNames[0], value: 0 },
+        { label: Battery.profileNames[1], value: 1 },
+        ...(Battery.hasPerformance ? [{ label: Battery.profileNames[2], value: 2 }] : [])
     ]
     readonly property var criticalActions: [
         { label: "Nada", value: "none" },

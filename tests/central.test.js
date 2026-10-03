@@ -248,7 +248,7 @@ function run(t) {
         t.eq(E.statusLine(battery({ percentage: 0.4, charging: true, timeRemaining: 3600 })), "40% · Carregando", "carregando");
         t.eq(E.statusLine(battery({ percentage: 1, full: true })), "100% · Carregada", "carregada");
         const desktop = (extra) => Object.assign(battery({ hasBattery: false }), extra);
-        t.eq([0, 1, 2].map(profile => E.statusLine(desktop({ profile }))), ["Economia", "Equilibrado", "Desempenho"], "sem bateria, o perfil");
+        t.eq([0, 1, 2].map(profile => E.statusLine(desktop({ profile }))), ["Economia", "Equilibrado", "Turbo"], "sem bateria, o perfil");
         t.eq([E.statusLine(desktop({ profilesAvailable: false, devices: 2 })), E.statusLine(desktop({ profilesAvailable: false, devices: 1 }))], ["2 dispositivos", "1 dispositivo"], "só dispositivos");
     });
 
@@ -299,5 +299,46 @@ function run(t) {
         t.eq(list, [{ name: "WH-1000", icon: "headset_mic", battery: 0.82 }, { name: "BB", icon: "mouse", battery: 0.41 }], "conectados e com bateria; sem nome, o endereço");
         t.eq(E.withBattery([]), []);
         t.eq(E.withBattery(null), []);
+    });
+
+    t.test("energia: a cor do card pela carga", () => {
+        t.eq([0.78, 0.51, 1].map(p => E.band(p, false, false)), ["accent", "accent", "accent"], "acima de 50%: o destaque");
+        t.eq([0.5, 0.3, 0.2, 0.505].map(p => E.band(p, false, false)), ["warning", "warning", "warning", "accent"], "de 50% para baixo: aviso; arredonda como a %");
+        t.eq(E.band(0.1, false, true), "danger", "bateria baixa: erro");
+        t.eq([E.band(0.4, true, false), E.band(0.1, true, false), E.band(0.9, true, false)], ["success", "success", "success"], "carregando: verde");
+    });
+
+    t.test("energia: os pontos do gráfico de consumo", () => {
+        const at = (time, value) => ({ time, value });
+        t.eq(E.chartPoints([at(1000, 5), at(2800, 10), at(4600, 5)], 4600, 3600), [{ x: 0, y: 0.5 }, { x: 0.5, y: 1 }, { x: 1, y: 0.5 }], "a hora inteira, o maior valor no topo");
+        t.eq(E.chartPoints([at(0, 8), at(2800, 4)], 4600, 3600), [{ x: 0, y: 1 }, { x: 0.5, y: 0.5 }, { x: 1, y: 0.5 }], "o anterior à janela entra na borda; o último vai até agora");
+        t.eq(E.chartPoints([at(4000, 6)], 4600, 3600), [{ x: 0.8333333333333334, y: 1 }, { x: 1, y: 1 }], "um ponto só: até agora");
+        t.eq(E.chartPoints([at(1000, 0), at(4600, 0)], 4600, 3600), [{ x: 0, y: 0 }, { x: 1, y: 0 }], "tudo zero: no chão");
+        t.eq(E.chartPoints([at(4600, 3)], 4600, 3600), [], "um ponto agora: sem linha");
+        t.eq(E.chartPoints([], 4600, 3600), [], "sem histórico");
+        t.eq(E.chartPoints([at(5000, 3), at(4600, 2)], 4600, 3600), [], "do futuro fica de fora");
+    });
+
+    t.test("energia: o consumo ao lado do gráfico", () => {
+        t.eq(E.consumption(8.146, false), "8,1 W", "na bateria");
+        t.eq(E.consumption(25.3, true), "Carregando · 25,3 W", "carregando, a potência de carga");
+        t.eq([E.consumption(0, true), E.consumption(0, false)], ["Carregando", ""], "sem a medida");
+    });
+
+    scenario("energia: o histórico só é pedido com a página da bateria aberta", () => {
+        const simulated0 = B.simulated;
+        try {
+            B.simulated = { percentage: 0.5, onBattery: true };
+            t.eq(B.historyActive, false, "fechada");
+            P.openCentral("energia");
+            t.eq(B.historyActive, true, "a página da bateria");
+            S.setPage("");
+            t.eq(B.historyActive, false, "voltou aos tiles");
+            S.setPage("battery");
+            P.close();
+            t.eq(B.historyActive, false, "a central fechou");
+        } finally {
+            B.simulated = simulated0;
+        }
     });
 }

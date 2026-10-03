@@ -1,16 +1,19 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell.Widgets
 import qs.core.format
 import qs.core.theme
 import qs.core.widgets
 import qs.features.central.state
 
-// Página da bateria no painel de ações da central: voltar e o título; a
-// bateria em destaque (a porcentagem grande, o tempo ou "Carregando" e uma
-// barra), o perfil de energia em botões de ícone (o atual cheio) e a bateria
-// dos dispositivos Bluetooth conectados. Sem bateria, sem perfil ou sem
-// dispositivos, o bloco some.
+// Página da bateria no painel de ações da central: voltar e o título; o card
+// em forma de bateria, cheio até a carga na cor dela (destaque, aviso, erro
+// ou, carregando, verde), com a porcentagem e o tempo (ou "Carregando"/
+// "Carregada") por cima; o perfil de energia em botões de texto (o atual
+// cheio); o consumo da última hora num gráfico; e a bateria dos dispositivos
+// Bluetooth conectados. Sem bateria, sem perfil ou sem dispositivos, o bloco
+// some.
 Column {
     id: root
 
@@ -22,41 +25,106 @@ Column {
         onBack: CentralState.setPage("")
     }
 
-    Group {
-        visible: PowerState.hasBattery
+    Item {
+        id: card
 
-        Column {
-            x: ThemeManager.spacing.small
-            width: parent.width - x * 2
-            topPadding: ThemeManager.spacing.tiny
-            bottomPadding: ThemeManager.spacing.normal
-            spacing: ThemeManager.spacing.small
+        readonly property color fill: PowerState.cardBand === "success" ? ThemeManager.colors.success : PowerState.cardBand === "danger" ? ThemeManager.colors.danger : PowerState.cardBand === "warning" ? ThemeManager.colors.warning : ThemeManager.colors.accent
+        readonly property color empty: ThemeManager.colors.track
+        // A carga mostrada anima até a nova.
+        property real shown: PowerState.percentage
+
+        Behavior on shown { Anim { type: Anim.Standard } }
+
+        visible: PowerState.hasBattery
+        width: parent.width
+        height: 76
+
+        // O que vai por cima do card, nas duas cores: a porcentagem (com o
+        // raio, carregando) à esquerda e o tempo à direita.
+        component CardLabel: Item {
+            id: label
+
+            required property color tint
+
+            width: body.width
+            height: body.height
 
             Row {
-                spacing: ThemeManager.spacing.small
+                x: ThemeManager.spacing.normal + 2
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 2
+
+                Icon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: PowerState.charging
+                    icon: Icons.bolt
+                    size: 26
+                    filled: true
+                    color: label.tint
+                }
 
                 Txt {
-                    id: charge
-
                     text: Format.percent(PowerState.percentage)
                     mono: true
+                    color: label.tint
                     font.pixelSize: ThemeManager.font.huge - 8
                     font.weight: Font.DemiBold
                 }
+            }
 
-                Txt {
-                    anchors.baseline: charge.baseline
-                    text: PowerState.batteryNote
-                    muted: true
+            Txt {
+                anchors.right: parent.right
+                anchors.rightMargin: ThemeManager.spacing.normal + 2
+                anchors.verticalCenter: parent.verticalCenter
+                text: PowerState.batteryNote
+                color: label.tint
+                opacity: 0.8
+                font.weight: Font.Medium
+            }
+        }
+
+        // O corpo recorta o preenchimento e o texto no formato do card.
+        ClippingRectangle {
+            id: body
+
+            width: parent.width - pole.width - 3
+            height: parent.height
+            radius: ThemeManager.radius.normal
+            color: card.empty
+
+            CardLabel {
+                tint: ThemeManager.colors.text
+            }
+
+            // A parte cheia leva a cópia do texto no contraste dela, cortada
+            // na largura dela.
+            Rectangle {
+                width: body.width * Math.max(0, Math.min(1, card.shown))
+                height: body.height
+                clip: true
+                color: card.fill
+
+                Behavior on color { ColorAnim {} }
+
+                CardLabel {
+                    tint: ThemeManager.colors.accentText
                 }
             }
+        }
 
-            LinearGauge {
-                width: parent.width
-                height: 10
-                value: PowerState.percentage
-                color: PowerState.charging ? ThemeManager.colors.success : PowerState.low ? ThemeManager.colors.danger : ThemeManager.colors.accent
-            }
+        // O polo, à direita: cheio só com a bateria cheia.
+        Rectangle {
+            id: pole
+
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            width: 5
+            height: parent.height * 0.36
+            topRightRadius: 3
+            bottomRightRadius: 3
+            color: card.shown >= 0.995 ? card.fill : card.empty
+
+            Behavior on color { ColorAnim {} }
         }
     }
 
@@ -78,11 +146,56 @@ Column {
                 readonly property var item: PowerState.profileButtons[profile.index] ?? null
 
                 width: (profiles.width - profiles.spacing * (PowerState.profileButtons.length - 1)) / PowerState.profileButtons.length
-                height: 44
-                icon: profile.item?.icon ?? ""
+                height: 40
+                label: profile.item?.label ?? ""
                 checked: profile.item?.value === PowerState.profile
                 onClicked: PowerState.setProfile(profile.item?.value ?? PowerState.profile)
             }
+        }
+    }
+
+    // O consumo da última hora: o rótulo, o valor de agora e o gráfico.
+    Group {
+        visible: PowerState.hasBattery
+
+        Item {
+            width: parent.width
+            height: 32
+
+            Txt {
+                x: ThemeManager.spacing.small
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Consumo"
+                font.weight: Font.Medium
+            }
+
+            Txt {
+                anchors.right: parent.right
+                anchors.rightMargin: ThemeManager.spacing.small
+                anchors.verticalCenter: parent.verticalCenter
+                text: PowerState.consumptionText
+                mono: true
+                muted: true
+            }
+        }
+
+        Sparkline {
+            x: ThemeManager.spacing.small
+            width: parent.width - x * 2
+            height: 72
+            normalized: PowerState.chart
+
+            Txt {
+                anchors.centerIn: parent
+                visible: PowerState.chart.length === 0
+                text: "Medindo"
+                faint: true
+            }
+        }
+
+        Item {
+            width: 1
+            height: ThemeManager.spacing.small
         }
     }
 

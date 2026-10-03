@@ -59,6 +59,13 @@ Singleton {
         value: root.open && root.page === "wifi"
     }
 
+    // E a bateria lê o histórico do consumo enquanto a página dela está à mostra.
+    Binding {
+        target: Battery
+        property: "historyActive"
+        value: root.open && root.page === "battery"
+    }
+
     // A página de cada entrada, se o recurso dela existir.
     function pageFor(entry: string, has: var): string {
         const i = ["rede", "bluetooth", "som", "energia", "microfone"].indexOf(entry);
