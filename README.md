@@ -12,7 +12,7 @@ Barra, painel superior, central, launcher, notificações, tela de bloqueio e um
 - **Botões e teclas mapeáveis**: os botões extras do mouse e as teclas extras do teclado (F13–F24, macro, mídia) podem abrir painéis, controlar a mídia, trocar de workspace, **enviar um atalho de teclado** para a janela ou rodar um comando.
 - **Remapeamento real de teclas**, em qualquer programa e inclusive para modificadores (Caps Lock → Esc, Alt Gr → Super). O Lucerna gera o keymap, confere se ele compila e só então o entrega ao Hyprland.
 - **Monitores arrastando**: a disposição se monta num canvas com encaixe magnético. Cada monitor tem resolução, taxa, escala, rotação, espelhamento, VRR e 10 bits. Aplicar pede confirmação em todas as telas e, sem resposta em 15 s, volta ao anterior.
-- **Central em quatro painéis**: som (com o volume de cada app), energia, controles (Wi-Fi e Bluetooth num card, brilho e botões) e notificações, flutuando sobre a área de trabalho e abrindo juntos, cada um do seu lado.
+- **Central em dois painéis**: ações (tiles de Wi-Fi, Bluetooth, saída de áudio, bateria, microfone e os liga/desliga, com uma página por recurso, e os sliders de volume e brilho) e notificações, flutuando à direita sobre a área de trabalho e abrindo juntos.
 - **Os dez temas mais populares**: Catppuccin Mocha, Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green, e as versões claras Catppuccin Latte e Rosé Pine Dawn, nas paletas oficiais, trocáveis ao vivo.
 - **Papel de parede animado e leve**: cada tema tem um efeito em shader que combina com ele (aurora, bokeh, brasas, luar, neve, vaga-lumes, ondas, névoa, chuva digital), nas cores do tema, a 30 ou 60 fps e em meia resolução. Ele pausa sozinho com tela cheia, tela bloqueada ou tela apagada. Cada tema pode trocar o seu por outro efeito, por uma imagem sua ou por um **vídeo ou GIF**. O vídeo é convertido uma vez para a resolução da tela, sem tarjas, quadros repetidos nem áudio, e toca decodificado pela GPU.
 - **Vidro de verdade**: o desfoque atrás dos painéis é do próprio Hyprland, e o tema ajusta também as bordas das janelas.
@@ -38,9 +38,9 @@ Visão geral, mídia com letra sincronizada, desempenho e clima. Desce de dentro
 
 ### Central
 
-Som e energia à esquerda, controles e notificações à direita, abertos juntos sobre a área de trabalho (`Super+C`). O ícone da barra escolhe o que já vem aberto: o de rede abre o card de controles na lista de redes.
+Ações em cima e notificações embaixo, na direita, abertos juntos sobre a área de trabalho (`Super+C`). Os tiles ligam e desligam no corpo e abrem a página do recurso na setinha. O ícone da barra escolhe o que já vem aberto: o de rede abre a página do Wi-Fi; o de som, a da saída de áudio; o de bateria, a da bateria.
 
-![Central: som, energia, controles e notificações](docs/screenshots/central.jpg)
+![Central: ações e notificações](docs/screenshots/central.jpg)
 
 ### Launcher, temas e barra
 
@@ -96,7 +96,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | --- | --- |
 | **Barra** | Workspaces, hora e data, rede, som, bateria e notificações. Tem quatro estilos e pode ficar fixa ou esconder sozinha. Na área de trabalho vazia fica sempre à mostra, e aparece por um instante ao trocar de workspace. |
 | **Painel superior** | Visão geral (perfil, relógio, calendário, clima, recursos e mídia), mídia com letra sincronizada (LRCLIB) e pulso do áudio na capa, desempenho (CPU, GPU, memória, disco e rede) e clima (Open-Meteo). Abas reordenáveis e opção de abrir ao parar o mouse na hora. |
-| **Central** | Quatro painéis flutuantes que abrem juntos (`Super+C`, ou pelos ícones da barra): som (saída e entrada com troca de dispositivo e o volume de cada app com áudio aberto), energia (bateria, perfil de energia e a bateria dos dispositivos Bluetooth), controles (Wi-Fi e Bluetooth num card que vira a lista de redes, com senha, ou de dispositivos, para parear; o brilho da tela em foco; luz noturna, não perturbe, não apagar a tela e configurações) e notificações. Com porcentagem em cada volume, no brilho e na bateria. |
+| **Central** | Dois painéis flutuantes na direita que abrem juntos (`Super+C`, ou pelos ícones da barra): ações e notificações. As ações são tiles em duas colunas (Wi-Fi, Bluetooth, saída de áudio, bateria, microfone, luz noturna, não perturbe e não apagar a tela; cheios quando ligados), com uma página por recurso: a lista de redes, com senha; os dispositivos Bluetooth, para parear; as saídas e o volume de cada app com áudio aberto; o microfone e as entradas; a bateria, o perfil de energia e a bateria dos dispositivos Bluetooth. Embaixo, os sliders largos de volume e de brilho da tela em foco, com a porcentagem; a engrenagem abre as configurações. |
 | **Notificações** | Popups com ações, pausa no mouse e prazo ajustável, não perturbe e a lista na central. |
 | **Launcher** | Três estilos: compacto (busca e lista), completo (categorias de aplicativos, arquivos, documentos, imagens, músicas, vídeos e web, com favoritos, grade e detalhes: ações do app, descrição, versão e desenvolvedor) e tela cheia (gaveta de apps por categoria). Os apps mais abertos vêm primeiro, com os favoritos na frente. Em todos os estilos: clique direito num item para as opções, `Ctrl+F` fixa ou tira dos favoritos e `Ctrl+H` oculta; no compacto e na tela cheia, `/texto` busca arquivos e `?texto` pesquisa na web. A busca de arquivos usa o `fd` quando há, e, sem busca, mostra os recentes. |
 | **Área de transferência** | Histórico num painel próprio (`Super+V`): textos e imagens, busca, filtro, fixar e apagar. Escolher copia e cola na janela em foco (Ctrl+Shift+V nos terminais). Senhas marcadas pelos gerenciadores ficam de fora. |
@@ -105,8 +105,8 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | **Tela de bloqueio** | Relógio e senha (PAM). |
 | **Energia** | Menu (bloquear, suspender, sair, reiniciar, desligar). Avisos de bateria baixa e crítica, ação no nível crítico com prazo para cancelar, troca de perfil na tomada e modo leve na bateria. |
 | **OSD** | Volume e brilho. |
-| **Ociosidade** | Escurece, desliga a tela, bloqueia e suspende depois de um tempo sem uso, com tempos próprios na tomada e na bateria, sem precisar do `hypridle`. Segura com mídia tocando, com app em tela cheia e com "Não apagar a tela" (nos botões da central, para apresentações). |
-| **Luz noturna** | Tela mais quente à noite, do pôr ao nascer do sol (pela cidade do clima, calculado sem rede), num horário fixo ou sempre, entrando e saindo aos poucos. Nos botões da central, liga ou desliga até a próxima virada. Usa o `hyprsunset`, que muda a cor no hardware, sem custo para a GPU. |
+| **Ociosidade** | Escurece, desliga a tela, bloqueia e suspende depois de um tempo sem uso, com tempos próprios na tomada e na bateria, sem precisar do `hypridle`. Segura com mídia tocando, com app em tela cheia e com "Não apagar a tela" (nos tiles da central, para apresentações). |
+| **Luz noturna** | Tela mais quente à noite, do pôr ao nascer do sol (pela cidade do clima, calculado sem rede), num horário fixo ou sempre, entrando e saindo aos poucos. Nos tiles da central, liga ou desliga até a próxima virada. Usa o `hyprsunset`, que muda a cor no hardware, sem custo para a GPU. |
 | **Papel de parede** | Imagem com transição na troca e efeito animado por cima (shader, a 30 ou 60 fps, no ritmo da tela, e em meia resolução). Pausa com app em tela cheia, tela bloqueada ou tela apagada, e opcionalmente com qualquer janela aberta; no automático, fica parado na bateria. Modo e origem por monitor. |
 | **Temas** | Doze prontos, nas paletas oficiais: Catppuccin Mocha (padrão), Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green, e os claros Catppuccin Latte e Rosé Pine Dawn. Cada um vem com papel estático, efeito animado, fonte própria e bordas do Hyprland. Trocam ao vivo pelo seletor em carrossel (`Super+T`): as setas aplicam o tema do card central depois de uma breve espera, Enter mantém e Esc ou o clique fora desfazem. |
 
@@ -200,7 +200,7 @@ Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [arg
 | --- | --- |
 | `panels` | `open <nome>`, `toggle <nome>`, `dismiss <nome>` (fecha só esse), `close` (fecha todos), `get`. Nomes: `launcher`, `dashboard`, `central`, `settings`, `themes`, `power`, `clipboard`, `capture`, `overview` |
 | `dashboard` | `open <aba>` (`overview`, `media`, `performance`, `weather`), `toggle` |
-| `central` | `open <entrada>`, `toggle <entrada>` (`rede`, `bluetooth`, `som`, `notificacoes`, `energia`; `""` = o estado inicial), `close` |
+| `central` | `open <entrada>`, `toggle <entrada>` (`rede`, `bluetooth`, `som`, `energia`, `microfone` abrem a página do recurso; `notificacoes` e `""`, o estado inicial), `close` |
 | `settings` | `open <tópico>` (`appearance`, `wallpaper`, `displays`, `idle`, `nightlight`, `launcher`, `clipboard`, `capture`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |
 | `notifications` | `clear`, `toggleDnd`, `count` |
 | `launcher` | `open <categoria> <busca>` (`apps`, `files`, `documents`, `images`, `music`, `videos`, `web`; a busca pode ser `""`), `toggle` |
