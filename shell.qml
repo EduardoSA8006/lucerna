@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.features.bar.ui
 import qs.features.capture.ui
+import qs.features.central.ui
 import qs.features.clipboard.ui
 import qs.features.dashboard.ui
 import qs.features.displays.ui
@@ -15,7 +16,6 @@ import qs.features.notifications.ui
 import qs.features.osd.ui
 import qs.features.powerMenu.ui
 import qs.features.settings.ui
-import qs.features.sidebar.ui
 import qs.features.themeSwitcher.ui
 import qs.features.wallpaper.ui
 import qs.features.workspaces.ui
@@ -25,6 +25,7 @@ ShellRoot {
     WorkspacesOverview {}
     Bar {}
     CaptureOverlay {}
+    Central {}
     Clipboard {}
     Dashboard {}
     Displays {}
@@ -39,7 +40,6 @@ ShellRoot {
     Settings {}
     MonitorConfirm {}
     MonitorIdentify {}
-    Sidebar {}
     Lockscreen {}
     ThemeSwitcher {}
 }

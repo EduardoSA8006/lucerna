@@ -17,8 +17,8 @@ Singleton {
     readonly property var actions: [
         { id: "launcher", group: "Lucerna", label: "Abrir o launcher", icon: Icons.apps, kind: "shell" },
         { id: "dashboard", group: "Lucerna", label: "Abrir o painel superior", icon: Icons.dashboard, kind: "shell" },
-        { id: "sidebar", group: "Lucerna", label: "Abrir a central lateral", icon: Icons.sidebar, kind: "shell" },
-        { id: "notifications", group: "Lucerna", label: "Abrir os avisos", icon: Icons.bell, kind: "shell" },
+        { id: "central", group: "Lucerna", label: "Abrir a central", icon: Icons.central, kind: "shell" },
+        { id: "notifications", group: "Lucerna", label: "Abrir a central nas notificações", icon: Icons.bell, kind: "shell" },
         { id: "settings", group: "Lucerna", label: "Abrir as configurações", icon: Icons.settings, kind: "shell" },
         { id: "overview", group: "Lucerna", label: "Visão geral dos workspaces", icon: "overview_key", kind: "shell" },
         { id: "clipboard", group: "Lucerna", label: "Abrir o histórico da área de transferência", icon: "content_paste", kind: "shell" },
@@ -50,8 +50,13 @@ Singleton {
         { id: "none", group: "Outros", label: "Não fazer nada", icon: Icons.block, kind: "none" }
     ]
 
+    // Ids que mudaram de nome (o antigo → o novo): um botão ou tecla salvo
+    // com o antigo segue valendo.
+    readonly property var renamed: ({ sidebar: "central" })
+
     function find(id: string): var {
-        return actions.find(a => a.id === id) ?? null;
+        const real = renamed[id] ?? id;
+        return actions.find(a => a.id === real) ?? null;
     }
 
     // Descrição de uma ação configurada ({ id, keys?, command? }).

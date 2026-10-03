@@ -7,6 +7,12 @@ function run(t) {
         t.eq(A.find("nada"), null);
     });
 
+    t.test("inputactions: o nome antigo de uma ação acha a nova", () => {
+        t.eq(A.find("sidebar")?.id, "central", "um botão salvo com a ação sidebar");
+        t.eq(A.describe({ id: "sidebar" }), "Abrir a central");
+        t.eq(A.find("central").label, "Abrir a central");
+    });
+
     t.test("inputactions: descreve a ação configurada", () => {
         t.eq(A.describe({ id: "lock" }), "Bloquear a tela");
         t.eq(A.describe({ id: "shortcut", mods: "SUPER SHIFT", key: "q" }), "Enviar Super + Shift + Q");

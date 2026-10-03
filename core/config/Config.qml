@@ -51,10 +51,7 @@ Singleton {
     property alias saverBelowEnabled: adapter.saverBelowEnabled
     property alias saverBelow: adapter.saverBelow
     property alias batteryLightMode: adapter.batteryLightMode
-    property alias sidebarSide: adapter.sidebarSide
-    property alias sidebarSection: adapter.sidebarSection
     property alias panelsTogether: adapter.panelsTogether
-    property alias panelsAvoidOverlap: adapter.panelsAvoidOverlap
     property alias monitorSetups: adapter.monitorSetups
     property alias monitorsAtLogin: adapter.monitorsAtLogin
     property alias inputOptions: adapter.inputOptions
@@ -196,13 +193,9 @@ Singleton {
             property int saverBelow: 20
             // Na bateria: sem transparência/desfoque e animações mais rápidas
             property bool batteryLightMode: false
-            // Central lateral: "right" ou "left", e a última seção aberta.
-            property string sidebarSide: "right"
-            property string sidebarSection: "wifi"
-            // Painéis que podem ficar abertos juntos (dashboard, sidebar) e se
-            // desviam um do outro para não se sobrepor.
-            property var panelsTogether: ["dashboard", "sidebar"]
-            property bool panelsAvoidOverlap: true
+            // Painéis que ficam abertos junto das configurações (só o
+            // dashboard; os outros são modais).
+            property var panelsTogether: ["dashboard"]
             // Arranjos de monitores salvos, um por conjunto conectado
             // (Monitors.setup): { setup: { chaveDoMonitor: spec } }.
             property var monitorSetups: ({})

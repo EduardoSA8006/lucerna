@@ -5,10 +5,11 @@ import Quickshell
 import qs.core.config
 import qs.core.time
 
-// Horário da luz noturna, compartilhado pela feature que aplica, pela central
-// lateral e pelas configurações. O horário vem do pôr e do nascer do sol (pela
-// cidade do clima, calculado sem rede), de um de/até fixo ou é "sempre". Entra e sai aos poucos, em 30 min. Ligar ou desligar à mão
-// vale até a próxima virada do horário; depois o horário volta a mandar.
+// Horário da luz noturna, compartilhado pela feature que aplica, pelos botões
+// da central e pelas configurações. O horário vem do pôr e do nascer do sol
+// (pela cidade do clima, calculado sem rede), de um de/até fixo ou é "sempre".
+// Entra e sai aos poucos, em 30 min. Ligar ou desligar à mão vale até a
+// próxima virada do horário; depois o horário volta a mandar.
 Singleton {
     id: root
 

@@ -7,6 +7,8 @@
     "serviços": {
         "services/AppInfo.qml": ["info", "decodeEntities"],
         "services/Audio.qml": ["nodeName"],
+        "services/AudioStreams.qml": ["describe"],
+        "services/Battery.qml": ["parseHistory", "pushSample", "historyAfter"],
         "services/Bluetooth.qml": ["isBusy"],
         "services/Brightness.qml": ["parse"],
         "services/Capture.qml": ["geometryArg"],
@@ -25,10 +27,10 @@
     "exceções": {
         "core/panels/Panels.qml:Connections.onScreensChanged": "sinal do Quickshell ao mudar as telas; só chama disturb(), que é testada",
         "core/panels/Panels.qml:Connections.onRawEvent": "evento do Hyprland, que não roda no CI; só chama disturb()",
-        "core/panels/Panels.qml:IpcHandler.open": "IPC panels open: repassa a open(), testada; exercitado pela fumaça",
+        "core/panels/Panels.qml:IpcHandler.open": "IPC panels open: filtra pela isPanel() e repassa a open(), testadas; exercitado pela fumaça",
         "core/panels/Panels.qml:IpcHandler.close": "IPC panels close: repassa a close(), testada; exercitado pela fumaça",
         "core/panels/Panels.qml:IpcHandler.dismiss": "IPC panels dismiss: repassa a dismiss(), testada",
-        "core/panels/Panels.qml:IpcHandler.toggle": "IPC panels toggle: repassa a toggle(), testada",
+        "core/panels/Panels.qml:IpcHandler.toggle": "IPC panels toggle: filtra pela isPanel() e repassa a toggle(), testadas",
         "core/panels/Panels.qml:IpcHandler.get": "IPC panels get: exercitado pela fumaça a cada passo",
         "core/theme/ThemeManager.qml:IpcHandler.set": "IPC theme set: repassa a apply(), testada",
         "core/theme/ThemeManager.qml:IpcHandler.get": "IPC theme get: só devolve current",

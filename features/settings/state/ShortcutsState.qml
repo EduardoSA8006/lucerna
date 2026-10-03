@@ -14,7 +14,7 @@ Singleton {
     id: root
 
     readonly property var groups: [
-        { title: "Painéis e sessão", ids: ["launcher", "overview", "clipboard", "dashboard", "settings", "sidebar", "notifications", "themes", "power", "lock", "dnd"] },
+        { title: "Painéis e sessão", ids: ["launcher", "overview", "clipboard", "dashboard", "settings", "central", "notifications", "themes", "power", "lock", "dnd"] },
         { title: "Captura de tela", ids: ["capture", "capture-screen", "capture-window", "record"] },
         { title: "Som, mídia e brilho", ids: ["volume-up", "volume-down", "mute", "mic-mute", "play-pause", "next", "previous", "brightness-up", "brightness-down"] }
     ]
@@ -55,14 +55,7 @@ Singleton {
     }
 
     function setKeys(id: string, keys: var): void {
-        const all = Object.assign({}, Config.shellShortcuts ?? {});
-        const defaults = ShellShortcuts.defaultKeys(id);
-        const isDefault = keys.length === defaults.length && keys.every((k, i) => ShellShortcuts.same(k, defaults[i]));
-        if (isDefault)
-            delete all[id];
-        else
-            all[id] = keys;
-        Config.shellShortcuts = all;
+        Config.shellShortcuts = ShellShortcuts.withKeys(Config.shellShortcuts, id, keys);
     }
 
     // De quem é a combinação hoje, fora o próprio atalho: { kind: "shell", id },

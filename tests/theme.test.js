@@ -18,6 +18,21 @@ function run(t) {
         t.near(c.r, 1, 0.01);
     });
 
+    t.test("theme: contraste do texto sobre uma cor", () => {
+        t.near(T.luminance(Qt.rgba(1, 1, 1, 1)), 1, 1e-9, "branco");
+        t.near(T.luminance(Qt.rgba(0, 0, 0, 1)), 0, 1e-9, "preto");
+        t.near(T.contrast(Qt.rgba(1, 1, 1, 1), Qt.rgba(0, 0, 0, 1)), 21, 1e-9, "o máximo, em qualquer ordem");
+        t.near(T.contrast(Qt.rgba(0, 0, 0, 1), Qt.rgba(1, 1, 1, 1)), 21, 1e-9);
+        // O aviso do latte: o texto claro dá ~2,3:1; o escuro, ~3,05:1 (o
+        // mínimo para texto grande).
+        t.near(T.contrast("#df8e1d", "#eff1f5"), 2.32, 0.01, "aviso do latte com o texto claro");
+        t.near(T.contrast("#df8e1d", "#4c4f69"), 3.05, 0.01, "aviso do latte com o texto escuro");
+        // No mocha: accentText #11111b, text #cdd6f4, base #1e1e2e.
+        t.eq(String(T.onColor(T.colors.warning)), "#11111b", "aviso do mocha: o accentText");
+        t.eq(String(T.onColor(Qt.rgba(1, 1, 1, 1))), "#11111b", "branco: o mais escuro");
+        t.eq(String(T.onColor(Qt.rgba(0, 0, 0, 1))), "#cdd6f4", "preto: o texto claro");
+    });
+
     t.test("theme: JSON do tema", () => {
         t.eq(T.parse(""), {});
         t.eq(T.parse('{"a": 1}'), { a: 1 });

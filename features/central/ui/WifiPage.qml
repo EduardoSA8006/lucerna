@@ -1,16 +1,22 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs.core.theme
 import qs.core.widgets
-import qs.features.sidebar.state
+import qs.features.central.state
 
-// Wi-Fi: liga/desliga e redes disponíveis. Clicar numa rede protegida e
-// desconhecida abre o campo de senha ali mesmo.
+// Página do Wi-Fi no painel de ações da central: voltar, o título e o
+// liga/desliga no topo; embaixo, as redes (o card rola, se passar da altura).
+// Clicar numa rede protegida e desconhecida abre o campo de senha ali mesmo.
 Column {
-    spacing: ThemeManager.spacing.normal
+    id: root
 
-    SectionHeader {
+    width: parent?.width ?? 0
+    spacing: ThemeManager.spacing.small
+
+    PageHeader {
         title: "Wi-Fi"
-        subtitle: WifiState.status
+        onBack: CentralState.setPage("")
 
         Switch {
             visible: WifiState.available
@@ -30,20 +36,22 @@ Column {
     }
 
     EmptyState {
-        visible: !WifiState.available || !WifiState.enabled
+        visible: !WifiState.available || !WifiState.enabled || WifiState.hardwareBlocked
         icon: Icons.wifiOff
-        text: !WifiState.available ? "Nenhuma placa Wi-Fi encontrada" : "O Wi-Fi está desligado"
+        text: !WifiState.available ? "Nenhuma placa Wi-Fi encontrada" : WifiState.hardwareBlocked ? "Bloqueado pelo botão do aparelho" : "O Wi-Fi está desligado"
     }
 
     EmptyState {
-        visible: WifiState.available && WifiState.enabled && WifiState.networks.length === 0
+        visible: WifiState.available && WifiState.enabled && !WifiState.hardwareBlocked && WifiState.networks.length === 0
         icon: Icons.wifi[0]
         text: "Procurando redes…"
     }
 
     Column {
-        width: parent.width
-        visible: WifiState.enabled
+        id: networks
+
+        width: root.width
+        visible: WifiState.enabled && !WifiState.hardwareBlocked && WifiState.networks.length > 0
         spacing: 2
 
         Repeater {
@@ -53,9 +61,9 @@ Column {
                 id: entry
 
                 required property var modelData
-                readonly property bool open: WifiState.expanded === modelData.network
+                readonly property bool open: WifiState.expanded === entry.modelData.network
 
-                width: parent.width
+                width: parent?.width ?? 0
                 spacing: 4
 
                 ListRow {

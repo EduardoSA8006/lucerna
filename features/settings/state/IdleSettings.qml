@@ -4,11 +4,19 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.core.config
+import qs.services
 
-// View model de Configurações → Tela e ociosidade. Os tempos ficam na config;
-// a feature idle aplica.
+// View model de Configurações → Tela e ociosidade: o brilho de cada tela e os
+// tempos da ociosidade. Os tempos ficam na config; a feature idle aplica.
 Singleton {
     id: root
+
+    // Brilho de cada tela (a integrada e os monitores externos por DDC/CI).
+    readonly property var brightnessScreens: Brightness.screens
+
+    function setBrightness(id: string, value: real): void {
+        Brightness.setScreen(id, value);
+    }
 
     readonly property var stages: [
         { id: "dim", label: "Escurecer a tela", icon: "brightness_low" },

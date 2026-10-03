@@ -3,7 +3,7 @@ import qs.core.theme
 import qs.core.widgets
 import qs.features.settings.state
 
-// Painéis: quais podem ficar abertos ao mesmo tempo e se desviam uns dos outros.
+// Painéis: se o painel superior fica aberto junto das configurações.
 Column {
     spacing: ThemeManager.spacing.large
 
@@ -18,9 +18,9 @@ Column {
 
                 required property var modelData
 
-                icon: modelData.icon
-                title: modelData.label
-                description: modelData.description
+                icon: row.modelData.icon
+                title: row.modelData.label
+                description: row.modelData.description
 
                 Switch {
                     checked: SettingsState.panelsTogether.includes(row.modelData.id)
@@ -33,23 +33,8 @@ Column {
     Txt {
         width: parent.width
         wrapMode: Text.Wrap
-        text: "Os ligados ficam abertos ao mesmo tempo: abrir um não fecha o outro, e a barra continua clicável. Um desligado abre sozinho e fecha os demais. Abrir as configurações fecha os dois, mas abertos depois eles ficam por cima delas. O launcher, os temas e o menu de energia sempre abrem sozinhos."
+        text: "Ligado, o painel superior fica aberto por cima das configurações e a barra continua clicável. Desligado, ele abre sozinho e fecha os demais. A central, o launcher, os temas e o menu de energia sempre abrem sozinhos."
         faint: true
         font.pixelSize: ThemeManager.font.small
-    }
-
-    SettingSection {
-        title: "Posição"
-
-        SettingRow {
-            icon: Icons.overlap
-            title: "Ajustar para não sobrepor"
-            description: "Aberto junto com a central lateral, o painel superior se afasta dela"
-
-            Switch {
-                checked: SettingsState.avoidOverlap
-                onToggled: on => SettingsState.setAvoidOverlap(on)
-            }
-        }
     }
 }

@@ -10,20 +10,22 @@ import qs.core.theme
 // Ponte entre features: diz quais painéis estão abertos.
 //
 // Três tipos:
-// - modais (launcher, themes, power): ficam sozinhos, abrir um fecha os outros;
-// - acompanhantes (dashboard, sidebar; quais, vem da config): ficam abertos
-//   juntos, sem cobrir a barra;
-// - base (settings): abrir fecha os outros, mas acompanhantes abertos depois
-//   ficam por cima dela.
+// - modais (launcher, themes, power, central): ficam sozinhos, abrir um fecha
+//   os outros;
+// - acompanhante (o dashboard, se a config deixa): fica aberto junto da base,
+//   sem cobrir a barra;
+// - base (settings): abrir fecha os outros, mas o acompanhante aberto depois
+//   fica por cima dela.
 // Um clique fora de todos (numa janela) fecha os não modais; Esc fecha só o
 // que está com o teclado.
 Singleton {
     id: root
 
-    readonly property var companions: (Config.panelsTogether ?? []).filter(n => ["dashboard", "sidebar"].includes(n))
+    readonly property var companions: (Config.panelsTogether ?? []).filter(n => n === "dashboard")
     readonly property var bases: ["settings"]
-    // Acompanhantes desviam uns dos outros (ver leftInset e rightInset).
-    readonly property bool avoidOverlap: Config.panelsAvoidOverlap
+    // Os painéis que existem. O IPC ignora outros nomes: um `panels open
+    // sidebar` velho fecharia o que estava aberto e deixaria um modal sem janela.
+    readonly property var names: ["launcher", "dashboard", "central", "settings", "themes", "power", "clipboard", "capture", "overview"]
 
     // Nomes abertos, na ordem em que abriram.
     property var opened: []
@@ -31,11 +33,6 @@ Singleton {
     readonly property string current: opened.length ? opened[opened.length - 1] : ""
     readonly property bool anyOpen: opened.length > 0
     readonly property bool modalOpen: opened.some(n => isModal(n))
-
-    // Espaço ocupado nas bordas por um acompanhante (a central lateral), para
-    // os outros desviarem.
-    property real leftInset: 0
-    property real rightInset: 0
 
     // Um painel que deixou de ser acompanhante (mudança na config) não fica
     // aberto junto: sobra só ele.
@@ -47,6 +44,10 @@ Singleton {
 
     function isCompanion(name: string): bool {
         return companions.includes(name);
+    }
+
+    function isPanel(name: string): bool {
+        return names.includes(name);
     }
 
     function isModal(name: string): bool {
@@ -163,29 +164,55 @@ Singleton {
         return Config.barStyle === "strip" ? ThemeManager.barHeight + gap : ThemeManager.barHeight + gap * 2;
     }
 
+    // Faixa da barra, a partir do topo, que um modal com keepBar (a central)
+    // deixa fora da camada para a barra continuar clicável. Com a barra
+    // escondida sozinha, nenhuma: ela some com um painel aberto.
+    readonly property real barStrip: Config.barAutoHide ? 0 : topInset - ThemeManager.spacing.small
+
     function isOpen(name: string): bool {
         return opened.includes(name);
     }
 
-    // Central lateral numa seção (wifi, bluetooth, sound, notifications, battery, display).
-    function openSidebar(section: string): void {
-        Config.sidebarSection = section;
-        open("sidebar");
+    // Central: os dois painéis (ações e notificações). A entrada diz por onde
+    // ela abriu e qual página do painel de ações já vem aberta: "rede" (o
+    // Wi-Fi), "bluetooth", "som" (a saída de áudio), "energia" (a bateria) e
+    // "microfone" (só pelo IPC); "notificacoes" e "" (o atalho e o IPC sem
+    // entrada) abrem o estado inicial.
+    readonly property var centralEntries: ["rede", "bluetooth", "som", "notificacoes", "energia", "microfone"]
+    property string centralEntry: ""
+
+    // A cada abertura ou troca de entrada, com a entrada que valeu.
+    signal centralOpened(string entry)
+
+    // A central fechada não guarda a entrada: a próxima abertura começa do zero.
+    onOpenedChanged: {
+        if (!opened.includes("central"))
+            centralEntry = "";
     }
 
-    // Fecha se já estiver aberta nessa seção; senão abre (ou troca) para ela.
-    function toggleSidebar(section: string): void {
-        if (isOpen("sidebar") && Config.sidebarSection === section)
-            dismiss("sidebar");
+    // Abre a central na entrada (uma desconhecida vale como ""); aberta, troca
+    // de entrada.
+    function openCentral(entry: string): void {
+        centralEntry = centralEntries.includes(entry) ? entry : "";
+        open("central");
+        centralOpened(centralEntry);
+    }
+
+    // Fecha se ela já estiver aberta pela mesma entrada, ou se a pedida é a
+    // vazia (o atalho fecha de qualquer entrada); senão abre ou troca.
+    function toggleCentral(entry: string): void {
+        if (isOpen("central") && (entry === centralEntry || !centralEntries.includes(entry)))
+            dismiss("central");
         else
-            openSidebar(section);
+            openCentral(entry);
     }
 
     IpcHandler {
         target: "panels"
 
         function open(name: string): void {
-            root.open(name);
+            if (root.isPanel(name))
+                root.open(name);
         }
 
         function close(): void {
@@ -197,7 +224,8 @@ Singleton {
         }
 
         function toggle(name: string): void {
-            root.toggle(name);
+            if (root.isPanel(name))
+                root.toggle(name);
         }
 
         function get(): string {

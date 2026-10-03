@@ -15,6 +15,25 @@ function run(t) {
         t.eq(list.find(s => s.id === "lock").keys, [{ mods: "ALT", trigger: "l" }]);
     });
 
+    t.test("shellshortcuts: a tecla salva no nome antigo (sidebar) vale na central", () => {
+        const old = [{ mods: "SUPER SHIFT", trigger: "c" }];
+        t.eq(S.effective({ sidebar: old }).find(s => s.id === "central"), { id: "central", keys: old, custom: true });
+        t.eq(S.effective({ sidebar: old, central: [] }).find(s => s.id === "central").keys, [], "a do nome novo vence");
+        t.eq(S.effective({}).find(s => s.id === "central").keys, [{ mods: S.mod, trigger: "c" }]);
+        t.check(!S.effective({ sidebar: old }).some(s => s.id === "sidebar"), "o nome antigo não vira atalho");
+    });
+
+    t.test("shellshortcuts: salvar e restaurar depois da ponte do nome antigo", () => {
+        const old = [{ mods: "SUPER SHIFT", trigger: "c" }];
+        const def = S.defaultKeys("central");
+        const restored = S.withKeys({ sidebar: old, lock: [] }, "central", def);
+        t.eq(restored, { lock: [] }, "restaurar apaga o nome antigo e o novo");
+        t.eq(S.effective(restored).find(s => s.id === "central"), { id: "central", keys: def, custom: false });
+        t.eq(S.withKeys({ sidebar: old }, "central", [{ mods: "ALT", trigger: "c" }]), { central: [{ mods: "ALT", trigger: "c" }] }, "capturar outra tecla grava no nome novo");
+        t.eq(S.withKeys({ sidebar: old }, "central", [{ mods: S.mod.toLowerCase(), trigger: "C" }]), {}, "a padrão capturada conta como restaurar");
+        t.eq(S.withKeys(null, "lock", []), { lock: [] }, "sem nome antigo, lista vazia fica");
+    });
+
     t.test("shellshortcuts: teclas padrão de uma ação", () => {
         t.eq(S.defaultKeys("capture-screen"), [{ mods: "SHIFT", trigger: "Print" }]);
         t.eq(S.defaultKeys("nada"), []);

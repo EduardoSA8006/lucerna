@@ -14,7 +14,11 @@ Singleton {
     readonly property bool available: Bluetooth.available
     readonly property bool enabled: Bluetooth.enabled
     property bool searching: false
-    readonly property string status: !available ? "Sem adaptador Bluetooth" : !enabled ? "Desligado" : Bluetooth.connected.length ? `${Bluetooth.connected.length} conectado${Bluetooth.connected.length > 1 ? "s" : ""}` : "Nenhum dispositivo conectado"
+    // Tile das ações: o dispositivo conectado (ou quantos), ou o estado; o
+    // ícone e se há algum conectado.
+    readonly property bool connected: Bluetooth.connected.length > 0
+    readonly property string summary: !available ? "Sem adaptador" : !enabled ? "Desligado" : Bluetooth.connected.length === 1 ? (Bluetooth.connected[0].name || Bluetooth.connected[0].address) : connected ? `${Bluetooth.connected.length} conectados` : "Ligado"
+    readonly property string icon: !available || !enabled ? Icons.bluetoothOff : connected ? Icons.bluetoothConnected : Icons.bluetooth
 
     readonly property var paired: Bluetooth.devices.filter(d => d.paired).map(describe)
     readonly property var others: Bluetooth.devices.filter(d => !d.paired && d.name).map(describe)
@@ -30,8 +34,8 @@ Singleton {
         };
     }
 
-    // Parar de procurar ao sair da seção.
-    readonly property bool showing: SidebarState.isShowing("bluetooth")
+    // Parar de procurar ao sair da página.
+    readonly property bool showing: CentralState.open && CentralState.page === "bluetooth"
     onShowingChanged: {
         if (!showing)
             searching = false;

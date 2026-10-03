@@ -8,7 +8,7 @@ import qs.features.settings.state
 
 // Tela de configurações: tópicos à esquerda, conteúdo à direita. Setas ↑/↓
 // trocam de tópico; Esc ou clique fora fecham. Abrir fecha o painel superior
-// e a central lateral; abertos depois, eles ficam por cima (ver Panels).
+// e a central; o painel superior aberto depois fica por cima (ver Panels).
 OverlayPanel {
     id: panel
 
@@ -20,7 +20,7 @@ OverlayPanel {
 
     onOpenChanged: {
         if (open)
-            sidebar.forceActiveFocus();
+            topicPane.forceActiveFocus();
     }
 
     Surface {
@@ -37,9 +37,9 @@ OverlayPanel {
             anchors.fill: parent
             spacing: 0
 
-            // Barra lateral
+            // Lista de tópicos, à esquerda
             FocusScope {
-                id: sidebar
+                id: topicPane
 
                 Layout.preferredWidth: 280
                 Layout.fillHeight: true
@@ -251,7 +251,7 @@ OverlayPanel {
                 }
             }
 
-            // Divisória só com contorno ligado; sem ele, o tom da barra lateral separa.
+            // Divisória só com contorno ligado; sem ele, o tom da lista de tópicos separa.
             Rectangle {
                 Layout.fillHeight: true
                 Layout.preferredWidth: 1
@@ -310,7 +310,6 @@ OverlayPanel {
                             launcher: launcherPage,
                             dashboard: dashboardPage,
                             power: powerPage,
-                            sidebar: sidebarPage,
                             panels: panelsPage,
                             displays: displaysPage,
                             wallpaper: wallpaperPage,
@@ -425,12 +424,6 @@ OverlayPanel {
         id: panelsPage
 
         PanelsPage {}
-    }
-
-    Component {
-        id: sidebarPage
-
-        SidebarPage {}
     }
 
     Component {

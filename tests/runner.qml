@@ -18,14 +18,18 @@ import qs.core.nightlight
 import qs.core.panels
 import qs.core.theme
 import qs.core.time
+import qs.features.central.state
 import qs.features.themeSwitcher.state
 import qs.services
 import "appinfo.test.js" as AppInfoTest
 import "audio.test.js" as AudioTest
+import "audiostreams.test.js" as AudioStreamsTest
+import "battery.test.js" as BatteryTest
 import "bluetooth.test.js" as BluetoothTest
 import "brightness.test.js" as BrightnessTest
 import "capture.test.js" as CaptureTest
 import "carousel.test.js" as CarouselTest
+import "central.test.js" as CentralTest
 import "clipboard.test.js" as ClipboardTest
 import "format.test.js" as FormatTest
 import "input.test.js" as InputTest
@@ -66,6 +70,7 @@ ShellRoot {
         ["nightschedule", NightScheduleTest],
         ["theme", ThemeTest],
         ["panels", PanelsTest],
+        ["central", CentralTest],
         ["searchengines", SearchEnginesTest],
         ["clipboard", ClipboardTest],
         ["capture", CaptureTest],
@@ -79,6 +84,8 @@ ShellRoot {
         ["network", NetworkTest],
         ["bluetooth", BluetoothTest],
         ["audio", AudioTest],
+        ["audiostreams", AudioStreamsTest],
+        ["battery", BatteryTest],
         ["appinfo", AppInfoTest],
         ["media", MediaTest],
         ["session", SessionTest],
@@ -163,10 +170,15 @@ ShellRoot {
             get SearchEngines() { return SearchEngines; },
             get NightSchedule() { return NightSchedule; },
             get Panels() { return Panels; },
+            get CentralState() { return CentralState; },
+            get ControlsState() { return ControlsState; },
+            get PowerState() { return PowerState; },
             get ThemeManager() { return ThemeManager; },
             get Sun() { return Sun; },
             get AppInfo() { return AppInfo; },
             get Audio() { return Audio; },
+            get AudioStreams() { return AudioStreams; },
+            get Battery() { return Battery; },
             get Bluetooth() { return Bluetooth; },
             get Brightness() { return Brightness; },
             get Capture() { return Capture; },

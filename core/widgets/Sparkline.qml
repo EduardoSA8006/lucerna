@@ -3,11 +3,14 @@ import QtQuick.Shapes
 import qs.core.theme
 
 // Gráfico de linha de um histórico curto, com preenchimento suave embaixo.
-// A escala se ajusta ao maior valor (ou a `maxValue`, se definido).
+// A escala se ajusta ao maior valor (ou a `maxValue`, se definido). Para uma
+// série com tempo irregular, `normalized` traz os pontos já na escala ({ x, y }
+// de 0 a 1, y de baixo para cima) e `values` fica de lado.
 Item {
     id: root
 
     property var values: []
+    property var normalized: []
     property real maxValue: 0
     property color color: ThemeManager.colors.accent
     readonly property real ceiling: maxValue > 0 ? maxValue : Math.max(1, ...values)
@@ -17,11 +20,11 @@ Item {
         return Qt.point(i / n * width, height - 2 - (v / ceiling) * (height - 4));
     }
 
-    readonly property var points: values.map((v, i) => point(i, v))
+    readonly property var points: normalized.length > 0 ? normalized.map(p => Qt.point(p.x * width, height - 2 - p.y * (height - 4))) : values.map((v, i) => point(i, v))
 
     Shape {
         anchors.fill: parent
-        visible: root.values.length > 1
+        visible: root.points.length > 1
         preferredRendererType: Shape.CurveRenderer
 
         ShapePath {
@@ -35,7 +38,7 @@ Item {
             }
 
             PathPolyline {
-                path: root.points.length > 1 ? [Qt.point(0, root.height), ...root.points, Qt.point(root.width, root.height)] : []
+                path: root.points.length > 1 ? [Qt.point(root.points[0].x, root.height), ...root.points, Qt.point(root.points[root.points.length - 1].x, root.height)] : []
             }
         }
 
