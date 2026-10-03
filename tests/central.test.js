@@ -41,18 +41,51 @@ function run(t) {
         t.eq(S.pageIfPresent("x", all), "", "página desconhecida");
     });
 
+    // A bateria simulada controla o recurso da página "battery": com ela, a
+    // entrada "energia" abre a página; sem ela (nem perfil), não.
     scenario("central: a entrada escolhe a página", () => {
-        const has = S.has;
-        P.openCentral("rede");
-        t.eq([S.open, P.centralEntry, S.page], [true, "rede", has.wifi ? "wifi" : ""], "a lista de redes, se houver placa Wi-Fi");
-        for (const [entry, page] of [["bluetooth", "bluetooth"], ["som", "output"], ["energia", "battery"], ["microfone", "input"]]) {
-            P.openCentral(entry);
-            t.eq([P.centralEntry, S.page], [entry, S.pageFor(entry, S.has)], `entrada "${entry}" com a central aberta`);
+        const B = t.Battery;
+        const simulated0 = B.simulated;
+        const profiles0 = B.profilesAvailable;
+        try {
+            B.simulated = { percentage: 0.5, onBattery: true };
+            P.openCentral("energia");
+            t.eq([S.open, P.centralEntry, S.page], [true, "energia", "battery"]);
+            for (const entry of ["notificacoes", ""]) {
+                P.openCentral(entry);
+                t.eq(S.page, "", `entrada "${entry}": o estado inicial`);
+            }
+            B.simulated = null;
+            B.profilesAvailable = false;
+            if (t.PowerState.devices.length === 0) {
+                P.openCentral("energia");
+                t.eq([P.centralEntry, S.page], ["energia", ""], "sem bateria, perfil e dispositivos: o estado inicial");
+            }
+        } finally {
+            B.simulated = simulated0;
+            B.profilesAvailable = profiles0;
         }
-        t.eq(S.pageFor("som", S.has), has.output ? "output" : "", "a página do som segue o que existe");
-        for (const entry of ["notificacoes", ""]) {
-            P.openCentral(entry);
-            t.eq(S.page, "", `entrada "${entry}": o estado inicial`);
+    });
+
+    scenario("central: o recurso da página aberta some e ela volta ao estado inicial", () => {
+        const B = t.Battery;
+        const simulated0 = B.simulated;
+        const profiles0 = B.profilesAvailable;
+        try {
+            B.simulated = null;
+            B.profilesAvailable = true;
+            P.openCentral("");
+            S.setPage("battery");
+            t.eq(S.page, "battery");
+            B.profilesAvailable = false;
+            if (t.PowerState.devices.length === 0)
+                t.eq(S.page, "", "sem bateria, perfil e dispositivos");
+            S.setPage("output");
+            B.profilesAvailable = true;
+            t.eq(S.page, S.has.output ? "output" : "", "outro recurso mudou: a página só sai se o dela faltar");
+        } finally {
+            B.simulated = simulated0;
+            B.profilesAvailable = profiles0;
         }
     });
 
@@ -142,6 +175,27 @@ function run(t) {
             C.doNotDisturb = dnd0;
             C.idleEnabled = idle0;
             C.idleInhibit = awake0;
+        }
+    });
+
+    t.test("ações: bateria baixa pinta o ícone do tile", () => {
+        const B = t.Battery;
+        const simulated0 = B.simulated;
+        const level0 = C.batteryLowLevel;
+        const battery = () => K.tilesFor(Object.assign({}, extras, all)).find(x => x.id === "battery");
+        try {
+            C.batteryLowLevel = 20;
+            B.simulated = { percentage: 0.1, onBattery: true };
+            t.eq([battery().alert, battery().checked], [true, false], "pouca carga, na bateria: alerta, mas neutro");
+            B.simulated = { percentage: 0.1, onBattery: false };
+            t.eq(battery().alert, false, "carregando");
+            B.simulated = { percentage: 0.6, onBattery: true };
+            t.eq(battery().alert, false, "acima do limite");
+            B.simulated = null;
+            t.eq(battery().alert, false, "sem bateria");
+        } finally {
+            B.simulated = simulated0;
+            C.batteryLowLevel = level0;
         }
     });
 

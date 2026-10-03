@@ -15,6 +15,8 @@ Rectangle {
     property color activeColor: ThemeManager.colors.accent
     // Encolhe um pouco ao pressionar (1 = não encolhe). Para botões grandes.
     property real pressScale: 1
+    // Falso apaga o véu de hover (um botão filho com o véu próprio por cima).
+    property bool hoverVeil: true
 
     signal clicked(var mouse)
     signal wheel(var wheel)
@@ -34,7 +36,7 @@ Rectangle {
         anchors.fill: parent
         radius: root.radius
         color: root.layerColor
-        opacity: root.pressed ? 0.12 : root.hovered ? 0.08 : 0
+        opacity: root.pressed ? 0.12 : root.hovered && root.hoverVeil ? 0.08 : 0
 
         Behavior on opacity { Anim { type: Anim.FastEffects } }
     }

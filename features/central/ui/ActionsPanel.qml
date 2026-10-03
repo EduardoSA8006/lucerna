@@ -115,7 +115,9 @@ CentralPanel {
                 }
             }
 
+            // Respiro entre os tiles e os sliders, só com algum slider.
             Item {
+                visible: SoundState.available || ControlsState.hasBrightness
                 width: 1
                 height: ThemeManager.spacing.tiny
             }

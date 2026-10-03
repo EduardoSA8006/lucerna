@@ -23,6 +23,8 @@ Clickable {
     readonly property color foreground: checked ? ThemeManager.colors.accentText : ThemeManager.colors.text
 
     active: checked
+    // Sobre a setinha, só o véu dela.
+    hoverVeil: !more.hovered
     enabled: clickable
     opacity: 1
     height: 60

@@ -15,8 +15,7 @@ Singleton {
     readonly property bool wired: Network.kind === "wired"
     // Tile das ações: o nome da rede, "Cabo" (no cabo, sem Wi-Fi conectado)
     // ou o estado; sem placa Wi-Fi, o tile "Rede" diz "Cabo" ou
-    // "Desconectado". O ícone e se há conexão.
-    readonly property bool connected: Network.wifiNetwork !== null || wired
+    // "Desconectado". E o ícone.
     readonly property string summary: Network.wifiNetwork ? Network.wifiNetwork.name : wired ? "Cabo" : !available ? "Desconectado" : hardwareBlocked ? "Bloqueado" : !enabled ? "Desligado" : "Não conectado"
     readonly property string icon: Network.wifiNetwork ? Icons.level(Icons.wifi, Network.signal) : wired ? Icons.ethernet : !available || !enabled || hardwareBlocked ? Icons.wifiOff : Icons.wifi[0]
 
