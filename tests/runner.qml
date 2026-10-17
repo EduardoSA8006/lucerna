@@ -16,15 +16,18 @@ import qs.core.input
 import qs.core.launcher
 import qs.core.nightlight
 import qs.core.panels
+import qs.core.shapes
 import qs.core.theme
 import qs.core.time
 import qs.features.central.state
+import qs.features.dashboard.state
 import qs.features.themeSwitcher.state
 import qs.services
 import "appinfo.test.js" as AppInfoTest
 import "audio.test.js" as AudioTest
 import "audiostreams.test.js" as AudioStreamsTest
 import "battery.test.js" as BatteryTest
+import "blobshapes.test.js" as BlobShapesTest
 import "bluetooth.test.js" as BluetoothTest
 import "brightness.test.js" as BrightnessTest
 import "capture.test.js" as CaptureTest
@@ -41,6 +44,7 @@ import "network.test.js" as NetworkTest
 import "nightschedule.test.js" as NightScheduleTest
 import "notifications.test.js" as NotificationsTest
 import "panels.test.js" as PanelsTest
+import "performance.test.js" as PerformanceTest
 import "searchengines.test.js" as SearchEnginesTest
 import "session.test.js" as SessionTest
 import "shellshortcuts.test.js" as ShellShortcutsTest
@@ -65,12 +69,14 @@ ShellRoot {
         ["sun", SunTest],
         ["format", FormatTest],
         ["carousel", CarouselTest],
+        ["blobshapes", BlobShapesTest],
         ["shellshortcuts", ShellShortcutsTest],
         ["inputactions", InputActionsTest],
         ["nightschedule", NightScheduleTest],
         ["theme", ThemeTest],
         ["panels", PanelsTest],
         ["central", CentralTest],
+        ["performance", PerformanceTest],
         ["searchengines", SearchEnginesTest],
         ["clipboard", ClipboardTest],
         ["capture", CaptureTest],
@@ -165,6 +171,7 @@ ShellRoot {
             get Config() { return Config; },
             get Format() { return Format; },
             get Carousel() { return Carousel; },
+            get BlobShapes() { return BlobShapes; },
             get InputActions() { return InputActions; },
             get ShellShortcuts() { return ShellShortcuts; },
             get SearchEngines() { return SearchEngines; },
@@ -173,6 +180,7 @@ ShellRoot {
             get CentralState() { return CentralState; },
             get ControlsState() { return ControlsState; },
             get PowerState() { return PowerState; },
+            get PerformanceState() { return PerformanceState; },
             get ThemeManager() { return ThemeManager; },
             get Sun() { return Sun; },
             get AppInfo() { return AppInfo; },

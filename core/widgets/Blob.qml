@@ -1,11 +1,19 @@
 import QtQuick
 import QtQuick.Shapes
+import qs.core.shapes
 import qs.core.theme
 
 // Forma orgânica de "lobos" (tipo biscoito ou flor), desenhada com curva polar:
 // r(θ) = raio · (1 + amplitude · cos(lobos · θ)). Substitui o qt6-m3shapes com
 // recursos do próprio Qt. `pulse` (0 a 1) infla os lobos, para reagir ao áudio;
-// `spinning` gira devagar.
+// `spinning` gira devagar. Com `morphing`, ignora `lobes` e `amplitude`: a cada
+// ~6 s vira outra forma de BlobShapes.shapes, misturando as duas curvas em
+// ~1,2 s. O relógio (BlobMorph) é próprio ou, com `driver`, compartilhado com
+// outras bolhas, que então mudam e giram juntas: aí valem o giro e a troca de
+// forma do `driver`, e `spinning`, `spinDuration` e `morphing` desta são
+// ignorados (ela sempre segue a lista de formas). `active` falso (ou a bolha
+// escondida) congela a forma e o ângulo: o relógio próprio pausa; o
+// compartilhado segue para as outras, e esta volta já em sincronia com ele.
 Item {
     id: root
 
@@ -15,7 +23,21 @@ Item {
     property color color: ThemeManager.colors.raised
     property bool spinning: false
     property real spinDuration: 24000
-    readonly property int steps: 144
+    property bool morphing: false
+    property bool active: true
+    property BlobMorph driver: null
+    // Pontos do contorno: menos numa bolha pequena.
+    property int steps: 144
+
+    readonly property bool live: visible && active
+    readonly property BlobMorph clock: root.driver ?? own
+    // Formas da lista: com `morphing` ou com um relógio compartilhado.
+    readonly property bool shaped: morphing || driver !== null
+    // O que está na tela: segue o relógio enquanto viva; parada, fica no último.
+    property int shapeFrom: 0
+    property int shapeTo: 0
+    property real morph: 0
+    property real angle: 0
 
     property real animatedPulse: pulse
 
@@ -25,21 +47,34 @@ Item {
     implicitHeight: 100
 
     readonly property var points: {
-        const cx = width / 2, cy = height / 2;
-        const a = amplitude + animatedPulse * 0.08;
-        const r = Math.min(width, height) / 2 / (1 + a);
-        const out = [];
-        for (let i = 0; i <= steps; i++) {
-            const t = i / steps * Math.PI * 2;
-            const rr = r * (1 + a * Math.cos(lobes * t));
-            out.push(Qt.point(cx + rr * Math.cos(t), cy + rr * Math.sin(t)));
-        }
-        return out;
+        const extra = animatedPulse * 0.08;
+        const grow = s => ({ lobes: s.lobes, amplitude: s.amplitude + extra });
+        const a = shaped ? BlobShapes.shapes[shapeFrom] : { lobes: lobes, amplitude: amplitude };
+        const b = shaped ? BlobShapes.shapes[shapeTo] : a;
+        return BlobShapes.outline(width, height, grow(a), grow(b), shaped ? morph : 0, steps);
+    }
+
+    BlobMorph {
+        id: own
+
+        morphing: root.morphing && root.live && root.driver === null
+        spinning: root.spinning && root.live && root.driver === null
+        spinDuration: root.spinDuration
+    }
+
+    Binding {
+        root.shapeFrom: root.clock.shapeFrom
+        root.shapeTo: root.clock.shapeTo
+        root.morph: root.clock.morph
+        root.angle: root.clock.angle
+        when: root.live
+        restoreMode: Binding.RestoreNone
     }
 
     Shape {
         anchors.fill: parent
         preferredRendererType: Shape.CurveRenderer
+        rotation: root.angle
 
         ShapePath {
             strokeColor: "transparent"
@@ -48,14 +83,6 @@ Item {
             PathPolyline {
                 path: root.points
             }
-        }
-
-        RotationAnimation on rotation {
-            running: root.spinning && root.visible
-            from: 0
-            to: 360
-            duration: root.spinDuration
-            loops: Animation.Infinite
         }
     }
 }
