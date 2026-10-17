@@ -6,8 +6,10 @@ import qs.core.theme
 // Forma orgânica de "lobos" (tipo biscoito ou flor), desenhada com curva polar:
 // r(θ) = raio · (1 + amplitude · cos(lobos · θ)). Substitui o qt6-m3shapes com
 // recursos do próprio Qt. `pulse` (0 a 1) infla os lobos, para reagir ao áudio;
-// `spinning` gira devagar. Com `morphing`, ignora `lobes` e `amplitude`: a cada
-// ~6 s vira outra forma de BlobShapes.shapes, misturando as duas curvas em ~1,2 s.
+// `spinning` gira devagar. `active` falso pausa o giro e a troca de forma sem
+// mexer na forma (para quem fica carregado fora da tela, como as abas do
+// painel superior). Com `morphing`, ignora `lobes` e `amplitude`: a cada ~6 s
+// vira outra forma de BlobShapes.shapes, misturando as duas curvas em ~1,2 s.
 Item {
     id: root
 
@@ -18,7 +20,9 @@ Item {
     property bool spinning: false
     property real spinDuration: 24000
     property bool morphing: false
-    readonly property int steps: 144
+    property bool active: true
+    // Pontos do contorno: menos numa bolha pequena.
+    property int steps: 144
 
     // A mistura: de shapes[shapeFrom] (morph = 0) para shapes[shapeTo] (morph = 1).
     property int shapeFrom: 0
@@ -44,9 +48,11 @@ Item {
     // morph = 0 dão a mesma curva), sem salto.
     Timer {
         interval: 6000
-        running: root.morphing && root.visible
+        running: root.morphing && root.visible && root.active
         repeat: true
         onTriggered: {
+            if (morphAnim.running)
+                return;
             root.shapeFrom = root.shapeTo;
             root.morph = 0;
             root.shapeTo = BlobShapes.next(root.shapeTo, BlobShapes.shapes.length, Math.random());
@@ -79,7 +85,9 @@ Item {
         }
 
         RotationAnimation on rotation {
-            running: root.spinning && root.visible
+            // Pausa em vez de parar: ao voltar, segue do ângulo em que estava.
+            running: root.spinning
+            paused: running && !(root.visible && root.active)
             from: 0
             to: 360
             duration: root.spinDuration
