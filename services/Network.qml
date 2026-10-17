@@ -11,7 +11,9 @@ Singleton {
     id: root
 
     readonly property bool available: Networking.backend !== NetworkBackendType.None
-    readonly property var devices: Networking.devices.values
+    // Tipado como ObjectModel: pelo tipo do Networking.devices, o qmllint 6.12 não acha o `values`.
+    readonly property ObjectModel deviceModel: Networking.devices
+    readonly property var devices: deviceModel.values
     readonly property var wiredDevice: devices.find(d => d.type === DeviceType.Wired && d.connected) ?? null
     readonly property var wifiDevice: devices.find(d => d.type === DeviceType.Wifi) ?? null
     readonly property var wifiNetwork: wifiDevice?.networks.values.find(n => n.connected) ?? null

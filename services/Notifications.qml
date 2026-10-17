@@ -10,7 +10,9 @@ import Quickshell.Services.Notifications
 Singleton {
     id: root
 
-    readonly property var list: server.trackedNotifications.values.slice().reverse()
+    // Tipado como ObjectModel: pelo tipo do server.trackedNotifications, o qmllint 6.12 não acha o `values`.
+    readonly property ObjectModel trackedModel: server.trackedNotifications
+    readonly property var list: trackedModel.values.slice().reverse()
     readonly property int count: list.length
     property var popups: []
     property bool doNotDisturb: false
@@ -35,7 +37,7 @@ Singleton {
     }
 
     function clearAll(): void {
-        for (const n of server.trackedNotifications.values.slice())
+        for (const n of trackedModel.values.slice())
             n.dismiss();
     }
 

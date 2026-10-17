@@ -13,7 +13,9 @@ Singleton {
 
     // Todos os streams com áudio. Só um nó rastreado tem `properties` e
     // `audio` valendo: o tracker rastreia os candidatos, e o describe filtra.
-    readonly property var candidates: Pipewire.nodes.values.filter(n => n.isStream && n.audio)
+    // Tipado como ObjectModel: pelo tipo do Pipewire.nodes, o qmllint 6.12 não acha o `values`.
+    readonly property ObjectModel nodeModel: Pipewire.nodes
+    readonly property var candidates: nodeModel.values.filter(n => n.isStream && n.audio)
     // [{ node, name, icon }]
     readonly property var list: describe(candidates)
 

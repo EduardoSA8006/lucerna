@@ -79,11 +79,29 @@ PanelWindow {
 
         active: window.effect && video !== ""
         source: active ? "VideoWallpaper.qml" : ""
-        onLoaded: {
-            item.source = Qt.binding(() => videoLoader.video);
-            item.playing = Qt.binding(() => WallpaperState.shouldAnimate(window.targetScreen));
-            item.fadeDuration = Qt.binding(() => WallpaperState.fadeDuration);
-            item.fillMode = Qt.binding(() => WallpaperState.fill);
+
+        // O item vem por URL, sem tipo para o qmllint (citar o tipo VideoWallpaper
+        // aqui carregaria o Qt Multimedia junto com a janela): as propriedades vão
+        // por Binding, que liga pelo nome quando o item existe.
+        Binding {
+            target: videoLoader.item
+            property: "source"
+            value: videoLoader.video
+        }
+        Binding {
+            target: videoLoader.item
+            property: "playing"
+            value: WallpaperState.shouldAnimate(window.targetScreen)
+        }
+        Binding {
+            target: videoLoader.item
+            property: "fadeDuration"
+            value: WallpaperState.fadeDuration
+        }
+        Binding {
+            target: videoLoader.item
+            property: "fillMode"
+            value: WallpaperState.fill
         }
     }
 }
