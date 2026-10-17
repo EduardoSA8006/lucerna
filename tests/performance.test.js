@@ -9,7 +9,7 @@ function run(t) {
 
     t.test("performance: GPU com uso", () => {
         const v = P.gpuView(nvidia);
-        t.eq([v.card, v.name, v.dedicated, v.asleep, v.label, v.value, v.unit], ["card1", "GeForce RTX 3050", true, false, "Uso", "37", "%"]);
+        t.eq([v.card, v.name, v.dedicated, v.asleep, v.hasData, v.label, v.value, v.unit], ["card1", "GeForce RTX 3050", true, false, true, "Uso", "37", "%"]);
         t.near(v.fraction, 0.37, 1e-9);
         t.eq([v.hasTemp, v.tempText, v.hot], [true, "61 °C", false]);
         t.near(v.tempFraction, 31 / 70, 1e-9, "escala de 30 a 100 °C");
@@ -18,16 +18,16 @@ function run(t) {
 
     t.test("performance: GPU sem uso, com clock", () => {
         const v = P.gpuView(intel);
-        t.eq([v.dedicated, v.label, v.value, v.unit, v.hasTemp, v.tempText], [false, "Clock", "1400", "MHz", false, ""]);
+        t.eq([v.dedicated, v.hasData, v.label, v.value, v.unit, v.hasTemp, v.tempText], [false, true, "Clock", "1400", "MHz", false, ""]);
         t.near(v.fraction, 1400 / 1450, 1e-9, "véu = freq / maxFreq");
     });
 
     t.test("performance: GPU em repouso e sem dados", () => {
         const v = P.gpuView(asleep);
-        t.eq([v.asleep, v.label, v.fraction, v.value, v.unit, v.hasTemp], [true, "Em repouso", 0, "—", "", false]);
+        t.eq([v.asleep, v.hasData, v.label, v.fraction, v.value, v.unit, v.hasTemp], [true, false, "Em repouso", 0, "—", "", false]);
         t.eq(P.gpuView(gpu({ state: "suspended", temp: 40 })).hasTemp, false, "em repouso não mostra temperatura velha");
         const none = P.gpuView(gpu({}));
-        t.eq([none.label, none.fraction, none.value, none.unit], ["Uso", 0, "—", ""]);
+        t.eq([none.hasData, none.label, none.fraction, none.value, none.unit], [false, "Uso", 0, "—", ""]);
     });
 
     t.test("performance: qual GPU mostrar", () => {

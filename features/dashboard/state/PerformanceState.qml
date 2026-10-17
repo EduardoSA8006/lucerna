@@ -14,9 +14,8 @@ Singleton {
     readonly property string cpuModel: SystemStats.cpuModel.replace(/\((R|TM)\)/g, "").replace(/ CPU/, "") || "Processador"
     readonly property string cpuThreads: SystemStats.cpuThreads ? `${SystemStats.cpuThreads} threads` : ""
     readonly property real cpuUsage: SystemStats.cpuUsage
-    readonly property string cpuUsageText: Format.percent(cpuUsage)
     readonly property bool hasTemp: isFinite(SystemStats.cpuTemp)
-    readonly property string cpuTempText: hasTemp ? `${Math.round(SystemStats.cpuTemp)} °C` : "—"
+    readonly property string cpuTempText: hasTemp ? `${Math.round(SystemStats.cpuTemp)} °C` : ""
     // Escala de 30 a 100 °C para a barra de temperatura.
     readonly property real cpuTempFraction: hasTemp ? (SystemStats.cpuTemp - 30) / 70 : 0
     readonly property bool cpuHot: hasTemp && SystemStats.cpuTemp >= 85
@@ -65,6 +64,7 @@ Singleton {
             name: g.name.replace(/^NVIDIA /, "").replace(/ Laptop GPU$/, ""),
             dedicated: g.vendor !== "intel",
             asleep: asleep,
+            hasData: hasUsage || hasFreq,
             label: asleep ? "Em repouso" : hasFreq ? "Clock" : "Uso",
             fraction: hasUsage ? g.usage : hasFreq ? g.freq / g.maxFreq : 0,
             value: hasUsage ? `${Math.round(g.usage * 100)}` : hasFreq ? `${g.freq}` : "—",

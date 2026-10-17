@@ -8,9 +8,10 @@ import qs.core.widgets
 // Card da aba Desempenho para a CPU e a GPU: o título numa linha (ícone, nome
 // e detalhe), um véu claro da esquerda até `fraction`, o valor grande à
 // direita com a bolha que muda de forma atrás e a temperatura com a barrinha
-// embaixo (some sem leitura). Com `clickable`, o clique esmaece o conteúdo,
-// emite `swapped` (quem usa troca o que mostra) e volta; as bolinhas do
-// título mostram qual de `dots` está na tela.
+// embaixo (some sem leitura). Com `clickable`, o clique emite `swapped` (quem
+// usa troca o que mostra na hora; cada clique conta) e o conteúdo novo
+// aparece esmaecendo; as bolinhas do título mostram qual de `dots` está na
+// tela.
 Surface {
     id: root
 
@@ -45,7 +46,7 @@ Surface {
     // A bolha cabe o número mais largo e a unidade, com folga; 64 px no mínimo.
     readonly property real blobSize: Math.max(64, Math.ceil(widestUnit.length > 1 ? Math.max(numberMetrics.advanceWidth, unitMetrics.advanceWidth) : numberMetrics.advanceWidth + unitMetrics.advanceWidth) + 20)
 
-    implicitHeight: Math.max(margin * 2 + titleRow.height + ThemeManager.spacing.normal + (temp.visible ? temp.height : 0), blobSize + margin * 2)
+    implicitHeight: Math.max(margin * 2 + titleRow.height + ThemeManager.spacing.normal + (root.hasTemp ? temp.height : 0), blobSize + margin * 2)
 
     AnimatedNumber {
         id: shownFraction
@@ -60,6 +61,8 @@ Surface {
         text: root.widest
     }
 
+    // Também dá a altura das letras da unidade (tightBoundingRect: "MHz" e "%"
+    // não descem da linha de base), para pô-la logo abaixo do número.
     TextMetrics {
         id: unitMetrics
 
@@ -67,26 +70,15 @@ Surface {
         text: root.widestUnit
     }
 
-    SequentialAnimation {
+    // A troca só no visual: o conteúdo novo vem de quase apagado.
+    Anim {
         id: swap
 
-        Anim {
-            target: content
-            property: "opacity"
-            to: 0
-            type: Anim.FastEffects
-        }
-
-        ScriptAction {
-            script: root.swapped()
-        }
-
-        Anim {
-            target: content
-            property: "opacity"
-            to: 1
-            type: Anim.FastEffects
-        }
+        target: content
+        property: "opacity"
+        from: 0.2
+        to: 1
+        type: Anim.FastEffects
     }
 
     Item {
@@ -249,7 +241,10 @@ Surface {
                     id: unitText
 
                     x: root.stackUnit ? (parent.width - width) / 2 : number.width
-                    y: root.stackUnit ? number.height - 8 : number.baselineOffset - baselineOffset
+                    // Embaixo: o topo das letras 3 px abaixo da linha de
+                    // base do número (os algarismos não descem dela); ao lado:
+                    // na mesma linha de base.
+                    y: root.stackUnit ? number.baselineOffset + 3 - (baselineOffset - unitMetrics.tightBoundingRect.height) : number.baselineOffset - baselineOffset
                     text: root.unit
                     muted: true
                     font.pixelSize: ThemeManager.font.small + 1
@@ -263,6 +258,9 @@ Surface {
         anchors.fill: parent
         visible: root.clickable
         radius: root.radius
-        onClicked: swap.restart()
+        onClicked: {
+            root.swapped();
+            swap.restart();
+        }
     }
 }

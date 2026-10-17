@@ -13,7 +13,7 @@ Item {
 
     // Só com o painel aberto nesta aba as bolhas se mexem: o painel carrega
     // todas as abas, e o `visible` delas não muda.
-    readonly property bool onScreen: DashboardState.open && DashboardState.current === "performance"
+    readonly property bool onScreen: DashboardState.isShowing("performance")
 
     implicitHeight: layout.implicitHeight
 
@@ -21,6 +21,13 @@ Item {
         id: cpuNumber
 
         value: PerformanceState.cpuUsage
+    }
+
+    // O uso da GPU na tela, quando ela tem uso (com clock, os MHz vão direto).
+    AnimatedNumber {
+        id: gpuNumber
+
+        value: PerformanceState.gpu?.unit === "%" ? PerformanceState.gpu.fraction : 0
     }
 
     AnimatedNumber {
@@ -79,17 +86,19 @@ Item {
                 subtitle: gpu?.name ?? "Nenhuma GPU encontrada"
                 fraction: gpu?.fraction ?? 0
                 label: gpu?.label ?? ""
-                value: gpu?.value ?? "—"
+                value: gpu?.unit === "%" ? `${Math.round(gpuNumber.shown * 100)}` : gpu?.value ?? "—"
                 unit: gpu?.unit ?? ""
-                // Medida pela mais larga de todas: trocar de GPU não muda a bolha.
-                widest: PerformanceState.gpus.some(g => g.unit === "MHz") ? "0000" : "100"
-                widestUnit: PerformanceState.gpus.some(g => g.unit === "MHz") ? "MHz" : "%"
+                // Medida pela natureza das GPUs (a integrada mostra o clock), não
+                // pela leitura de agora: só muda quando muda a lista.
+                widest: PerformanceState.gpus.some(g => !g.dedicated) ? "0000" : "100"
+                widestUnit: PerformanceState.gpus.some(g => !g.dedicated) ? "MHz" : "%"
                 hasTemp: gpu?.hasTemp ?? false
                 tempText: gpu?.tempText ?? ""
                 tempFraction: gpu?.tempFraction ?? 0
                 hot: gpu?.hot ?? false
                 pulse: fraction
-                blobActive: root.onScreen && !(gpu?.asleep ?? true)
+                // Parada em repouso ou sem dados (não há o que mostrar).
+                blobActive: root.onScreen && (gpu?.hasData ?? false)
                 clickable: PerformanceState.gpus.length > 1
                 dots: PerformanceState.gpus.length
                 dot: PerformanceState.gpuIndex
