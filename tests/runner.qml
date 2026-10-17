@@ -20,6 +20,7 @@ import qs.core.shapes
 import qs.core.theme
 import qs.core.time
 import qs.features.central.state
+import qs.features.dashboard.state
 import qs.features.themeSwitcher.state
 import qs.services
 import "appinfo.test.js" as AppInfoTest
@@ -43,6 +44,7 @@ import "network.test.js" as NetworkTest
 import "nightschedule.test.js" as NightScheduleTest
 import "notifications.test.js" as NotificationsTest
 import "panels.test.js" as PanelsTest
+import "performance.test.js" as PerformanceTest
 import "searchengines.test.js" as SearchEnginesTest
 import "session.test.js" as SessionTest
 import "shellshortcuts.test.js" as ShellShortcutsTest
@@ -74,6 +76,7 @@ ShellRoot {
         ["theme", ThemeTest],
         ["panels", PanelsTest],
         ["central", CentralTest],
+        ["performance", PerformanceTest],
         ["searchengines", SearchEnginesTest],
         ["clipboard", ClipboardTest],
         ["capture", CaptureTest],
@@ -177,6 +180,7 @@ ShellRoot {
             get CentralState() { return CentralState; },
             get ControlsState() { return ControlsState; },
             get PowerState() { return PowerState; },
+            get PerformanceState() { return PerformanceState; },
             get ThemeManager() { return ThemeManager; },
             get Sun() { return Sun; },
             get AppInfo() { return AppInfo; },

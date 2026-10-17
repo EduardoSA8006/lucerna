@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Widgets
 import qs.core.format
 import qs.core.theme
 import qs.core.widgets
@@ -11,6 +10,10 @@ import qs.features.dashboard.state
 // Aba Desempenho: CPU, GPU, disco, rede e memória.
 Item {
     id: root
+
+    // Só com o painel aberto nesta aba as bolhas se mexem: o painel carrega
+    // todas as abas, e o `visible` delas não muda.
+    readonly property bool onScreen: DashboardState.open && DashboardState.current === "performance"
 
     implicitHeight: layout.implicitHeight
 
@@ -38,201 +41,59 @@ Item {
         width: parent.width
         spacing: ThemeManager.spacing.normal
 
+        // CPU e GPU lado a lado, metade cada; sem a GPU, a CPU ocupa a linha.
         RowLayout {
             Layout.fillWidth: true
             spacing: ThemeManager.spacing.normal
 
-            // CPU: o card coberto da esquerda até o uso por um véu claro (a
-            // cor do texto, bem transparente), com o modelo, a temperatura e o
-            // uso por cima; a bolha atrás da % muda de forma.
-            Surface {
-                id: cpuCard
-
+            StatCard {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 156
-
-                // O véu, recortado no formato do card, dentro da borda.
-                ClippingRectangle {
-                    anchors.fill: parent
-                    anchors.margins: cpuCard.border.width
-                    radius: cpuCard.radius - cpuCard.border.width
-                    color: "transparent"
-
-                    Rectangle {
-                        width: parent.width * Math.max(0, Math.min(1, cpuNumber.shown))
-                        height: parent.height
-                        color: ThemeManager.alpha(ThemeManager.colors.text, 0.1)
-                    }
-                }
-
-                Row {
-                    x: ThemeManager.spacing.normal + 2
-                    y: ThemeManager.spacing.normal + 2
-                    width: usage.x - x - ThemeManager.spacing.normal
-                    spacing: ThemeManager.spacing.small
-
-                    Icon {
-                        id: cpuIcon
-
-                        anchors.verticalCenter: parent.verticalCenter
-                        icon: Icons.cpu
-                        size: 18
-                        color: ThemeManager.colors.accent
-                    }
-
-                    Txt {
-                        id: cpuTitle
-
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "CPU"
-                        font.pixelSize: ThemeManager.font.large
-                        font.weight: Font.DemiBold
-                    }
-
-                    Txt {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width - cpuIcon.width - cpuTitle.width - parent.spacing * 2
-                        text: [PerformanceState.cpuModel, PerformanceState.cpuThreads].filter(x => x).join(" · ")
-                        muted: true
-                        font.pixelSize: ThemeManager.font.small + 1
-                    }
-                }
-
-                Column {
-                    x: ThemeManager.spacing.normal + 2
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: ThemeManager.spacing.normal + 2
-                    spacing: ThemeManager.spacing.small
-
-                    Row {
-                        spacing: ThemeManager.spacing.small
-
-                        Icon {
-                            anchors.verticalCenter: parent.verticalCenter
-                            icon: Icons.temperature
-                            size: 18
-                            color: PerformanceState.cpuHot ? ThemeManager.colors.danger : ThemeManager.colors.textMuted
-                        }
-
-                        Txt {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: PerformanceState.cpuTempText
-                            mono: true
-                        }
-                    }
-
-                    LinearGauge {
-                        width: 220
-                        value: PerformanceState.cpuTempFraction
-                        color: PerformanceState.cpuHot ? ThemeManager.colors.danger : ThemeManager.colors.accent
-                    }
-                }
-
-                Txt {
-                    anchors.horizontalCenter: usage.horizontalCenter
-                    anchors.bottom: usage.top
-                    text: "Uso"
-                    muted: true
-                    font.pixelSize: ThemeManager.font.small + 1
-                }
-
-                Item {
-                    id: usage
-
-                    anchors.right: parent.right
-                    anchors.rightMargin: ThemeManager.spacing.large + 4
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.verticalCenterOffset: 8
-                    width: 64
-                    height: 64
-
-                    Blob {
-                        anchors.fill: parent
-                        morphing: true
-                        pulse: PerformanceState.cpuUsage
-                        color: ThemeManager.colors.track
-                        spinning: true
-                        spinDuration: 30000
-                    }
-
-                    Txt {
-                        anchors.centerIn: parent
-                        text: Format.percent(cpuNumber.shown)
-                        mono: true
-                        font.pixelSize: ThemeManager.font.large + 10
-                        font.weight: Font.DemiBold
-                    }
-                }
+                Layout.fillHeight: true
+                Layout.preferredWidth: 1
+                icon: Icons.cpu
+                title: "CPU"
+                subtitle: [PerformanceState.cpuModel, PerformanceState.cpuThreads].filter(x => x).join(" · ")
+                fraction: PerformanceState.cpuUsage
+                label: "Uso"
+                value: `${Math.round(cpuNumber.shown * 100)}`
+                unit: "%"
+                hasTemp: PerformanceState.hasTemp
+                tempText: PerformanceState.cpuTempText
+                tempFraction: PerformanceState.cpuTempFraction
+                hot: PerformanceState.cpuHot
+                pulse: PerformanceState.cpuUsage
+                blobActive: root.onScreen
             }
 
-            // GPUs
-            Surface {
-                Layout.preferredWidth: 300
-                Layout.preferredHeight: 156
+            // Uma GPU por vez (a dedicada primeiro); o clique passa para a
+            // próxima.
+            StatCard {
+                readonly property var gpu: PerformanceState.gpu
+
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredWidth: 1
                 visible: PerformanceState.showGpu
-
-                Column {
-                    anchors.fill: parent
-                    anchors.margins: ThemeManager.spacing.normal + 2
-                    spacing: ThemeManager.spacing.normal
-
-                    CardHeader {
-                        icon: Icons.gpu
-                        text: "GPU"
-                    }
-
-                    Txt {
-                        visible: PerformanceState.gpus.length === 0
-                        text: "Nenhuma GPU encontrada"
-                        faint: true
-                    }
-
-                    Repeater {
-                        model: PerformanceState.gpus.slice(0, 2)
-
-                        delegate: Column {
-                            id: gpu
-
-                            required property var modelData
-
-                            width: parent.width
-                            spacing: 4
-
-                            Row {
-                                width: parent.width
-
-                                Txt {
-                                    width: parent.width - value.width
-                                    text: gpu.modelData.name
-                                    font.pixelSize: ThemeManager.font.small + 1
-                                }
-
-                                Txt {
-                                    id: value
-
-                                    text: gpu.modelData.valueText
-                                    mono: true
-                                    faint: gpu.modelData.asleep
-                                    font.pixelSize: ThemeManager.font.small + 1
-                                }
-                            }
-
-                            LinearGauge {
-                                width: parent.width
-                                value: gpu.modelData.fraction
-                                opacity: gpu.modelData.asleep ? 0.4 : 1
-                            }
-
-                            Txt {
-                                width: parent.width
-                                visible: text !== ""
-                                text: gpu.modelData.detail
-                                faint: true
-                                font.pixelSize: ThemeManager.font.small
-                            }
-                        }
-                    }
-                }
+                icon: Icons.gpu
+                title: "GPU"
+                subtitle: gpu?.name ?? "Nenhuma GPU encontrada"
+                fraction: gpu?.fraction ?? 0
+                label: gpu?.label ?? ""
+                value: gpu?.value ?? "—"
+                unit: gpu?.unit ?? ""
+                // Medida pela mais larga de todas: trocar de GPU não muda a bolha.
+                widest: PerformanceState.gpus.some(g => g.unit === "MHz") ? "0000" : "100"
+                widestUnit: PerformanceState.gpus.some(g => g.unit === "MHz") ? "MHz" : "%"
+                hasTemp: gpu?.hasTemp ?? false
+                tempText: gpu?.tempText ?? ""
+                tempFraction: gpu?.tempFraction ?? 0
+                hot: gpu?.hot ?? false
+                pulse: fraction
+                blobActive: root.onScreen && !(gpu?.asleep ?? true)
+                clickable: PerformanceState.gpus.length > 1
+                dots: PerformanceState.gpus.length
+                dot: PerformanceState.gpuIndex
+                onSwapped: PerformanceState.cycleGpu()
             }
         }
 
