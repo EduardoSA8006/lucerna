@@ -71,7 +71,6 @@ Item {
                 icon: Icons.cpu
                 title: `CPU - ${PerformanceState.cpuModel}`
                 fraction: PerformanceState.cpuUsage
-                label: "Uso"
                 value: `${Math.round(cpuNumber.shown * 100)}`
                 unit: "%"
                 hasTemp: PerformanceState.hasTemp

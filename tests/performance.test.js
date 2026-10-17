@@ -13,6 +13,8 @@ function run(t) {
         t.eq(P.shortCpu("AMD Ryzen 7 5800X 8-Core Processor"), "AMD Ryzen 7 5800X");
         t.eq(P.shortCpu("Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz"), "Intel Core i7-8700");
         t.eq(P.shortCpu("13th Gen Intel(R) Core(TM) i7-13700K"), "Intel Core i7-13700K");
+        t.eq(P.shortCpu("AMD Ryzen 7 PRO 7840U w/ Radeon 780M Graphics"), "AMD Ryzen 7 PRO 7840U", "sufixo da APU");
+        t.eq(P.shortCpu("Quad-Core AMD Opteron(tm) Processor 2376"), "AMD Opteron 2376", "(tm) minúsculo e Quad-Core no começo");
         t.eq(P.shortCpu(""), "Processador", "sem nome: o de reserva");
     });
 
@@ -20,12 +22,14 @@ function run(t) {
         t.eq(P.shortGpu("NVIDIA GeForce RTX 3050 Laptop GPU"), "GeForce RTX 3050");
         t.eq(P.shortGpu("Intel UHD Graphics"), "Intel UHD Graphics");
         t.eq(P.shortGpu("Intel(R) UHD Graphics 630"), "Intel UHD Graphics 630");
-        t.eq(P.shortGpu(""), "GPU", "sem nome: o de reserva");
+        t.eq(P.shortGpu("Intel(r) UHD Graphics 630"), "Intel UHD Graphics 630", "(r) minúsculo");
+        t.eq(P.shortGpu("Intel Corporation Alder Lake-P GT2 [Iris Xe Graphics]"), "Intel Iris Xe Graphics", "formato do lspci");
+        t.eq(P.shortGpu(""), "desconhecida", "sem nome: combina com \"GPU - \"");
     });
 
     t.test("performance: GPU com uso", () => {
         const v = P.gpuView(nvidia);
-        t.eq([v.card, v.name, v.dedicated, v.asleep, v.hasData, v.label, v.value, v.unit], ["card1", "GeForce RTX 3050", true, false, true, "Uso", "37", "%"]);
+        t.eq([v.card, v.name, v.dedicated, v.asleep, v.hasData, v.label, v.value, v.unit], ["card1", "GeForce RTX 3050", true, false, true, "", "37", "%"]);
         t.near(v.fraction, 0.37, 1e-9);
         t.eq([v.hasTemp, v.tempText, v.hot], [true, "61 °C", false]);
         t.near(v.tempFraction, 31 / 70, 1e-9, "escala de 30 a 100 °C");
@@ -34,7 +38,7 @@ function run(t) {
 
     t.test("performance: GPU sem uso, com clock", () => {
         const v = P.gpuView(intel);
-        t.eq([v.dedicated, v.hasData, v.label, v.value, v.unit, v.hasTemp, v.tempText], [false, true, "Clock", "1400", "MHz", false, ""]);
+        t.eq([v.dedicated, v.hasData, v.label, v.value, v.unit, v.hasTemp, v.tempText], [false, true, "", "1400", "MHz", false, ""]);
         t.near(v.fraction, 1400 / 1450, 1e-9, "véu = freq / maxFreq");
     });
 
@@ -43,7 +47,7 @@ function run(t) {
         t.eq([v.asleep, v.hasData, v.label, v.fraction, v.value, v.unit, v.hasTemp], [true, false, "Em repouso", 0, "—", "", false]);
         t.eq(P.gpuView(gpu({ state: "suspended", temp: 40 })).hasTemp, false, "em repouso não mostra temperatura velha");
         const none = P.gpuView(gpu({}));
-        t.eq([none.hasData, none.label, none.fraction, none.value, none.unit], [false, "Uso", 0, "—", ""]);
+        t.eq([none.hasData, none.label, none.fraction, none.value, none.unit], [false, "", 0, "—", ""]);
     });
 
     t.test("performance: qual GPU mostrar", () => {

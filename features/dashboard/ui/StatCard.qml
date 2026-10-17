@@ -39,6 +39,8 @@ Surface {
     signal swapped
 
     readonly property int margin: ThemeManager.spacing.normal + 2
+    // Onde acaba a área da esquerda: antes do rótulo, se há, ou da bolha.
+    readonly property real leftLimit: label ? valueLabel.x : blobBox.x
     readonly property bool stackUnit: unit.length > 1
     // Um tamanho só para a bolha de todo card, que cabe o pior caso, "100%" ou
     // "0000" com "MHz" embaixo, com folga; 64 px no mínimo. Não muda com o
@@ -118,7 +120,7 @@ Surface {
 
             x: root.margin
             y: root.margin
-            width: valueLabel.x - x - ThemeManager.spacing.normal
+            width: root.leftLimit - x - ThemeManager.spacing.normal
             spacing: ThemeManager.spacing.small
 
             Icon {
@@ -187,7 +189,7 @@ Surface {
             }
 
             LinearGauge {
-                width: Math.min(220, valueLabel.x - root.margin - ThemeManager.spacing.normal)
+                width: Math.min(220, root.leftLimit - root.margin - ThemeManager.spacing.normal)
                 value: root.tempFraction
                 color: root.hot ? ThemeManager.colors.danger : ThemeManager.colors.accent
             }
