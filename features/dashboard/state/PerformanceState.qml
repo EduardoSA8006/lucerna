@@ -52,7 +52,7 @@ Singleton {
     readonly property var gpu: gpus[gpuIndex] ?? null
 
     // Uma GPU do SystemStats para o card: com uso, "Uso" e a %; sem uso (a
-    // Intel sem root), "Clock" e os MHz, com o véu em freq/maxFreq; em
+    // Intel sem fdinfo do DRM), "Clock" e os MHz, com o véu em freq/maxFreq; em
     // repouso, "Em repouso", véu vazio e sem temperatura (não acorda a placa).
     function gpuView(g: var): var {
         const asleep = g.state === "suspended";

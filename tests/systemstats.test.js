@@ -24,6 +24,8 @@ function run(t) {
         cpuThreads: S.cpuThreads,
         tempPath: S.tempPath,
         gpus: S.gpus,
+        lastDrm: S.lastDrm,
+        drmUsage: S.drmUsage,
         disks: S.disks
     };
 
@@ -85,6 +87,95 @@ function run(t) {
         t.check(g[1].name === "Intel (integrada)" && isNaN(g[1].usage) && isNaN(g[1].temp), JSON.stringify(g[1]));
     });
 
+    // Leituras do drm-fdinfo.sh: ts em ns e os clientes por "pdev/id".
+    const GPU = "0000:00:02.0";
+    const snap = (ts, clients) => {
+        const out = { ts: ts, clients: ({}) };
+        for (const c of clients)
+            out.clients[`${c.pdev ?? GPU}/${c.id}`] = { driver: c.driver ?? "i915", pdev: c.pdev ?? GPU, v: c.v };
+        return out;
+    };
+    const SEC = 2e9;
+
+    t.test("systemstats: fdinfo do DRM, texto do drm-fdinfo.sh", () => {
+        const s = S.parseDrm("T|1000\ni915|0000:00:02.0|7|engine-render=500,engine-copy=0\nxe|0000:03:00.0|9|cycles-rcs=10,total-cycles-rcs=40\n");
+        t.eq(s, { ts: 1000, clients: {
+            "0000:00:02.0/7": { driver: "i915", pdev: "0000:00:02.0", v: { "engine-render": 500, "engine-copy": 0 } },
+            "0000:03:00.0/9": { driver: "xe", pdev: "0000:03:00.0", v: { "cycles-rcs": 10, "total-cycles-rcs": 40 } }
+        } });
+        t.eq(S.parseDrm("T|5\n"), { ts: 5, clients: {} });
+    });
+
+    t.test("systemstats: uso i915 de um cliente, pela classe mais ocupada", () => {
+        const a = snap(0, [{ id: 1, v: { "engine-render": 100, "engine-video": 0 } }]);
+        const b = snap(SEC, [{ id: 1, v: { "engine-render": 100 + 0.25 * SEC, "engine-video": 0.5 * SEC } }]);
+        t.near(S.drmBusy(a, b, GPU), 0.5, 1e-9);
+    });
+
+    t.test("systemstats: uso i915 soma os clientes e limita a 1", () => {
+        const a = snap(0, [{ id: 1, v: { "engine-render": 0 } }, { id: 2, v: { "engine-render": 0 } }]);
+        const b = snap(SEC, [{ id: 1, v: { "engine-render": 0.25 * SEC } }, { id: 2, v: { "engine-render": 0.5 * SEC } }]);
+        t.near(S.drmBusy(a, b, GPU), 0.75, 1e-9);
+        const c = snap(SEC, [{ id: 1, v: { "engine-render": 0.9 * SEC } }, { id: 2, v: { "engine-render": 0.9 * SEC } }]);
+        t.eq(S.drmBusy(a, c, GPU), 1);
+    });
+
+    t.test("systemstats: cliente que some entre as leituras fica de fora", () => {
+        const a = snap(0, [{ id: 1, v: { "engine-render": 0 } }, { id: 2, v: { "engine-render": 5 * SEC } }]);
+        const b = snap(SEC, [{ id: 1, v: { "engine-render": 0.2 * SEC } }, { id: 3, v: { "engine-render": 9 * SEC } }]);
+        t.near(S.drmBusy(a, b, GPU), 0.2, 1e-9);
+    });
+
+    t.test("systemstats: uso xe por ciclos", () => {
+        const v = (c, tot) => ({ "cycles-rcs": c, "total-cycles-rcs": tot, "cycles-vcs": 0, "total-cycles-vcs": tot });
+        const a = snap(0, [{ id: 1, driver: "xe", v: v(100, 1000) }, { id: 2, driver: "xe", v: v(0, 1000) }]);
+        const b = snap(SEC, [{ id: 1, driver: "xe", v: v(300, 2000) }, { id: 2, driver: "xe", v: v(100, 2000) }]);
+        t.near(S.drmBusy(a, b, GPU), 0.3, 1e-9);
+    });
+
+    t.test("systemstats: outra placa (pdev diferente) é ignorada", () => {
+        const other = "0000:01:00.0";
+        const a = snap(0, [{ id: 1, v: { "engine-render": 0 } }, { id: 1, pdev: other, v: { "engine-render": 0 } }]);
+        const b = snap(SEC, [{ id: 1, v: { "engine-render": 0.1 * SEC } }, { id: 1, pdev: other, v: { "engine-render": 0.9 * SEC } }]);
+        t.near(S.drmBusy(a, b, GPU), 0.1, 1e-9);
+        t.near(S.drmBusy(a, b, other), 0.9, 1e-9);
+        t.check(isNaN(S.drmBusy(a, b, "0000:09:00.0")), "sem cliente na placa");
+    });
+
+    t.test("systemstats: sem leitura anterior ou sem janela, NaN", () => {
+        const b = snap(SEC, [{ id: 1, v: { "engine-render": SEC } }]);
+        t.check(isNaN(S.drmBusy(null, b, GPU)), "primeira leitura");
+        t.check(isNaN(S.drmBusy(b, b, GPU)), "janela zero");
+        t.check(isNaN(S.drmBusy(snap(0, [{ id: 2, v: { "engine-render": 0 } }]), b, GPU)), "nenhum cliente em comum");
+    });
+
+    t.test("systemstats: contador que volta conta 0", () => {
+        const a = snap(0, [{ id: 1, v: { "engine-render": 5 * SEC } }, { id: 2, v: { "engine-render": 0 } }]);
+        const b = snap(SEC, [{ id: 1, v: { "engine-render": 1 } }, { id: 2, v: { "engine-render": 0.3 * SEC } }]);
+        t.near(S.drmBusy(a, b, GPU), 0.3, 1e-9);
+        const c = snap(SEC, [{ id: 1, v: { "engine-render": 1 } }]);
+        t.eq(S.drmBusy(a, c, GPU), 0);
+    });
+
+    t.test("systemstats: o uso da Intel vem do fdinfo, sem tocar as outras GPUs", () => {
+        S.lastDrm = null;
+        S.drmUsage = ({});
+        S.parseGpus("card1|nvidia|0000:01:00.0|active||35|48|1200|2100\ncard2|intel|0000:00:02.0|active||||1450|1500\n");
+        S.applyDrm("T|0\ni915|0000:00:02.0|1|engine-render=0\n");
+        t.check(isNaN(S.gpus[1].usage), "primeira leitura: sem uso, fica o Clock");
+        S.applyDrm(`T|${SEC}\ni915|0000:00:02.0|1|engine-render=${0.4 * SEC}\n`);
+        t.near(S.gpus[1].usage, 0.4, 1e-9);
+        t.eq(S.gpus[0].usage, 0.35);
+        S.parseGpus("card2|intel|0000:00:02.0|active||||1450|1500\n");
+        t.near(S.gpus[0].usage, 0.4, 1e-9);
+    });
+
+    t.test("systemstats: Intel em repouso não lê o fdinfo e esquece a leitura", () => {
+        S.parseGpus("card2|intel|0000:00:02.0|suspended|||||\n");
+        S.probeDrm();
+        t.eq([S.lastDrm, S.drmUsage], [null, {}]);
+    });
+
     t.test("systemstats: discos do df, sem repetir", () => {
         S.parseDf("Mounted on     1B-blocks      Used\n/ 1000 400\n/home 2000 500\n/ 1000 400\n");
         t.eq(S.disks, [{ mount: "/", size: 1000, used: 400 }, { mount: "/home", size: 2000, used: 500 }]);
@@ -103,10 +194,12 @@ function run(t) {
     S.cpuThreads = original.cpuThreads;
     S.tempPath = original.tempPath;
     S.gpus = original.gpus;
+    S.lastDrm = original.lastDrm;
+    S.drmUsage = original.drmUsage;
     S.disks = original.disks;
 
     t.test("systemstats: estado original restaurado", () => {
-        t.eq([S.lastCpu, S.cpuUsage, S.memTotal, S.memUsed, S.swapTotal, S.swapUsed, S.rxTotal, S.txTotal, S.lastNet, S.cpuModel, S.cpuThreads, S.tempPath, S.gpus, S.disks],
-             [original.lastCpu, original.cpuUsage, original.memTotal, original.memUsed, original.swapTotal, original.swapUsed, original.rxTotal, original.txTotal, original.lastNet, original.cpuModel, original.cpuThreads, original.tempPath, original.gpus, original.disks]);
+        t.eq([S.lastCpu, S.cpuUsage, S.memTotal, S.memUsed, S.swapTotal, S.swapUsed, S.rxTotal, S.txTotal, S.lastNet, S.cpuModel, S.cpuThreads, S.tempPath, S.gpus, S.lastDrm, S.drmUsage, S.disks],
+             [original.lastCpu, original.cpuUsage, original.memTotal, original.memUsed, original.swapTotal, original.swapUsed, original.rxTotal, original.txTotal, original.lastNet, original.cpuModel, original.cpuThreads, original.tempPath, original.gpus, original.lastDrm, original.drmUsage, original.disks]);
     });
 }
