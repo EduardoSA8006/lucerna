@@ -212,7 +212,7 @@ Singleton {
         for (const a of actions)
             args.push("-A", `${a.id}=${a.label}`);
         args.push(title, body);
-        const proc = notifier.createObject(root, { tag, command: args });
+        const proc = notifier.createObject(root, { tag, command: args }) as Process;
         proc.running = true;
     }
 

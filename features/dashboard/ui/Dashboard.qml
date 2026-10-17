@@ -18,7 +18,7 @@ OverlayPanel {
 
     onOpenChanged: {
         if (open)
-            content.forceActiveFocus();
+            contentScope.forceActiveFocus();
     }
 
     readonly property int index: DashboardState.currentIndex
@@ -31,7 +31,7 @@ OverlayPanel {
 
         width: Math.min(920, parent.width - ThemeManager.spacing.small * 2)
         x: (parent.width - width) / 2
-        height: content.height + ThemeManager.spacing.large * 2
+        height: contentScope.height + ThemeManager.spacing.large * 2
         y: DashboardState.topOffset - (1 - panel.progress) * (height + DashboardState.topOffset + 16)
         color: ThemeManager.glass(ThemeManager.colors.base, 0)
         radius: ThemeManager.radius.large
@@ -44,7 +44,7 @@ OverlayPanel {
         }
 
         FocusScope {
-            id: content
+            id: contentScope
 
             anchors {
                 left: parent.left

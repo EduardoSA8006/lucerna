@@ -35,10 +35,8 @@ PanelWindow {
         bottom: true
     }
     // Falso positivo do qmllint com o grupo margins do PanelWindow (ver o spec do CI).
-    margins { // qmllint disable unqualified
-        top: ThemeManager.spacing.small
-        right: ThemeManager.spacing.small
-    }
+    margins.top: ThemeManager.spacing.small // qmllint disable unqualified missing-property
+    margins.right: ThemeManager.spacing.small // qmllint disable unqualified missing-property
     implicitWidth: 380
     color: "transparent"
     exclusionMode: ExclusionMode.Normal
