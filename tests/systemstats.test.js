@@ -220,9 +220,50 @@ function run(t) {
         t.eq([S.lastDrm, S.drmUsage], [null, {}]);
     });
 
-    t.test("systemstats: discos do df, sem repetir", () => {
-        S.parseDf("Mounted on     1B-blocks      Used\n/ 1000 400\n/home 2000 500\n/ 1000 400\n");
-        t.eq(S.disks, [{ mount: "/", size: 1000, used: 400 }, { mount: "/home", size: 2000, used: 500 }]);
+    // Saída do lsblk -lnpo NAME,TYPE,PKNAME: o disco não tem pai.
+    const lsblk = "/dev/sda       disk \n/dev/sda2      part /dev/sda\n/dev/zram0     disk \n/dev/loop0     loop \n"
+        + "/dev/nvme0n1   disk \n/dev/nvme0n1p1 part /dev/nvme0n1\n/dev/nvme0n1p2 part /dev/nvme0n1\n"
+        + "/dev/mapper/root crypt /dev/nvme0n1p2\n/dev/mapper/vg-home lvm /dev/mapper/root\n";
+
+    t.test("systemstats: dispositivos do lsblk, com o pai", () => {
+        const b = S.parseBlock(lsblk);
+        t.eq(b["/dev/sda"], { type: "disk", parent: "" });
+        t.eq(b["/dev/sda2"], { type: "part", parent: "/dev/sda" });
+        t.eq(b["/dev/mapper/vg-home"], { type: "lvm", parent: "/dev/mapper/root" });
+        t.eq(S.parseBlock(""), {}, "sem lsblk");
+    });
+
+    t.test("systemstats: o disco físico de cada origem do df", () => {
+        const b = S.parseBlock(lsblk);
+        t.eq(S.diskOf(b, "/dev/sda2"), "sda", "partição");
+        t.eq(S.diskOf(b, "/dev/sda"), "sda", "o disco inteiro, sem partição");
+        t.eq(S.diskOf(b, "/dev/mapper/vg-home"), "nvme0n1", "LVM sobre LUKS: sobe até o disco");
+        t.eq(S.diskOf(b, "/dev/loop0"), "", "loop fica de fora");
+        t.eq(S.diskOf(b, "/dev/zram0"), "", "zram fica de fora");
+        t.eq(S.diskOf(b, "/dev/root"), "root", "fora do lsblk: o próprio nome");
+        t.eq(S.diskOf({}, "/dev/nvme0n1p2"), "nvme0n1p2", "sem lsblk: a própria partição");
+        t.eq([S.diskOf(b, "overlay"), S.diskOf(b, "tmpfs"), S.diskOf(b, "gdrive:")], ["", "", ""], "o que não é dispositivo");
+        const loop = { "/dev/a": { type: "part", parent: "/dev/b" }, "/dev/b": { type: "part", parent: "/dev/a" } };
+        t.eq(S.diskOf(loop, "/dev/a"), "", "ciclo não trava");
+    });
+
+    t.test("systemstats: discos do df somados por disco, o da raiz primeiro", () => {
+        S.parseDf("Filesystem 1B-blocks Used Mounted on\n"
+            + "overlay 9000 9000 /\ntmpfs 64 0 /dev\n"
+            + "/dev/sda2 1000 400 /mnt/dados antigos\n"
+            + "/dev/nvme0n1p1 100 10 /boot\n"
+            + "/dev/mapper/root 2000 500 /\n"
+            + "/dev/mapper/root 2000 500 /home\n"
+            + "/dev/loop0 50 50 /snap/x\n"
+            + "--\n" + lsblk);
+        t.eq(S.disks, [{ name: "nvme0n1", size: 2100, used: 510, root: true }, { name: "sda", size: 1000, used: 400, root: false }]);
+    });
+
+    t.test("systemstats: raiz fora de um disco (container): a ordem do df", () => {
+        S.parseDf("Filesystem 1B-blocks Used Mounted on\noverlay 9000 9000 /\n/dev/nvme0n1p2 2000 500 /etc/hosts\n/dev/sda2 1000 400 /etc/hostname\n--\n" + lsblk);
+        t.eq(S.disks.map(d => [d.name, d.root]), [["nvme0n1", false], ["sda", false]]);
+        S.parseDf("Filesystem 1B-blocks Used Mounted on\n--\n");
+        t.eq(S.disks, [], "nenhum disco");
     });
 
     S.lastCpu = original.lastCpu;

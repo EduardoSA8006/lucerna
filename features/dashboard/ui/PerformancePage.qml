@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import qs.core.format
 import qs.core.theme
 import qs.core.widgets
 import qs.features.dashboard.state
@@ -39,18 +38,6 @@ Item {
         id: gpuNumber
 
         value: PerformanceState.gpu?.unit === "%" ? PerformanceState.gpu.fraction : 0
-    }
-
-    AnimatedNumber {
-        id: diskNumber
-
-        value: PerformanceState.disks[0]?.fraction ?? 0
-    }
-
-    AnimatedNumber {
-        id: memNumber
-
-        value: PerformanceState.memFraction
     }
 
     ColumnLayout {
@@ -116,92 +103,28 @@ Item {
             Layout.fillWidth: true
             spacing: ThemeManager.spacing.normal
 
-            // Disco
-            Surface {
-                Layout.preferredWidth: 290
-                Layout.preferredHeight: 190
-
-                Row {
-                    anchors.fill: parent
-                    anchors.margins: ThemeManager.spacing.normal + 2
-                    spacing: ThemeManager.spacing.normal
-
-                    CircularGauge {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 124
-                        height: 124
-                        thickness: 9
-                        value: PerformanceState.disks[0]?.fraction ?? 0
-
-                        Column {
-                            anchors.centerIn: parent
-
-                            Icon {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                icon: Icons.storage
-                                size: 18
-                                color: ThemeManager.colors.textMuted
-                            }
-
-                            Txt {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: Format.percent(diskNumber.shown)
-                                mono: true
-                                font.pixelSize: ThemeManager.font.large + 6
-                                font.weight: Font.DemiBold
-                            }
-
-                            Txt {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: "usado"
-                                muted: true
-                                font.pixelSize: ThemeManager.font.small
-                            }
-                        }
-                    }
-
-                    Column {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width - 124 - parent.spacing
-                        spacing: ThemeManager.spacing.small
-
-                        Txt {
-                            text: "Disco"
-                            font.pixelSize: ThemeManager.font.large
-                            font.weight: Font.DemiBold
-                        }
-
-                        Repeater {
-                            model: PerformanceState.disks
-
-                            delegate: Column {
-                                id: disk
-
-                                required property var modelData
-
-                                width: parent.width
-
-                                Txt {
-                                    text: disk.modelData.mount
-                                    mono: true
-                                    font.pixelSize: ThemeManager.font.small + 1
-                                }
-
-                                Txt {
-                                    width: parent.width
-                                    text: disk.modelData.text
-                                    muted: true
-                                    font.pixelSize: ThemeManager.font.small
-                                }
-                            }
-                        }
-                    }
-                }
+            // Um disco físico por vez (o da raiz primeiro); o clique passa
+            // para o próximo.
+            GaugeCard {
+                Layout.preferredWidth: 230
+                Layout.fillHeight: true
+                icon: Icons.storage
+                title: `Disco - ${PerformanceState.disk?.name ?? "nenhum encontrado"}`
+                fraction: PerformanceState.disk?.fraction ?? 0
+                label: PerformanceState.disk?.text ?? ""
+                gaugeSize: 124
+                thickness: 9
+                numberSize: ThemeManager.font.large + 6
+                clickable: PerformanceState.disks.length > 1
+                dots: PerformanceState.disks.length
+                dot: PerformanceState.diskIndex
+                onSwapped: PerformanceState.cycleDisk()
             }
 
             // Rede
             Surface {
                 Layout.fillWidth: true
+                Layout.fillHeight: true
                 Layout.preferredHeight: 190
                 clip: true
 
@@ -292,44 +215,13 @@ Item {
                 }
             }
 
-            // Memória
-            Surface {
+            GaugeCard {
                 Layout.preferredWidth: 230
-                Layout.preferredHeight: 190
-
-                Column {
-                    anchors.centerIn: parent
-                    spacing: ThemeManager.spacing.small
-
-                    CardHeader {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        icon: Icons.memory
-                        text: "Memória"
-                    }
-
-                    CircularGauge {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        width: 104
-                        height: 104
-                        thickness: 8
-                        value: PerformanceState.memFraction
-
-                        Txt {
-                            anchors.centerIn: parent
-                            text: Format.percent(memNumber.shown)
-                            mono: true
-                            font.pixelSize: ThemeManager.font.large + 4
-                            font.weight: Font.DemiBold
-                        }
-                    }
-
-                    Txt {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: PerformanceState.memText
-                        muted: true
-                        font.pixelSize: ThemeManager.font.small
-                    }
-                }
+                Layout.fillHeight: true
+                icon: Icons.memory
+                title: "Memória"
+                fraction: PerformanceState.memFraction
+                label: PerformanceState.memText
             }
         }
     }

@@ -21,16 +21,17 @@ Singleton {
 
     // Memória
     readonly property real memFraction: SystemStats.memTotal > 0 ? SystemStats.memUsed / SystemStats.memTotal : 0
-    readonly property string memText: `${Format.bytes(SystemStats.memUsed)} de ${Format.bytes(SystemStats.memTotal)}`
+    readonly property string memText: Format.usage(SystemStats.memUsed, SystemStats.memTotal)
     readonly property bool hasSwap: SystemStats.swapTotal > 0
     readonly property string swapText: hasSwap ? `Swap: ${Format.bytes(SystemStats.swapUsed)} de ${Format.bytes(SystemStats.swapTotal)}` : ""
 
-    // Discos
-    readonly property var disks: SystemStats.disks.map(d => ({
-        mount: d.mount,
-        fraction: d.size > 0 ? d.used / d.size : 0,
-        text: `${Format.bytes(d.used)} de ${Format.bytes(d.size)}`
-    }))
+    // Discos físicos, prontos para o card (diskView). O card mostra um por vez:
+    // o escolhido pelo clique (diskName, que vale até reiniciar o shell e não
+    // vai para o config) ou, sem escolha, o primeiro, que é o da raiz.
+    readonly property var disks: SystemStats.disks.map(d => diskView(d))
+    property string diskName: ""
+    readonly property int diskIndex: diskPick(disks, diskName)
+    readonly property var disk: disks[diskIndex] ?? null
 
     // Rede
     readonly property string download: Format.rate(SystemStats.rxRate)
@@ -107,5 +108,30 @@ Singleton {
 
     function cycleGpu(): void {
         gpuCard = nextGpu(gpus, gpuIndex);
+    }
+
+    // Um disco do SystemStats para o card: o nome, a fração usada e
+    // "usado / total".
+    function diskView(d: var): var {
+        return {
+            name: d.name,
+            fraction: d.size > 0 ? d.used / d.size : 0,
+            text: Format.usage(d.used, d.size)
+        };
+    }
+
+    // O índice do disco a mostrar: o de nome igual a `name` ou, sem ele, o
+    // primeiro; -1 sem disco.
+    function diskPick(list: var, name: string): int {
+        return list.length ? Math.max(0, list.findIndex(d => d.name === name)) : -1;
+    }
+
+    // O nome do disco depois do de índice `index`, com volta; "" sem disco.
+    function nextDisk(list: var, index: int): string {
+        return list.length ? list[(index + 1) % list.length].name : "";
+    }
+
+    function cycleDisk(): void {
+        diskName = nextDisk(disks, diskIndex);
     }
 }

@@ -19,6 +19,15 @@ function run(t) {
         t.eq(F.bytes(3 * 1024 * 1024 * 1024), "3,0 GiB");
     });
 
+    t.test("format: usado / total na unidade do total", () => {
+        const gib = 1024 * 1024 * 1024;
+        t.eq(F.usage(9.7 * gib, 31.1 * gib), "9,7 / 31,1 GiB");
+        t.eq(F.usage(454 * gib, 915 * gib), "454 / 915 GiB");
+        t.eq(F.usage(47.6 * gib, 915 * gib), "48 / 915 GiB", "decimais pelo total");
+        t.eq(F.usage(512 * 1024 * 1024, 2 * gib), "0,5 / 2,0 GiB");
+        t.eq(F.usage(0, 0), "0 / 0 B");
+    });
+
     t.test("format: taxa por segundo", () => {
         t.eq(F.rate(2048), "2,0 KiB/s");
     });

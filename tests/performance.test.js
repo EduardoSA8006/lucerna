@@ -65,4 +65,24 @@ function run(t) {
         t.eq(P.nextGpu(list.slice(0, 1), 0), "card0", "uma só: fica");
         t.eq(P.nextGpu([], -1), "", "nenhuma");
     });
+
+    const gib = 1024 * 1024 * 1024;
+    const disks = [{ name: "nvme0n1", size: 915 * gib, used: 454 * gib, root: true }, { name: "sda", size: 0, used: 0, root: false }];
+
+    t.test("performance: o disco pronto para o card", () => {
+        const v = P.diskView(disks[0]);
+        t.eq([v.name, v.text], ["nvme0n1", "454 / 915 GiB"]);
+        t.near(v.fraction, 454 / 915, 1e-9);
+        t.eq(P.diskView(disks[1]).fraction, 0, "tamanho 0 não divide");
+    });
+
+    t.test("performance: qual disco mostrar e o próximo", () => {
+        const list = disks.map(d => P.diskView(d));
+        t.eq(P.diskPick(list, ""), 0, "sem escolha, o primeiro (o da raiz)");
+        t.eq(P.diskPick(list, "sda"), 1, "o escolhido");
+        t.eq(P.diskPick(list, "sdb"), 0, "o escolhido sumiu: o primeiro");
+        t.eq(P.diskPick([], ""), -1, "nenhum");
+        t.eq([P.nextDisk(list, 0), P.nextDisk(list, 1)], ["sda", "nvme0n1"]);
+        t.eq(P.nextDisk([], -1), "", "nenhum");
+    });
 }

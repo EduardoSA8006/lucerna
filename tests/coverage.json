@@ -20,7 +20,7 @@
         "services/Network.qml": ["isSecure", "needsPassword"],
         "services/Notifications.qml": ["hidePopup", "clearPopups", "timeoutFor", "timeOf"],
         "services/Session.qml": ["lock", "unlock"],
-        "services/SystemStats.qml": ["push", "parseStat", "parseMeminfo", "isPhysical", "parseNetdev", "parseCpuinfo", "pickTempSensor", "parseGpus", "parseDrm", "drmBusy", "resetDrm", "probeDrm", "applyDrm", "parseDf"],
+        "services/SystemStats.qml": ["push", "parseStat", "parseMeminfo", "isPhysical", "parseNetdev", "parseCpuinfo", "pickTempSensor", "parseGpus", "parseDrm", "drmBusy", "resetDrm", "probeDrm", "applyDrm", "parseBlock", "diskOf", "parseDf"],
         "services/VideoWallpapers.qml": ["isVideo", "targetFor", "keyOf", "parseKey", "isQueued", "isPreparing", "forget"],
         "services/Weather.qml": ["isStale"]
     },

@@ -26,6 +26,20 @@ Singleton {
         return `${number(value, i === 0 || value >= 100 ? 0 : 1)} ${units[i]}`;
     }
 
+    // Usado e total na unidade do total, com as casas dele:
+    // "9,7 / 31,1 GiB", "454 / 915 GiB".
+    function usage(used: real, total: real): string {
+        const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+        let i = 0;
+        while (total >= 1024 && i < units.length - 1) {
+            total /= 1024;
+            used /= 1024;
+            i++;
+        }
+        const decimals = i === 0 || total >= 100 ? 0 : 1;
+        return `${number(used, decimals)} / ${number(total, decimals)} ${units[i]}`;
+    }
+
     function rate(bytesPerSecond: real): string {
         return `${bytes(bytesPerSecond)}/s`;
     }

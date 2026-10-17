@@ -1,0 +1,57 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import qs.core.theme
+import qs.core.widgets
+
+// Título dos cards da aba Desempenho: ícone de acento e o texto numa linha
+// (cortado com "…" se não couber em `width`); com mais de um em `dots`, as
+// bolinhas mostram qual (`dot`) está na tela.
+Row {
+    id: root
+
+    property string icon: ""
+    property string text: ""
+    property int dots: 0
+    property int dot: 0
+
+    spacing: ThemeManager.spacing.small
+
+    Icon {
+        id: titleIcon
+
+        anchors.verticalCenter: parent.verticalCenter
+        icon: root.icon
+        size: 18
+        color: ThemeManager.colors.accent
+    }
+
+    Txt {
+        anchors.verticalCenter: parent.verticalCenter
+        width: root.width - titleIcon.width - (dotsRow.visible ? dotsRow.width + root.spacing : 0) - root.spacing * 2
+        text: root.text
+    }
+
+    Row {
+        id: dotsRow
+
+        anchors.verticalCenter: parent.verticalCenter
+        visible: root.dots > 1
+        spacing: 4
+
+        Repeater {
+            model: root.dots
+
+            delegate: Rectangle {
+                id: dotItem
+
+                required property int index
+
+                width: 6
+                height: 6
+                radius: 3
+                color: dotItem.index === root.dot ? ThemeManager.colors.accent : ThemeManager.colors.track
+            }
+        }
+    }
+}

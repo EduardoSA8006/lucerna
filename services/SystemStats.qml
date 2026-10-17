@@ -6,7 +6,7 @@ import Quickshell.Io
 
 // Uso do sistema lido direto do kernel (/proc e /sys), sem bibliotecas externas.
 // Só coleta enquanto `active` for verdadeiro (quem mostra os dados liga), a
-// cada `interval` ms. Disco usa `df` (coreutils); GPU, services/scripts/gpu-status.sh.
+// cada `interval` ms. Disco usa `df` (coreutils) e `lsblk` (util-linux); GPU, services/scripts/gpu-status.sh.
 Singleton {
     id: root
 
@@ -42,7 +42,8 @@ Singleton {
     property real swapTotal: 0
     property real swapUsed: 0
 
-    // Discos: [{ mount, size, used }], em bytes
+    // Discos físicos: [{ name ("nvme0n1", "sda"), size, used (em bytes, as
+    // partições montadas somadas), root (tem a raiz "/") }], o da raiz primeiro.
     property var disks: []
 
     // Rede (interfaces físicas e Wi-Fi), em bytes e bytes/s
@@ -271,14 +272,68 @@ Singleton {
         gpus = gpus.map(g => !(g.pci in next) ? g : Object.assign({}, g, { usage: next[g.pci] }));
     }
 
+    // Saída do lsblk -lnpo NAME,TYPE,PKNAME: { caminho: { type, parent } }.
+    function parseBlock(text: string): var {
+        const blocks = ({});
+        for (const line of text.split("\n")) {
+            const f = line.trim().split(/\s+/);
+            if (f.length >= 2)
+                blocks[f[0]] = { type: f[1], parent: f[2] ?? "" };
+        }
+        return blocks;
+    }
+
+    // O nome curto do disco físico de uma origem do df ("/dev/nvme0n1p2" →
+    // "nvme0n1"), subindo pelos pais (LUKS, LVM) até o tipo "disk". Fora do
+    // lsblk, o próprio nome; "" para o que não é dispositivo (tmpfs, overlay,
+    // rede), para loop e zram.
+    function diskOf(blocks: var, source: string): string {
+        if (!source.startsWith("/dev/") || /^\/dev\/(loop|zram|ram)\d/.test(source))
+            return "";
+        let dev = source;
+        for (let step = 0; step < 8; step++) {
+            const b = blocks[dev];
+            if (!b)
+                return step === 0 ? source.replace(/^.*\//, "") : "";
+            if (b.type === "disk")
+                return dev.replace(/^.*\//, "");
+            if (!b.parent)
+                return "";
+            dev = b.parent;
+        }
+        return "";
+    }
+
+    // Saída do df (origem, tamanho, usado e ponto de montagem), uma linha "--" e
+    // a do lsblk. Cada partição conta uma vez (montada em vários lugares, os
+    // números são os mesmos); as de um disco são somadas.
     function parseDf(text: string): void {
+        const parts = text.split("\n--\n");
+        const blocks = parseBlock(parts[1] ?? "");
         const seen = new Set();
-        disks = text.trim().split("\n").slice(1).map(l => l.trim().split(/\s+/)).filter(f => {
-            if (f.length < 3 || seen.has(f[0]))
-                return false;
+        const byName = ({});
+        const list = [];
+        for (const line of parts[0].split("\n").slice(1)) {
+            const f = line.trim().split(/\s+/);
+            if (f.length < 4)
+                continue;
+            const name = diskOf(blocks, f[0]);
+            const root = f.slice(3).join(" ") === "/";
+            if (!name || seen.has(f[0])) {
+                if (name && root)
+                    byName[name].root = true;
+                continue;
+            }
             seen.add(f[0]);
-            return true;
-        }).map(f => ({ mount: f[0], size: Number(f[1]), used: Number(f[2]) }));
+            if (!byName[name]) {
+                byName[name] = { name: name, size: 0, used: 0, root: false };
+                list.push(byName[name]);
+            }
+            byName[name].size += Number(f[1]);
+            byName[name].used += Number(f[2]);
+            byName[name].root = byName[name].root || root;
+        }
+        disks = list.filter(d => d.root).concat(list.filter(d => !d.root));
     }
 
     Timer {
@@ -364,7 +419,9 @@ Singleton {
     Process {
         id: df
 
-        command: ["df", "-B1", "--output=target,size,used", "/", "/home"]
+        // -l: só sistemas de arquivos locais (um de rede travado não trava a
+        // leitura).
+        command: ["sh", "-c", "df -lB1 --output=source,size,used,target; echo --; lsblk -lnpo NAME,TYPE,PKNAME"]
         stdout: StdioCollector {
             onStreamFinished: root.parseDf(text)
         }
