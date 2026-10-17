@@ -17,6 +17,17 @@ Item {
 
     implicitHeight: layout.implicitHeight
 
+    // Um relógio só para as bolhas da CPU e da GPU: mudam para a mesma figura
+    // e giram juntas. Roda com a aba na tela; a bolha parada (GPU sem dados)
+    // congela, e o relógio segue para a outra.
+    BlobMorph {
+        id: blobClock
+
+        morphing: root.onScreen
+        spinning: root.onScreen
+        spinDuration: 30000
+    }
+
     AnimatedNumber {
         id: cpuNumber
 
@@ -70,6 +81,7 @@ Item {
                 hot: PerformanceState.cpuHot
                 pulse: PerformanceState.cpuUsage
                 blobActive: root.onScreen
+                blobDriver: blobClock
             }
 
             // Uma GPU por vez (a dedicada primeiro); o clique passa para a
@@ -88,10 +100,6 @@ Item {
                 label: gpu?.label ?? ""
                 value: gpu?.unit === "%" ? `${Math.round(gpuNumber.shown * 100)}` : gpu?.value ?? "—"
                 unit: gpu?.unit ?? ""
-                // Medida pela natureza das GPUs (a integrada mostra o clock), não
-                // pela leitura de agora: só muda quando muda a lista.
-                widest: PerformanceState.gpus.some(g => !g.dedicated) ? "0000" : "100"
-                widestUnit: PerformanceState.gpus.some(g => !g.dedicated) ? "MHz" : "%"
                 hasTemp: gpu?.hasTemp ?? false
                 tempText: gpu?.tempText ?? ""
                 tempFraction: gpu?.tempFraction ?? 0
@@ -99,6 +107,7 @@ Item {
                 pulse: fraction
                 // Parada em repouso ou sem dados (não há o que mostrar).
                 blobActive: root.onScreen && (gpu?.hasData ?? false)
+                blobDriver: blobClock
                 clickable: PerformanceState.gpus.length > 1
                 dots: PerformanceState.gpus.length
                 dot: PerformanceState.gpuIndex

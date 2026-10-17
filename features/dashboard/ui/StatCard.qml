@@ -21,13 +21,9 @@ Surface {
     property real fraction: 0
     property string label: ""
     property string value: ""
-    property string unit: ""
-    // O número e a unidade mais largos que o card pode mostrar: a bolha é
-    // medida por eles, para não mudar de tamanho (nem a altura do card) com o
-    // valor. Unidade de uma letra ("%") fica ao lado do número; mais comprida
+    // Unidade de uma letra ("%") fica ao lado do número; mais comprida
     // ("MHz"), embaixo.
-    property string widest: "100"
-    property string widestUnit: unit
+    property string unit: ""
     property bool hasTemp: false
     property string tempText: ""
     property real tempFraction: 0
@@ -35,6 +31,8 @@ Surface {
     property real pulse: 0
     // Falso pausa a bolha (aba fora da tela, GPU em repouso) sem mudar a forma.
     property bool blobActive: true
+    // O relógio da bolha, para mudar de forma junto com a de outro card.
+    property BlobMorph blobDriver: null
     property bool clickable: false
     property int dots: 0
     property int dot: 0
@@ -43,8 +41,10 @@ Surface {
 
     readonly property int margin: ThemeManager.spacing.normal + 2
     readonly property bool stackUnit: unit.length > 1
-    // A bolha cabe o número mais largo e a unidade, com folga; 64 px no mínimo.
-    readonly property real blobSize: Math.max(64, Math.ceil(widestUnit.length > 1 ? Math.max(numberMetrics.advanceWidth, unitMetrics.advanceWidth) : numberMetrics.advanceWidth + unitMetrics.advanceWidth) + 20)
+    // Um tamanho só para a bolha de todo card, que cabe o pior caso, "100%" ou
+    // "0000" com "MHz" embaixo, com folga; 64 px no mínimo. Não muda com o
+    // valor, nem com a troca de GPU, nem de um card para o outro.
+    readonly property real blobSize: Math.max(64, Math.ceil(Math.max(percentMetrics.advanceWidth + percentUnitMetrics.advanceWidth, clockMetrics.advanceWidth, clockUnitMetrics.advanceWidth)) + 20)
 
     implicitHeight: Math.max(margin * 2 + titleRow.height + ThemeManager.spacing.normal + (root.hasTemp ? temp.height : 0), blobSize + margin * 2)
 
@@ -55,19 +55,33 @@ Surface {
     }
 
     TextMetrics {
-        id: numberMetrics
+        id: percentMetrics
 
         font: number.font
-        text: root.widest
+        text: "100"
     }
 
-    // Também dá a altura das letras da unidade (tightBoundingRect: "MHz" e "%"
-    // não descem da linha de base), para pô-la logo abaixo do número.
     TextMetrics {
-        id: unitMetrics
+        id: percentUnitMetrics
 
         font: unitText.font
-        text: root.widestUnit
+        text: "%"
+    }
+
+    TextMetrics {
+        id: clockMetrics
+
+        font: number.font
+        text: "0000"
+    }
+
+    // Também dá a altura das letras da unidade (tightBoundingRect: "MHz" não
+    // desce da linha de base), para pô-la logo abaixo do número.
+    TextMetrics {
+        id: clockUnitMetrics
+
+        font: unitText.font
+        text: "MHz"
     }
 
     // A troca só no visual: o conteúdo novo vem de quase apagado.
@@ -215,6 +229,7 @@ Surface {
                 anchors.fill: parent
                 morphing: true
                 active: root.blobActive
+                driver: root.blobDriver
                 steps: 72
                 pulse: root.pulse
                 color: ThemeManager.alpha(ThemeManager.colors.accent, 0.16)
@@ -244,7 +259,7 @@ Surface {
                     // Embaixo: o topo das letras 3 px abaixo da linha de
                     // base do número (os algarismos não descem dela); ao lado:
                     // na mesma linha de base.
-                    y: root.stackUnit ? number.baselineOffset + 3 - (baselineOffset - unitMetrics.tightBoundingRect.height) : number.baselineOffset - baselineOffset
+                    y: root.stackUnit ? number.baselineOffset + 3 - (baselineOffset - clockUnitMetrics.tightBoundingRect.height) : number.baselineOffset - baselineOffset
                     text: root.unit
                     muted: true
                     font.pixelSize: ThemeManager.font.small + 1

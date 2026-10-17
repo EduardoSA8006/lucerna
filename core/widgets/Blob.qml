@@ -6,10 +6,12 @@ import qs.core.theme
 // Forma orgânica de "lobos" (tipo biscoito ou flor), desenhada com curva polar:
 // r(θ) = raio · (1 + amplitude · cos(lobos · θ)). Substitui o qt6-m3shapes com
 // recursos do próprio Qt. `pulse` (0 a 1) infla os lobos, para reagir ao áudio;
-// `spinning` gira devagar. `active` falso pausa o giro e a troca de forma sem
-// mexer na forma (para quem fica carregado fora da tela, como as abas do
-// painel superior). Com `morphing`, ignora `lobes` e `amplitude`: a cada ~6 s
-// vira outra forma de BlobShapes.shapes, misturando as duas curvas em ~1,2 s.
+// `spinning` gira devagar. Com `morphing`, ignora `lobes` e `amplitude`: a cada
+// ~6 s vira outra forma de BlobShapes.shapes, misturando as duas curvas em
+// ~1,2 s. O relógio (BlobMorph) é próprio ou, com `driver`, compartilhado com
+// outras bolhas, que então mudam e giram juntas. `active` falso (ou a bolha
+// escondida) congela a forma e o ângulo: o relógio próprio pausa; o
+// compartilhado segue para as outras, e esta volta já em sincronia com ele.
 Item {
     id: root
 
@@ -21,13 +23,17 @@ Item {
     property real spinDuration: 24000
     property bool morphing: false
     property bool active: true
+    property BlobMorph driver: null
     // Pontos do contorno: menos numa bolha pequena.
     property int steps: 144
 
-    // A mistura: de shapes[shapeFrom] (morph = 0) para shapes[shapeTo] (morph = 1).
+    readonly property bool live: visible && active
+    readonly property BlobMorph clock: driver ?? own
+    // O que está na tela: segue o relógio enquanto viva; parada, fica no último.
     property int shapeFrom: 0
     property int shapeTo: 0
     property real morph: 0
+    property real angle: 0
 
     property real animatedPulse: pulse
 
@@ -41,39 +47,30 @@ Item {
         const grow = s => ({ lobes: s.lobes, amplitude: s.amplitude + extra });
         const a = morphing ? BlobShapes.shapes[shapeFrom] : { lobes: lobes, amplitude: amplitude };
         const b = morphing ? BlobShapes.shapes[shapeTo] : a;
-        return BlobShapes.outline(width, height, grow(a), grow(b), morph, steps);
+        return BlobShapes.outline(width, height, grow(a), grow(b), morphing ? morph : 0, steps);
     }
 
-    // A troca começa da forma em que a anterior parou (shapeFrom = shapeTo e
-    // morph = 0 dão a mesma curva), sem salto.
-    Timer {
-        interval: 6000
-        running: root.morphing && root.visible && root.active
-        repeat: true
-        onTriggered: {
-            if (morphAnim.running)
-                return;
-            root.shapeFrom = root.shapeTo;
-            root.morph = 0;
-            root.shapeTo = BlobShapes.next(root.shapeTo, BlobShapes.shapes.length, Math.random());
-            morphAnim.restart();
-        }
+    BlobMorph {
+        id: own
+
+        morphing: root.morphing && root.live && root.driver === null
+        spinning: root.spinning && root.live && root.driver === null
+        spinDuration: root.spinDuration
     }
 
-    NumberAnimation {
-        id: morphAnim
-
-        target: root
-        property: "morph"
-        from: 0
-        to: 1
-        duration: 1200 * ThemeManager.anim.scale
-        easing.type: Easing.InOutCubic
+    Binding {
+        root.shapeFrom: root.clock.shapeFrom
+        root.shapeTo: root.clock.shapeTo
+        root.morph: root.clock.morph
+        root.angle: root.clock.angle
+        when: root.live
+        restoreMode: Binding.RestoreNone
     }
 
     Shape {
         anchors.fill: parent
         preferredRendererType: Shape.CurveRenderer
+        rotation: root.angle
 
         ShapePath {
             strokeColor: "transparent"
@@ -82,16 +79,6 @@ Item {
             PathPolyline {
                 path: root.points
             }
-        }
-
-        RotationAnimation on rotation {
-            // Pausa em vez de parar: ao voltar, segue do ângulo em que estava.
-            running: root.spinning
-            paused: running && !(root.visible && root.active)
-            from: 0
-            to: 360
-            duration: root.spinDuration
-            loops: Animation.Infinite
         }
     }
 }
