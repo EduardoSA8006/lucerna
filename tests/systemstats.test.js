@@ -170,6 +170,50 @@ function run(t) {
         t.near(S.gpus[0].usage, 0.4, 1e-9);
     });
 
+    t.test("systemstats: leitura anterior velha (mais de 3 intervalos) é descartada", () => {
+        const a = snap(0, [{ id: 1, v: { "engine-render": 0 } }]);
+        const ok = snap(6 * 1e9, [{ id: 1, v: { "engine-render": 3 * 1e9 } }]);
+        const old = snap(6 * 1e9 + 1, [{ id: 1, v: { "engine-render": 3 * 1e9 } }]);
+        t.near(S.drmBusy(a, ok, GPU), 0.5, 1e-9);
+        t.check(isNaN(S.drmBusy(a, old, GPU)), "janela de mais de 6 s com intervalo de 2 s");
+    });
+
+    t.test("systemstats: o uso se divide pela capacidade da classe", () => {
+        const v = (r, vid) => ({ "engine-render": r, "engine-video": vid, "engine-capacity-video": 2 });
+        const a = snap(0, [{ id: 1, v: v(0, 0) }, { id: 2, v: v(0, 0) }]);
+        const b = snap(SEC, [{ id: 1, v: v(0.1 * SEC, 0.8 * SEC) }, { id: 2, v: v(0, 0.8 * SEC) }]);
+        // video: 1,6 s ocupados em 2 s de janela com 2 motores = 0,8 (capacidade fora da conta de ns)
+        t.near(S.drmBusy(a, b, GPU), 0.8, 1e-9);
+    });
+
+    t.test("systemstats: fdinfo malformado não contamina a conta", () => {
+        const s = S.parseDrm("T|10\nlixo\ni915|0000:00:02.0||engine-render=5\ni915|0000:00:02.0|3|engine-render=abc,engine-copy=,sem-igual,engine-video=7,=4\n");
+        t.eq(s, { ts: 10, clients: { "0000:00:02.0/3": { driver: "i915", pdev: "0000:00:02.0", v: { "engine-video": 7 } } } });
+        t.check(isNaN(S.parseDrm("T|xx\n").ts), "ts inválido");
+        t.check(isNaN(S.drmBusy(snap(0, []), S.parseDrm("T|xx\n"), GPU)), "ts inválido dá NaN");
+    });
+
+    t.test("systemstats: duas Intel, cada uma com o seu uso", () => {
+        const B = "0000:03:00.0";
+        S.lastDrm = null;
+        S.parseGpus("card0|intel|0000:00:02.0|active||||1|2\ncard3|intel|0000:03:00.0|active||||1|2\n");
+        S.applyDrm(`T|0\ni915|${GPU}|1|engine-render=0\ni915|${B}|1|engine-render=0\n`);
+        S.applyDrm(`T|${SEC}\ni915|${GPU}|1|engine-render=${0.2 * SEC}\ni915|${B}|1|engine-render=${0.7 * SEC}\n`);
+        t.near(S.gpus[0].usage, 0.2, 1e-9);
+        t.near(S.gpus[1].usage, 0.7, 1e-9);
+    });
+
+    t.test("systemstats: sem GPU habilitada a leitura é esquecida e o resultado ignorado", () => {
+        S.parseGpus("card2|intel|0000:00:02.0|active||||1450|1500\n");
+        S.applyDrm(`T|0\ni915|${GPU}|1|engine-render=0\n`);
+        t.check(S.lastDrm !== null, "guardou a leitura");
+        S.gpuEnabled = false;
+        t.eq([S.lastDrm, S.drmUsage], [null, {}]);
+        S.applyDrm(`T|${SEC}\ni915|${GPU}|1|engine-render=0\n`);
+        t.eq(S.lastDrm, null);
+        S.gpuEnabled = true;
+    });
+
     t.test("systemstats: Intel em repouso não lê o fdinfo e esquece a leitura", () => {
         S.parseGpus("card2|intel|0000:00:02.0|suspended|||||\n");
         S.probeDrm();

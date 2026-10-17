@@ -18,9 +18,15 @@ Singleton {
     onGpuEnabledChanged: {
         if (!gpuEnabled) {
             gpus = [];
-            lastDrm = null;
-            drmUsage = ({});
+            resetDrm();
         }
+    }
+
+    // Parado, a leitura anterior fica velha: ao voltar, o primeiro delta
+    // cobriria minutos e o uso sairia baixo.
+    onActiveChanged: {
+        if (!active)
+            resetDrm();
     }
     readonly property int historyLength: 30
 
@@ -169,12 +175,15 @@ Singleton {
             const f = line.split("|");
             if (f[0] === "T") {
                 snap.ts = Number(f[1]);
-            } else if (f.length >= 4) {
+            } else if (f.length >= 4 && f[2] !== "") {
                 const v = ({});
                 for (const kv of f[3].split(",")) {
                     const i = kv.indexOf("=");
-                    if (i > 0)
-                        v[kv.slice(0, i)] = Number(kv.slice(i + 1));
+                    const raw = kv.slice(i + 1);
+                    // Linha malformada ou valor que não é número: fora, para
+                    // nenhum NaN contaminar o Math.max da conta.
+                    if (i > 0 && raw !== "" && isFinite(Number(raw)))
+                        v[kv.slice(0, i)] = Number(raw);
                 }
                 snap.clients[`${f[1]}/${f[2]}`] = { driver: f[0], pdev: f[1], v: v };
             }
@@ -184,14 +193,19 @@ Singleton {
 
     // Uso (0-1) da GPU `pdev` entre duas leituras do fdinfo: a classe de motor mais
     // ocupada, como o intel_gpu_top. Só entram os clientes presentes nas duas
-    // leituras. i915: Δns do engine-<classe> / Δns da janela. xe: Δcycles-<classe> /
-    // Δtotal-cycles-<classe>. NaN sem leitura anterior, sem janela ou sem cliente
-    // em comum; contador que volta conta 0.
+    // leituras: quem nasce e morre dentro da janela não é contado (o uso fica
+    // um pouco subestimado). i915: Δns do engine-<classe> / (Δns da janela ×
+    // engine-capacity-<classe>, padrão 1). xe: Δcycles-<classe> /
+    // Δtotal-cycles-<classe>. NaN sem leitura anterior, sem janela, com janela
+    // maior que 3 intervalos (leitura velha) ou sem cliente em comum; contador
+    // que volta conta 0.
     function drmBusy(prev: var, cur: var, pdev: string): real {
         if (!prev || !cur || !(cur.ts > prev.ts))
             return NaN;
         const window = cur.ts - prev.ts;
-        const ns = ({}), cycles = ({}), total = ({});
+        if (window > 3 * interval * 1e6)
+            return NaN;
+        const ns = ({}), cap = ({}), cycles = ({}), total = ({});
         let common = 0;
         for (const key in cur.clients) {
             const c = cur.clients[key], p = prev.clients[key];
@@ -199,9 +213,13 @@ Singleton {
                 continue;
             common++;
             for (const name in c.v) {
+                if (name.startsWith("engine-capacity-")) {
+                    cap[name.slice(16)] = Math.max(cap[name.slice(16)] ?? 0, c.v[name]);
+                    continue;
+                }
                 const d = Math.max(0, c.v[name] - (p.v[name] ?? c.v[name]));
                 if (name.startsWith("engine-"))
-                    ns[name] = (ns[name] ?? 0) + d;
+                    ns[name.slice(7)] = (ns[name.slice(7)] ?? 0) + d;
                 else if (name.startsWith("total-cycles-"))
                     total[name.slice(13)] = Math.max(total[name.slice(13)] ?? 0, d);
                 else if (name.startsWith("cycles-"))
@@ -212,11 +230,16 @@ Singleton {
             return NaN;
         let busy = 0;
         for (const name in ns)
-            busy = Math.max(busy, ns[name] / window);
+            busy = Math.max(busy, ns[name] / (window * (cap[name] > 0 ? cap[name] : 1)));
         for (const name in cycles)
             if (total[name] > 0)
                 busy = Math.max(busy, cycles[name] / total[name]);
         return Math.min(1, busy);
+    }
+
+    function resetDrm(): void {
+        lastDrm = null;
+        drmUsage = ({});
     }
 
     // Lê o fdinfo só com uma Intel acordada (em repouso o uso é 0 e a leitura é
@@ -226,13 +249,14 @@ Singleton {
             if (!drmProbe.running)
                 drmProbe.running = true;
         } else {
-            lastDrm = null;
-            drmUsage = ({});
+            resetDrm();
         }
     }
 
     // Guarda a leitura e atualiza o uso das GPUs Intel (as outras trazem o uso no gpu-status).
     function applyDrm(text: string): void {
+        if (!gpuEnabled)
+            return;
         const cur = parseDrm(text);
         const next = ({});
         for (const g of gpus) {
@@ -363,7 +387,11 @@ Singleton {
 
         command: ["sh", Quickshell.shellPath("services/scripts/drm-fdinfo.sh")]
         stdout: StdioCollector {
-            onStreamFinished: root.applyDrm(text)
+            onStreamFinished: {
+                // Resposta que chega depois de parar não vale (a leitura ficaria velha).
+                if (root.active)
+                    root.applyDrm(text);
+            }
         }
     }
 }
