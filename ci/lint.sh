@@ -206,9 +206,13 @@ qmllint_run() {
     # qmllint 6.12 não liga o arquivo à entrada `singleton` do qmldir da árvore
     # (que o qs gera certa) e acusa [import] "not declared as singleton in qmldir"
     # em todo singleton. O 6.11 aceitava os dois.
-    files=("${files[@]/#./$tree/qs}")
-    (cd "$tree/qs" && /usr/lib/qt6/bin/qmllint -I "$tree" -I /usr/lib/qt6/qml --json "$out/qmllint.json" "${files[@]}") || rc=$?
-    python3 - "$out/qmllint.json" "$tree/qs/" > "$out/qmllint.txt" <<'PY' || return 1
+    # Normalizado (sem barra no fim, symlink nem ..), para o prefixo que a
+    # saída tira bater com o caminho que o qmllint devolve.
+    local qsdir
+    qsdir=$(realpath "$tree/qs") || return 1
+    files=("${files[@]/#./$qsdir}")
+    (cd "$qsdir" && /usr/lib/qt6/bin/qmllint -I "$tree" -I /usr/lib/qt6/qml --json "$out/qmllint.json" "${files[@]}") || rc=$?
+    python3 - "$out/qmllint.json" "$qsdir/" > "$out/qmllint.txt" <<'PY' || return 1
 import json
 import sys
 

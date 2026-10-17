@@ -92,15 +92,14 @@ class SuppressionsTest(RepoCase):
     def test_recusa_a_forma_antiga(self):
         # Só `unqualified` (6.11) deixa passar o `missing-property` do 6.12; o
         # bloco `margins {` não cobre as linhas de dentro, onde o 6.12 acusa.
+        popups = "features/notifications/ui/NotificationPopups.qml"
         found = self.found(
             {
                 self.OSD: "    margins.bottom: 72 // qmllint disable unqualified\n",
-                "features/notifications/ui/NotificationPopups.qml": (
-                    "    margins { // qmllint disable unqualified missing-property\n"
-                ),
+                popups: "Item {\n    margins { // qmllint disable unqualified missing-property\n",
             }
         )
-        self.assertEqual(len(found), 2)
+        self.assertEqual(sorted((p, n) for p, n, _ in found), sorted([(self.OSD, 1), (popups, 2)]))
 
     def test_recusa_disable_sozinho_na_linha(self):
         found = self.found({self.OSD: "Item {\n    // qmllint disable\n    margins.bottom: 72\n}\n"})

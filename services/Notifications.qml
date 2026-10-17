@@ -11,6 +11,7 @@ Singleton {
     id: root
 
     // Tipado como ObjectModel: pelo tipo do server.trackedNotifications, o qmllint 6.12 não acha o `values`.
+    // Interna: existe só para o tipo que o qmllint pede; os consumidores usam a lista abaixo.
     readonly property ObjectModel trackedModel: server.trackedNotifications
     readonly property var list: trackedModel.values.slice().reverse()
     readonly property int count: list.length

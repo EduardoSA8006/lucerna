@@ -13,6 +13,7 @@ Singleton {
 
     // Dispositivos (não fluxos de apps) de saída e de entrada.
     // Tipado como ObjectModel: pelo tipo do Pipewire.nodes, o qmllint 6.12 não acha o `values`.
+    // Interna: existe só para o tipo que o qmllint pede; os consumidores usam a lista abaixo.
     readonly property ObjectModel nodeModel: Pipewire.nodes
     readonly property var sinks: nodeModel.values.filter(n => n.audio && n.isSink && !n.isStream)
     readonly property var sources: nodeModel.values.filter(n => n.audio && !n.isSink && !n.isStream)

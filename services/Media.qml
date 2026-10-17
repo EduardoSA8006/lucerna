@@ -10,6 +10,7 @@ Singleton {
     id: root
 
     // Tipado como ObjectModel: pelo tipo do Mpris.players, o qmllint 6.12 não acha o `values`.
+    // Interna: existe só para o tipo que o qmllint pede; os consumidores usam a lista abaixo.
     readonly property ObjectModel playerModel: Mpris.players
     readonly property var players: playerModel.values
     property var chosen: null
