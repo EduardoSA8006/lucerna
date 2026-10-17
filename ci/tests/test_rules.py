@@ -78,13 +78,29 @@ class SuppressionsTest(RepoCase):
     def found(self, files):
         return rules.check_suppressions(self.repo(files))
 
-    def test_aceita_as_tres_registradas(self):
+    def test_aceita_as_registradas(self):
         files = {
-            "features/settings/ui/MonitorConfirm.qml": "    margins.top: 90 // qmllint disable unqualified\n",
-            self.OSD: "    margins.bottom: 72 // qmllint disable unqualified\n",
-            "features/notifications/ui/NotificationPopups.qml": "    margins { // qmllint disable unqualified\n",
+            "features/settings/ui/MonitorConfirm.qml": "    margins.top: 90 // qmllint disable unqualified missing-property\n",
+            self.OSD: "    margins.bottom: 72 // qmllint disable unqualified missing-property\n",
+            "features/notifications/ui/NotificationPopups.qml": (
+                "    margins.top: ThemeManager.spacing.small // qmllint disable unqualified missing-property\n"
+                "    margins.right: ThemeManager.spacing.small // qmllint disable unqualified missing-property\n"
+            ),
         }
         self.assertEqual(self.found(files), [])
+
+    def test_recusa_a_forma_antiga(self):
+        # Só `unqualified` (6.11) deixa passar o `missing-property` do 6.12; o
+        # bloco `margins {` não cobre as linhas de dentro, onde o 6.12 acusa.
+        found = self.found(
+            {
+                self.OSD: "    margins.bottom: 72 // qmllint disable unqualified\n",
+                "features/notifications/ui/NotificationPopups.qml": (
+                    "    margins { // qmllint disable unqualified missing-property\n"
+                ),
+            }
+        )
+        self.assertEqual(len(found), 2)
 
     def test_recusa_disable_sozinho_na_linha(self):
         found = self.found({self.OSD: "Item {\n    // qmllint disable\n    margins.bottom: 72\n}\n"})
@@ -96,11 +112,13 @@ class SuppressionsTest(RepoCase):
         self.assertEqual(len(found), 1)
 
     def test_recusa_outro_arquivo(self):
-        found = self.found({"features/bar/ui/Bar.qml": "    margins.bottom: 72 // qmllint disable unqualified\n"})
+        found = self.found(
+            {"features/bar/ui/Bar.qml": "    margins.bottom: 72 // qmllint disable unqualified missing-property\n"}
+        )
         self.assertEqual([(p, n) for p, n, _ in found], [("features/bar/ui/Bar.qml", 1)])
 
     def test_recusa_outra_linha_do_arquivo_aceito(self):
-        found = self.found({self.OSD: "    width: 10 // qmllint disable unqualified\n"})
+        found = self.found({self.OSD: "    width: 10 // qmllint disable unqualified missing-property\n"})
         self.assertEqual(len(found), 1)
 
     def test_recusa_enable_e_disable_com_texto_depois(self):
