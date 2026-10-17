@@ -12,15 +12,15 @@ Item {
 
     readonly property Region mask: Region {
         Region {
-            item: left
+            item: leftIsland
         }
 
         Region {
-            item: center
+            item: centerIsland
         }
 
         Region {
-            item: right
+            item: rightIsland
         }
     }
 
@@ -31,10 +31,10 @@ Item {
     }
 
     Glass {
-        id: left
+        id: leftIsland
 
         x: root.gap
-        y: root.offset(left, 0)
+        y: root.offset(leftIsland, 0)
         width: leftRow.implicitWidth + ThemeManager.spacing.normal * 2
         height: ThemeManager.barHeight
         radius: height / 2
@@ -47,10 +47,10 @@ Item {
     }
 
     Glass {
-        id: center
+        id: centerIsland
 
         x: (root.width - width) / 2
-        y: root.offset(center, 0.08)
+        y: root.offset(centerIsland, 0.08)
         width: clock.width + ThemeManager.spacing.small * 2
         height: ThemeManager.barHeight
         radius: height / 2
@@ -64,10 +64,10 @@ Item {
     }
 
     Glass {
-        id: right
+        id: rightIsland
 
         x: root.width - width - root.gap
-        y: root.offset(right, 0.16)
+        y: root.offset(rightIsland, 0.16)
         width: actions.implicitWidth + ThemeManager.spacing.small * 2
         height: ThemeManager.barHeight
         radius: height / 2
