@@ -11,8 +11,7 @@ Singleton {
     id: root
 
     // CPU
-    readonly property string cpuModel: SystemStats.cpuModel.replace(/\((R|TM)\)/g, "").replace(/ CPU/, "") || "Processador"
-    readonly property string cpuThreads: SystemStats.cpuThreads ? `${SystemStats.cpuThreads} threads` : ""
+    readonly property string cpuModel: shortCpu(SystemStats.cpuModel)
     readonly property real cpuUsage: SystemStats.cpuUsage
     readonly property bool hasTemp: isFinite(SystemStats.cpuTemp)
     readonly property string cpuTempText: hasTemp ? `${Math.round(SystemStats.cpuTemp)} °C` : ""
@@ -51,6 +50,17 @@ Singleton {
     readonly property int gpuIndex: gpuPick(gpus, gpuCard)
     readonly property var gpu: gpus[gpuIndex] ?? null
 
+    // O nome da CPU sem o que não ajuda no título: (R)/(TM), a geração
+    // ("11th Gen"), "CPU", "Processor", "N-Core"/"Six-Core" e a frequência.
+    function shortCpu(model: string): string {
+        return model.replace(/\((R|TM)\)/g, "").replace(/\b\d+(st|nd|rd|th) Gen\b/, "").replace(/\b\w+-Core\b/, "").replace(/\b(CPU|Processor)\b/g, "").replace(/@.*$/, "").replace(/\s+/g, " ").trim() || "Processador";
+    }
+
+    // O nome da GPU sem o fabricante da NVIDIA e o sufixo "Laptop GPU".
+    function shortGpu(name: string): string {
+        return name.replace(/\((R|TM)\)/g, "").replace(/^NVIDIA /, "").replace(/ Laptop GPU$/, "").replace(/\s+/g, " ").trim() || "GPU";
+    }
+
     // Uma GPU do SystemStats para o card: com uso, "Uso" e a %; sem uso (a
     // Intel sem fdinfo do DRM), "Clock" e os MHz, com o véu em freq/maxFreq; em
     // repouso, "Em repouso", véu vazio e sem temperatura (não acorda a placa).
@@ -61,7 +71,7 @@ Singleton {
         const hasTemp = !asleep && isFinite(g.temp);
         return {
             card: g.card,
-            name: g.name.replace(/^NVIDIA /, "").replace(/ Laptop GPU$/, ""),
+            name: shortGpu(g.name),
             dedicated: g.vendor !== "intel",
             asleep: asleep,
             hasData: hasUsage || hasFreq,

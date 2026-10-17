@@ -7,6 +7,22 @@ function run(t) {
     const intel = gpu({ card: "card0", vendor: "intel", name: "Intel (integrada)", freq: 1400, maxFreq: 1450 });
     const asleep = gpu({ state: "suspended" });
 
+    t.test("performance: nomes curtos da CPU", () => {
+        t.eq(P.shortCpu("11th Gen Intel(R) Core(TM) i5-11400H @ 2.70GHz"), "Intel Core i5-11400H");
+        t.eq(P.shortCpu("AMD Ryzen 5 2600X Six-Core Processor"), "AMD Ryzen 5 2600X");
+        t.eq(P.shortCpu("AMD Ryzen 7 5800X 8-Core Processor"), "AMD Ryzen 7 5800X");
+        t.eq(P.shortCpu("Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz"), "Intel Core i7-8700");
+        t.eq(P.shortCpu("13th Gen Intel(R) Core(TM) i7-13700K"), "Intel Core i7-13700K");
+        t.eq(P.shortCpu(""), "Processador", "sem nome: o de reserva");
+    });
+
+    t.test("performance: nomes curtos da GPU", () => {
+        t.eq(P.shortGpu("NVIDIA GeForce RTX 3050 Laptop GPU"), "GeForce RTX 3050");
+        t.eq(P.shortGpu("Intel UHD Graphics"), "Intel UHD Graphics");
+        t.eq(P.shortGpu("Intel(R) UHD Graphics 630"), "Intel UHD Graphics 630");
+        t.eq(P.shortGpu(""), "GPU", "sem nome: o de reserva");
+    });
+
     t.test("performance: GPU com uso", () => {
         const v = P.gpuView(nvidia);
         t.eq([v.card, v.name, v.dedicated, v.asleep, v.hasData, v.label, v.value, v.unit], ["card1", "GeForce RTX 3050", true, false, true, "Uso", "37", "%"]);

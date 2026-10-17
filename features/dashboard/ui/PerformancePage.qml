@@ -69,8 +69,7 @@ Item {
                 Layout.fillHeight: true
                 Layout.preferredWidth: 1
                 icon: Icons.cpu
-                title: "CPU"
-                subtitle: [PerformanceState.cpuModel, PerformanceState.cpuThreads].filter(x => x).join(" · ")
+                title: `CPU - ${PerformanceState.cpuModel}`
                 fraction: PerformanceState.cpuUsage
                 label: "Uso"
                 value: `${Math.round(cpuNumber.shown * 100)}`
@@ -94,8 +93,7 @@ Item {
                 Layout.preferredWidth: 1
                 visible: PerformanceState.showGpu
                 icon: Icons.gpu
-                title: "GPU"
-                subtitle: gpu?.name ?? "Nenhuma GPU encontrada"
+                title: `GPU - ${gpu?.name ?? "nenhuma encontrada"}`
                 fraction: gpu?.fraction ?? 0
                 label: gpu?.label ?? ""
                 value: gpu?.unit === "%" ? `${Math.round(gpuNumber.shown * 100)}` : gpu?.value ?? "—"

@@ -5,8 +5,8 @@ import Quickshell.Widgets
 import qs.core.theme
 import qs.core.widgets
 
-// Card da aba Desempenho para a CPU e a GPU: o título numa linha (ícone, nome
-// e detalhe), um véu claro da esquerda até `fraction`, o valor grande à
+// Card da aba Desempenho para a CPU e a GPU: o título numa linha (ícone e texto, cortado com
+// "…" se não couber), um véu claro da esquerda até `fraction`, o valor grande à
 // direita com a bolha que muda de forma atrás e a temperatura com a barrinha
 // embaixo (some sem leitura). Com `clickable`, o clique emite `swapped` (quem
 // usa troca o que mostra na hora; cada clique conta) e o conteúdo novo
@@ -17,7 +17,6 @@ Surface {
 
     property string icon: ""
     property string title: ""
-    property string subtitle: ""
     property real fraction: 0
     property string label: ""
     property string value: ""
@@ -132,20 +131,9 @@ Surface {
             }
 
             Txt {
-                id: titleText
-
                 anchors.verticalCenter: parent.verticalCenter
+                width: parent.width - titleIcon.width - (dotsRow.visible ? dotsRow.width + parent.spacing : 0) - parent.spacing * 2
                 text: root.title
-                font.pixelSize: ThemeManager.font.large
-                font.weight: Font.DemiBold
-            }
-
-            Txt {
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width - titleIcon.width - titleText.width - (dotsRow.visible ? dotsRow.width + parent.spacing : 0) - parent.spacing * 2
-                text: root.subtitle
-                muted: true
-                font.pixelSize: ThemeManager.font.small + 1
             }
 
             Row {
