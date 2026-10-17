@@ -127,7 +127,7 @@ OverlayPanel {
             x: window.pad - ThemeManager.spacing.small
             y: filters.y + filters.height + ThemeManager.spacing.normal
             width: window.width - (window.pad - ThemeManager.spacing.small) * 2
-            height: footer.y - y - ThemeManager.spacing.small
+            height: hintBar.y - y - ThemeManager.spacing.small
             clip: true
             spacing: 2
             boundsBehavior: Flickable.StopAtBounds
@@ -173,7 +173,7 @@ OverlayPanel {
         }
 
         Item {
-            id: footer
+            id: hintBar
 
             x: window.pad
             y: window.height - height - window.pad

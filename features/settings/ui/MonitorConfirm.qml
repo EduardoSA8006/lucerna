@@ -25,7 +25,7 @@ Variants {
         visible: shown > 0
         anchors.top: true
         // Falso positivo: o margins do PanelWindow não está descrito nos qmltypes do Quickshell (ver spec).
-        margins.top: 90 // qmllint disable unqualified
+        margins.top: 90 // qmllint disable unqualified missing-property
         implicitWidth: 460
         implicitHeight: card.height + 20
         color: "transparent"

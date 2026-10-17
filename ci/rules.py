@@ -57,23 +57,28 @@ def repo_files(root):
     return files
 
 
-# As únicas supressões do qmllint aceitas: arquivo -> trecho de código que
-# precede o comentário `// qmllint disable unqualified`. O motivo (o grupo
-# `margins` do PanelWindow não vem por inteiro nos qmltypes do Quickshell) e o
+# As únicas supressões do qmllint aceitas: arquivo -> trechos de código que
+# precedem o comentário `// qmllint disable unqualified missing-property`, um por
+# linha. O motivo (o grupo `margins` do PanelWindow não vem por inteiro nos
+# qmltypes do Quickshell: o qmllint 6.11 acusa `unqualified` e o 6.12,
+# `missing-property`; as duas categorias, para o lint passar nos dois) e o
 # registro estão no spec do CI (docs/superpowers/specs/2026-09-26-ci-design.md).
 QMLLINT_ALLOWED = {
-    "features/settings/ui/MonitorConfirm.qml": "margins.top: 90",
-    "features/osd/ui/Osd.qml": "margins.bottom: 72",
-    "features/notifications/ui/NotificationPopups.qml": "margins {",
+    "features/settings/ui/MonitorConfirm.qml": ("margins.top: 90",),
+    "features/osd/ui/Osd.qml": ("margins.bottom: 72",),
+    "features/notifications/ui/NotificationPopups.qml": (
+        "margins.top: ThemeManager.spacing.small",
+        "margins.right: ThemeManager.spacing.small",
+    ),
 }
 QMLLINT_SUPPRESSION = re.compile(r"qmllint\s+(disable|enable)\b")
-QMLLINT_ALLOWED_COMMENT = "// qmllint disable unqualified"
+QMLLINT_ALLOWED_COMMENT = "// qmllint disable unqualified missing-property"
 
 
 def check_suppressions(root):
     """Toda supressão do qmllint (`qmllint disable` e `enable`) nos .qml tem de
-    ser uma das de QMLLINT_ALLOWED: no fim da linha do código indicado, com o
-    comentário `// qmllint disable unqualified`."""
+    ser uma das de QMLLINT_ALLOWED: no fim da linha de um dos códigos indicados,
+    com o comentário `// qmllint disable unqualified missing-property`."""
     out = []
     for rel in repo_files(root):
         if rel.suffix != ".qml":
@@ -85,14 +90,14 @@ def check_suppressions(root):
             if not match:
                 continue
             code = line[: match.start()]
-            allowed = QMLLINT_ALLOWED.get(where)
-            if allowed and code.strip() == allowed + " //" and line.rstrip().endswith(QMLLINT_ALLOWED_COMMENT):
+            allowed = QMLLINT_ALLOWED.get(where, ())
+            if code.strip() in {a + " //" for a in allowed} and line.rstrip().endswith(QMLLINT_ALLOWED_COMMENT):
                 continue
             out.append(
                 (
                     where,
                     number,
-                    "supressão do qmllint fora da lista: só as três registradas no spec "
+                    "supressão do qmllint fora da lista: só as registradas no spec "
                     "(docs/superpowers/specs/2026-09-26-ci-design.md) são aceitas; "
                     "conserte o aviso ou registre a exceção no spec e em QMLLINT_ALLOWED do ci/rules.py",
                 )
