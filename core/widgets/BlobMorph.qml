@@ -42,6 +42,9 @@ Item {
         property: "morph"
         from: 0
         to: 1
+        // Pausa com o relógio parado e segue de onde estava: as bolhas que o
+        // compartilham continuam na mesma mistura.
+        paused: running && !root.morphing
         duration: 1200 * ThemeManager.anim.scale
         easing.type: Easing.InOutCubic
     }

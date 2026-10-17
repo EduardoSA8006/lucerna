@@ -9,7 +9,9 @@ import qs.core.theme
 // `spinning` gira devagar. Com `morphing`, ignora `lobes` e `amplitude`: a cada
 // ~6 s vira outra forma de BlobShapes.shapes, misturando as duas curvas em
 // ~1,2 s. O relógio (BlobMorph) é próprio ou, com `driver`, compartilhado com
-// outras bolhas, que então mudam e giram juntas. `active` falso (ou a bolha
+// outras bolhas, que então mudam e giram juntas: aí valem o giro e a troca de
+// forma do `driver`, e `spinning`, `spinDuration` e `morphing` desta são
+// ignorados (ela sempre segue a lista de formas). `active` falso (ou a bolha
 // escondida) congela a forma e o ângulo: o relógio próprio pausa; o
 // compartilhado segue para as outras, e esta volta já em sincronia com ele.
 Item {
@@ -28,7 +30,9 @@ Item {
     property int steps: 144
 
     readonly property bool live: visible && active
-    readonly property BlobMorph clock: driver ?? own
+    readonly property BlobMorph clock: root.driver ?? own
+    // Formas da lista: com `morphing` ou com um relógio compartilhado.
+    readonly property bool shaped: morphing || driver !== null
     // O que está na tela: segue o relógio enquanto viva; parada, fica no último.
     property int shapeFrom: 0
     property int shapeTo: 0
@@ -45,9 +49,9 @@ Item {
     readonly property var points: {
         const extra = animatedPulse * 0.08;
         const grow = s => ({ lobes: s.lobes, amplitude: s.amplitude + extra });
-        const a = morphing ? BlobShapes.shapes[shapeFrom] : { lobes: lobes, amplitude: amplitude };
-        const b = morphing ? BlobShapes.shapes[shapeTo] : a;
-        return BlobShapes.outline(width, height, grow(a), grow(b), morphing ? morph : 0, steps);
+        const a = shaped ? BlobShapes.shapes[shapeFrom] : { lobes: lobes, amplitude: amplitude };
+        const b = shaped ? BlobShapes.shapes[shapeTo] : a;
+        return BlobShapes.outline(width, height, grow(a), grow(b), shaped ? morph : 0, steps);
     }
 
     BlobMorph {
