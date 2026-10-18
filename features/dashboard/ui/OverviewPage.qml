@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Widgets
+import qs.core.config
 import qs.core.format
 import qs.core.theme
 import qs.core.widgets
@@ -13,6 +14,8 @@ Item {
     id: root
 
     readonly property bool onScreen: DashboardState.isShowing("overview")
+    // O clima só entra com dados (ou o aviso do modo offline); senão o relógio fica sozinho.
+    readonly property bool weatherOn: OverviewState.shows("weather") && (OverviewState.hasWeather || Config.offline)
 
     implicitHeight: layout.visibleChildren.length ? layout.implicitHeight : 120
 
@@ -35,7 +38,7 @@ Item {
             Layout.fillWidth: !calendarCard.visible && !column3.visible
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignTop
-            visible: OverviewState.shows("user") || OverviewState.shows("clock") || OverviewState.shows("weather")
+            visible: OverviewState.shows("user") || OverviewState.shows("clock") || root.weatherOn
             spacing: ThemeManager.spacing.normal
 
             Surface {
@@ -155,32 +158,42 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 196
                 Layout.fillHeight: true
-                visible: OverviewState.shows("clock") || OverviewState.shows("weather")
+                visible: OverviewState.shows("clock") || root.weatherOn
 
                 // Duas colunas, centradas na altura: hora e data à esquerda, clima à direita.
-                // Sem clima (escondido), o relógio fica centralizado; sem relógio, o clima.
-                Row {
+                // Sem clima (desligado, sem dados e fora do modo offline), o relógio fica
+                // sozinho e centralizado. Em card estreito, a data e o clima encolhem
+                // (elide ou duas linhas); a hora, não.
+                RowLayout {
                     anchors.centerIn: parent
+                    width: Math.min(implicitWidth, parent.width - 2 * (ThemeManager.spacing.large - 4))
                     spacing: ThemeManager.spacing.normal + 2
 
                     Column {
                         visible: OverviewState.shows("clock")
-                        anchors.verticalCenter: parent.verticalCenter
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.minimumWidth: clockRow.width
                         spacing: 0
 
-                        // Dígitos em células de largura fixa: a hora não pula ao mudar de minuto,
-                        // mesmo numa fonte sem números tabulares.
+                        // Dígitos em células de largura fixa (a do dígito mais largo): a hora não
+                        // pula ao mudar de minuto, mesmo numa fonte sem números tabulares.
                         Row {
                             id: clockRow
 
-                            readonly property font digitFont: Qt.font({ family: ThemeManager.font.sans, pixelSize: ThemeManager.font.huge - 10, weight: Font.Light, features: { "tnum": 1 } })
-                            readonly property real digitWidth: digitMetrics.advanceWidth
+                            readonly property real digitWidth: {
+                                // Ler a família religa a conta quando a fonte do tema muda.
+                                if (!digitMetrics.font.family)
+                                    return 0;
+                                return Math.max(...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => digitMetrics.advanceWidth(String(d))));
+                            }
 
-                            TextMetrics {
+                            FontMetrics {
                                 id: digitMetrics
 
-                                font: clockRow.digitFont
-                                text: "0"
+                                font.family: ThemeManager.font.sans
+                                font.pixelSize: ThemeManager.font.huge - 10
+                                font.weight: Font.Light
+                                font.features: { "tnum": 1 }
                             }
 
                             Repeater {
@@ -191,13 +204,17 @@ Item {
 
                                     width: index === 2 ? implicitWidth : clockRow.digitWidth
                                     horizontalAlignment: Text.AlignHCenter
+                                    elide: Text.ElideNone
                                     text: OverviewState.time.charAt(index)
-                                    font: clockRow.digitFont
+                                    font.pixelSize: digitMetrics.font.pixelSize
+                                    font.weight: digitMetrics.font.weight
+                                    font.features: { "tnum": 1 }
                                 }
                             }
                         }
 
                         Txt {
+                            width: parent.width
                             text: `${OverviewState.weekday}, ${OverviewState.date}`
                             muted: true
                             font.pixelSize: ThemeManager.font.small + 1
@@ -205,11 +222,14 @@ Item {
                     }
 
                     Column {
-                        visible: OverviewState.shows("weather")
-                        anchors.verticalCenter: parent.verticalCenter
+                        visible: root.weatherOn
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.minimumWidth: weatherRow.width
                         spacing: 2
 
                         Row {
+                            id: weatherRow
+
                             spacing: ThemeManager.spacing.small
                             anchors.horizontalCenter: parent.horizontalCenter
 
@@ -231,14 +251,18 @@ Item {
                         }
 
                         Txt {
-                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: parent.width
+                            horizontalAlignment: Text.AlignHCenter
                             text: OverviewState.weatherText
                             muted: true
+                            wrapMode: Text.WordWrap
+                            maximumLineCount: 2
                             font.pixelSize: ThemeManager.font.small
                         }
 
                         Txt {
-                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: parent.width
+                            horizontalAlignment: Text.AlignHCenter
                             visible: text !== ""
                             text: OverviewState.weatherPlace
                             faint: true

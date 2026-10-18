@@ -110,7 +110,6 @@ Item {
                     height: 22
                     horizontalAlignment: Text.AlignHCenter
                     text: modelData.initial
-                    faint: !modelData.sunday
                     color: modelData.sunday ? ThemeManager.colors.danger : ThemeManager.colors.textFaint
                     font.pixelSize: ThemeManager.font.small
                     font.weight: Font.DemiBold
@@ -126,18 +125,22 @@ Item {
                     width: grid.cell
                     height: 26
 
-                    // Hoje: a bolha anima só com o painel aberto na aba Painel.
-                    Blob {
+                    // Hoje: uma bolha só, criada apenas na célula de hoje; anima só com o
+                    // painel aberto na aba Painel.
+                    Loader {
                         anchors.centerIn: parent
-                        width: 26
-                        height: 26
-                        visible: parent.modelData.today
-                        active: root.onScreen
-                        morphing: true
-                        spinning: true
-                        spinDuration: 30000
-                        steps: 48
-                        color: ThemeManager.colors.accent
+                        active: parent.modelData.today
+
+                        sourceComponent: Blob {
+                            width: 26
+                            height: 26
+                            active: root.onScreen
+                            morphing: true
+                            spinning: true
+                            spinDuration: 30000
+                            steps: 48
+                            color: ThemeManager.colors.accent
+                        }
                     }
 
                     Txt {
