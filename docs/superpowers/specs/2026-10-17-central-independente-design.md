@@ -28,20 +28,21 @@ Os nomes salvos antigos continuam valendo (`sidebar` → `central`, ponte já ex
 ### Posição
 
 - Os dois abertos: como hoje (Ações em cima, com a altura do conteúdo limitada; Notificações embaixo, na altura que sobra).
-- Só as Ações: no mesmo lugar.
+- Só as Ações: no mesmo lugar; sozinhas podem usar a altura toda (sem reservar o mínimo das Notificações).
 - Só as Notificações: sobem para logo abaixo da barra (`Panels.topInset`) e ocupam a altura toda até a margem de baixo.
-- A mudança de posição/altura das Notificações quando as Ações abrem ou fecham com elas abertas é animada.
-- A entrada e a saída de cada painel continuam animadas (desliza da direita); abrir um com o outro já aberto anima só o que entra; fechar um anima só o que sai.
+- A mudança de posição/altura das Notificações quando as Ações abrem ou fecham com elas abertas é animada (as Notificações sobem/descem junto com a saída/entrada das Ações); a troca de página das Ações continua animando a altura como hoje, e as Notificações acompanham.
+- A entrada e a saída de cada painel continuam animadas (desliza da direita), cada painel reagindo ao próprio estado: abrir um com o outro já aberto anima só o que entra; fechar um anima só o que sai. O atraso em cascata (40 ms) só vale quando os dois abrem juntos. Ao fechar o último, a saída do painel cabe no tempo de saída do `OverlayPanel`.
 
 ### Fechar
 
-- `Esc` e o clique fora dos painéis fecham os dois.
+- `Esc` e o clique fora dos painéis são o "fechar tudo" da janela: fecham os dois. Os atalhos e os ícones são individuais. (Durante a animação de saída de um painel, um clique na área dele ainda conta como dentro — aceitável.)
+- Ao fechar as Ações com um campo focado (a senha do Wi-Fi), o foco volta ao `focusSink` da janela.
 - Os dois continuam modais em relação ao resto do shell: abrir o painel superior, o launcher, as Configurações etc. fecha os dois; abrir qualquer um deles fecha esses outros painéis (como a central hoje).
 - A barra continua clicável com eles abertos (`keepBar`).
 
 ### Popups de notificação
 
-Escondidos (e limpos ao abrir e ao fechar, como hoje) só com o painel de **Notificações** aberto. Com só as Ações abertas, os popups aparecem normalmente.
+Os popups ficam no canto superior direito, exatamente onde as Ações aparecem, e a janela da central cobre a tela: com só as Ações abertas, um popup cobriria as Ações ou ficaria visível mas não clicável. Por isso (revisão do spec): os popups ficam **escondidos com qualquer um dos dois aberto**, como hoje; a fila só é **limpa** ao abrir e ao fechar as **Notificações** (com só as Ações, o que chega fica para aparecer quando elas fecharem, ou na lista das Notificações).
 
 ### Estado ao abrir
 
@@ -49,19 +50,21 @@ Escondidos (e limpos ao abrir e ao fechar, como hoje) só com o painel de **Noti
 
 ## IPC
 
-- `actions open|toggle|close [rede|bluetooth|som|microfone|energia|""]`
-- `notifications open|toggle|close`
-- `central open|toggle|close [entrada]` — sempre os dois; a entrada, se houver, define a página das Ações (`notificacoes` abre os dois com as Ações no estado inicial). O `toggle` segue a regra do atalho geral.
+- `controls open|toggle|close [rede|bluetooth|som|microfone|energia|""]` — as Ações (o nome `controls` evita a confusão com o alvo `action` que já existe).
+- `notifications open|toggle|close` — no `IpcHandler` que já existe em `NotificationsState` (junto de `clear`, `toggleDnd`, `count`), não num segundo handler com o mesmo alvo.
+- `central open|toggle|close [entrada]` — os dois. `open`: abre os dois; a entrada, se houver, define a página das Ações (`notificacoes` = estado inicial). `toggle` sem entrada: a regra do atalho geral. `toggle` com entrada: fecha os dois só se os dois estiverem abertos e a entrada for a atual; senão abre o que falta e troca a página.
+- `panels open|toggle central` (e o nome antigo `sidebar`, que já é ignorado) abre os dois.
 
 ## Estrutura
 
-- `core/panels/Panels.qml`: a central deixa de ser um painel modal único. Proposta: dois painéis (`actions`, `notifications`) que formam um **grupo** — abrir um do grupo não fecha o outro do grupo, mas fecha os painéis de fora; abrir um de fora fecha os do grupo. `centralEntry` vira a entrada das Ações. Funções puras e testadas para: o toggle de cada um, o atalho geral (abre o que falta / fecha os dois), o toggle por entrada das Ações e a modalidade com os outros painéis.
-- `features/central/`: a tela continua num `OverlayPanel` (um só, com `keepBar`), com os dois painéis como filhos; cada um aparece conforme o seu estado. O clique fora fecha os dois.
-- `ShellShortcuts`, `InputActions`, a página de atalhos, `BarState`, `LauncherState`, `NotificationsState` (o esconder dos popups passa a depender só do painel de Notificações) e `ci/smoke.sh` acompanham.
+- `core/panels/Panels.qml` (estrutura recomendada na revisão): `central` **continua um único painel modal**; ganha dois sub-estados, `actionsOpen` e `notificationsOpen`, com `isOpen("central") === actionsOpen || notificationsOpen`. Uma função pura (`setCentral(a, n)` ou equivalente) faz `open("central")` quando um fica verdadeiro e `dismiss("central")` quando os dois ficam falsos; o `onOpenedChanged` zera os dois e o `centralEntry` (a entrada das Ações) quando a central é fechada por fora (outro modal, `Esc`, `panels close`). `toggleActions(entry)`, `toggleNotifications()` e `toggleCentral(entry)` são combinações dela, puras e testadas. Modalidade, grab, companions, `names`, o IPC `panels` e o `OverlayPanel` (`keepBar`, máscara, `keyboardFocus`) ficam como estão; fechar o último fecha a janela de graça. (Contra aceito: `panels get` mostra só `central`.)
+- `features/central/state/CentralState.qml`: o `reset()` ao abrir, as `Binding` de `Network.scanning` e `Battery.historyActive` e o zerar da página passam a depender de `actionsOpen` (abrir as Ações com as Notificações já abertas reseta; fechar só as Ações para a busca de redes e o histórico).
+- `features/central/ui/`: a tela continua num `OverlayPanel` (um só, com `keepBar`), com os dois painéis como filhos; cada um entra e sai pelo próprio estado.
+- `ShellShortcuts`, `InputActions` (rótulos: "Abrir as ações", "Abrir as notificações", "Abrir a central"), `InputState` (o `case "notifications"` passa a abrir só as Notificações — **mudança de comportamento** do `Super+N`, que hoje abre a central inteira nas notificações), a página de atalhos, `BarState` (o sino aceso = Notificações abertas; o ícone de uma entrada aceso = Ações abertas com essa entrada; com só as Notificações abertas, `toggleEntry("rede")` abre as Ações), `LauncherState`, `NotificationsState` e `ci/smoke.sh` (que hoje faz `central toggle som` depois de `central open notificacoes`) acompanham.
 
 ## Testes
 
-- Unidade (`tests/panels.test.js`, `tests/central.test.js`): cada atalho sozinho e com o outro aberto; o atalho geral nos quatro estados (nenhum, só Ações, só Notificações, os dois); o toggle por entrada das Ações sem afetar as Notificações; a modalidade com o painel superior e o launcher; os popups escondidos só com as Notificações.
+- Unidade (`tests/panels.test.js`, `tests/central.test.js`): cada atalho sozinho e com o outro aberto; o fechamento por fora zerando os dois sub-estados; o `central toggle` com e sem entrada; as regras de aceso da barra; o atalho geral nos quatro estados (nenhum, só Ações, só Notificações, os dois); o toggle por entrada das Ações sem afetar as Notificações; a modalidade com o painel superior e o launcher; os popups escondidos só com as Notificações.
 - Fumaça: IPC de cada um e do geral, sem avisos.
 - Na tela: só as Ações, só as Notificações (subindo), os dois, e a animação ao abrir/fechar um com o outro aberto.
 
