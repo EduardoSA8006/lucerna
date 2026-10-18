@@ -23,9 +23,20 @@ function run(t) {
         const gib = 1024 * 1024 * 1024;
         t.eq(F.usage(9.7 * gib, 31.1 * gib), "9,7 / 31,1 GiB");
         t.eq(F.usage(454 * gib, 915 * gib), "454 / 915 GiB");
-        t.eq(F.usage(47.6 * gib, 915 * gib), "48 / 915 GiB", "decimais pelo total");
+        t.eq(F.usage(4.83 * gib, 224 * gib), "4,8 / 224 GiB", "casas de cada número");
+        t.eq(F.usage(47.6 * gib, 915 * gib), "47,6 / 915 GiB");
         t.eq(F.usage(512 * 1024 * 1024, 2 * gib), "0,5 / 2,0 GiB");
+        t.eq(F.usage(50 * gib, 99.97 * gib), "50,0 / 100 GiB", "logo abaixo de 100: sem \"100,0\"");
+        t.eq(F.usage(500 * gib, 1010 * gib), "0,5 / 1,0 TiB", "de 1000 a 1023: a unidade de cima");
         t.eq(F.usage(0, 0), "0 / 0 B");
+    });
+
+    t.test("format: unidade e casas decimais", () => {
+        t.eq([F.unitIndex(999), F.unitIndex(1000), F.unitIndex(1023 * 1024), F.unitIndex(Math.pow(1024, 6))], [0, 1, 2, 4]);
+        t.eq([F.decimals(5, 0), F.decimals(5, 1), F.decimals(99.94, 1), F.decimals(99.95, 1), F.decimals(150, 1)], [0, 1, 1, 0, 0]);
+        t.eq(F.bytes(99.97 * 1024), "100 KiB", "sem \"100,0\"");
+        t.eq(F.bytes(1010 * 1024 * 1024), "1,0 GiB", "sem \"1010 MiB\"");
+        t.eq(F.bytes(1000), "1,0 KiB");
     });
 
     t.test("format: taxa por segundo", () => {

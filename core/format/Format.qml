@@ -15,29 +15,39 @@ Singleton {
         return `${Math.round(fraction * 100)}%`;
     }
 
-    // 1536 → "1,5 KiB"
-    function bytes(value: real): string {
-        const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+    readonly property var units: ["B", "KiB", "MiB", "GiB", "TiB"]
+
+    // O índice em `units` para `value` bytes: a maior unidade em que o número
+    // fica abaixo de 1000 já arredondado (1010 MiB → GiB, não "1.010 MiB").
+    function unitIndex(value: real): int {
         let i = 0;
-        while (value >= 1024 && i < units.length - 1) {
+        while (value >= 999.5 && i < units.length - 1) {
             value /= 1024;
             i++;
         }
-        return `${number(value, i === 0 || value >= 100 ? 0 : 1)} ${units[i]}`;
+        return i;
     }
 
-    // Usado e total na unidade do total, com as casas dele:
-    // "9,7 / 31,1 GiB", "454 / 915 GiB".
+    // Casas decimais de um número já na unidade `i`: nenhuma em bytes e a
+    // partir de 100 (99,96 sai "100", não "100,0"); senão, uma.
+    function decimals(value: real, i: int): int {
+        return i === 0 || value >= 99.95 ? 0 : 1;
+    }
+
+    // 1536 → "1,5 KiB"
+    function bytes(value: real): string {
+        const i = unitIndex(value);
+        const v = value / Math.pow(1024, i);
+        return `${number(v, decimals(v, i))} ${units[i]}`;
+    }
+
+    // Usado e total na unidade do total, cada um com as suas casas:
+    // "9,7 / 31,1 GiB", "4,8 / 224 GiB", "454 / 915 GiB".
     function usage(used: real, total: real): string {
-        const units = ["B", "KiB", "MiB", "GiB", "TiB"];
-        let i = 0;
-        while (total >= 1024 && i < units.length - 1) {
-            total /= 1024;
-            used /= 1024;
-            i++;
-        }
-        const decimals = i === 0 || total >= 100 ? 0 : 1;
-        return `${number(used, decimals)} / ${number(total, decimals)} ${units[i]}`;
+        const i = unitIndex(total);
+        const u = used / Math.pow(1024, i);
+        const t = total / Math.pow(1024, i);
+        return `${number(u, decimals(u, i))} / ${number(t, decimals(t, i))} ${units[i]}`;
     }
 
     function rate(bytesPerSecond: real): string {

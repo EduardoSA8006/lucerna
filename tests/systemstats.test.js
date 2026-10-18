@@ -220,16 +220,22 @@ function run(t) {
         t.eq([S.lastDrm, S.drmUsage], [null, {}]);
     });
 
-    // Saída do lsblk -lnpo NAME,TYPE,PKNAME: o disco não tem pai.
-    const lsblk = "/dev/sda       disk \n/dev/sda2      part /dev/sda\n/dev/zram0     disk \n/dev/loop0     loop \n"
-        + "/dev/nvme0n1   disk \n/dev/nvme0n1p1 part /dev/nvme0n1\n/dev/nvme0n1p2 part /dev/nvme0n1\n"
-        + "/dev/mapper/root crypt /dev/nvme0n1p2\n/dev/mapper/vg-home lvm /dev/mapper/root\n";
+    // Saída do lsblk -lnpo NAME,KNAME,TYPE,PKNAME: o disco não tem pai, e o
+    // PKNAME é o nome de kernel do pai (/dev/dm-0, não /dev/mapper/root). Um
+    // RAID aparece uma vez por pai, na ordem da lista.
+    const lsblk = "/dev/sda /dev/sda disk\n/dev/sda2 /dev/sda2 part /dev/sda\n/dev/zram0 /dev/zram0 disk\n/dev/loop0 /dev/loop0 loop\n"
+        + "/dev/nvme0n1 /dev/nvme0n1 disk\n/dev/nvme0n1p1 /dev/nvme0n1p1 part /dev/nvme0n1\n/dev/nvme0n1p2 /dev/nvme0n1p2 part /dev/nvme0n1\n"
+        + "/dev/mapper/root /dev/dm-0 crypt /dev/nvme0n1p2\n/dev/mapper/vg-home /dev/dm-1 lvm /dev/dm-0\n"
+        + "/dev/sdb /dev/sdb disk\n/dev/sdb1 /dev/sdb1 part /dev/sdb\n/dev/md0 /dev/md0 raid1 /dev/sdb1\n"
+        + "/dev/sdc /dev/sdc disk\n/dev/sdc1 /dev/sdc1 part /dev/sdc\n/dev/md0 /dev/md0 raid1 /dev/sdc1\n";
 
     t.test("systemstats: dispositivos do lsblk, com o pai", () => {
         const b = S.parseBlock(lsblk);
         t.eq(b["/dev/sda"], { type: "disk", parent: "" });
         t.eq(b["/dev/sda2"], { type: "part", parent: "/dev/sda" });
-        t.eq(b["/dev/mapper/vg-home"], { type: "lvm", parent: "/dev/mapper/root" });
+        t.eq(b["/dev/mapper/vg-home"], { type: "lvm", parent: "/dev/dm-0" });
+        t.eq(b["/dev/dm-1"], b["/dev/mapper/vg-home"], "também pelo nome de kernel");
+        t.eq(b["/dev/md0"], { type: "raid1", parent: "/dev/sdc1" }, "vários pais: fica o último");
         t.eq(S.parseBlock(""), {}, "sem lsblk");
     });
 
@@ -237,7 +243,11 @@ function run(t) {
         const b = S.parseBlock(lsblk);
         t.eq(S.diskOf(b, "/dev/sda2"), "sda", "partição");
         t.eq(S.diskOf(b, "/dev/sda"), "sda", "o disco inteiro, sem partição");
-        t.eq(S.diskOf(b, "/dev/mapper/vg-home"), "nvme0n1", "LVM sobre LUKS: sobe até o disco");
+        t.eq(S.diskOf(b, "/dev/mapper/vg-home"), "nvme0n1", "LVM sobre LUKS: sobe pelo nome de kernel até o disco");
+        t.eq(S.diskOf(b, "/dev/dm-0"), "nvme0n1", "origem dm-N");
+        t.eq(S.diskOf(b, "/dev/md0"), "sdc", "RAID em vários discos: cai num só, o do último pai");
+        t.eq(S.diskOf(b, "/dev/dm-7"), "dm-7", "dm-N fora do lsblk: o próprio nome");
+        t.eq(S.diskOf(b, "tank/home"), "", "ZFS (pool/dataset) fica de fora");
         t.eq(S.diskOf(b, "/dev/loop0"), "", "loop fica de fora");
         t.eq(S.diskOf(b, "/dev/zram0"), "", "zram fica de fora");
         t.eq(S.diskOf(b, "/dev/root"), "root", "fora do lsblk: o próprio nome");

@@ -272,21 +272,27 @@ Singleton {
         gpus = gpus.map(g => !(g.pci in next) ? g : Object.assign({}, g, { usage: next[g.pci] }));
     }
 
-    // Saída do lsblk -lnpo NAME,TYPE,PKNAME: { caminho: { type, parent } }.
+    // Saída do lsblk -lnpo NAME,KNAME,TYPE,PKNAME: { caminho: { type, parent } },
+    // pelo nome (/dev/mapper/root) e pelo nome de kernel (/dev/dm-0), porque
+    // o PKNAME é o nome de kernel do pai e o df pode trazer qualquer um. Um
+    // dispositivo com vários pais (RAID do mdraid, LVM com o grupo em vários
+    // discos) aparece numa linha por pai, e fica o último.
     function parseBlock(text: string): var {
         const blocks = ({});
         for (const line of text.split("\n")) {
             const f = line.trim().split(/\s+/);
-            if (f.length >= 2)
-                blocks[f[0]] = { type: f[1], parent: f[2] ?? "" };
+            if (f.length >= 3)
+                blocks[f[0]] = blocks[f[1]] = { type: f[2], parent: f[3] ?? "" };
         }
         return blocks;
     }
 
     // O nome curto do disco físico de uma origem do df ("/dev/nvme0n1p2" →
-    // "nvme0n1"), subindo pelos pais (LUKS, LVM) até o tipo "disk". Fora do
-    // lsblk, o próprio nome; "" para o que não é dispositivo (tmpfs, overlay,
-    // rede), para loop e zram.
+    // "nvme0n1"), subindo pelos pais (LUKS, LVM) até o tipo "disk". Com vários
+    // pais (ver parseBlock), cai num disco só, o do último pai. Fora do lsblk,
+    // o próprio nome ("/dev/dm-7" → "dm-7"); "" para o que não é dispositivo
+    // (tmpfs, overlay, rede, ZFS, que o df mostra como "pool/dataset"), para
+    // loop e zram.
     function diskOf(blocks: var, source: string): string {
         if (!source.startsWith("/dev/") || /^\/dev\/(loop|zram|ram)\d/.test(source))
             return "";
@@ -421,7 +427,7 @@ Singleton {
 
         // -l: só sistemas de arquivos locais (um de rede travado não trava a
         // leitura).
-        command: ["sh", "-c", "df -lB1 --output=source,size,used,target; echo --; lsblk -lnpo NAME,TYPE,PKNAME"]
+        command: ["sh", "-c", "df -lB1 --output=source,size,used,target; echo --; lsblk -lnpo NAME,KNAME,TYPE,PKNAME"]
         stdout: StdioCollector {
             onStreamFinished: root.parseDf(text)
         }
