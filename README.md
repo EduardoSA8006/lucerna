@@ -12,7 +12,7 @@ Barra, painel superior, central, launcher, notificações, tela de bloqueio e um
 - **Botões e teclas mapeáveis**: os botões extras do mouse e as teclas extras do teclado (F13–F24, macro, mídia) podem abrir painéis, controlar a mídia, trocar de workspace, **enviar um atalho de teclado** para a janela ou rodar um comando.
 - **Remapeamento real de teclas**, em qualquer programa e inclusive para modificadores (Caps Lock → Esc, Alt Gr → Super). O Lucerna gera o keymap, confere se ele compila e só então o entrega ao Hyprland.
 - **Monitores arrastando**: a disposição se monta num canvas com encaixe magnético. Cada monitor tem resolução, taxa, escala, rotação, espelhamento, VRR e 10 bits. Aplicar pede confirmação em todas as telas e, sem resposta em 15 s, volta ao anterior.
-- **Central em dois painéis**: ações (tiles de Wi-Fi, Bluetooth, saída de áudio, bateria, microfone e os liga/desliga, com uma página por recurso, e os sliders de volume e brilho) e notificações, flutuando à direita sobre a área de trabalho e abrindo juntos.
+- **Central em dois painéis**: ações (tiles de Wi-Fi, Bluetooth, saída de áudio, bateria, microfone e os liga/desliga, com uma página por recurso, e os sliders de volume e brilho) e notificações, flutuando à direita sobre a área de trabalho, cada um com o seu atalho, sozinhos ou juntos.
 - **Os dez temas mais populares**: Catppuccin Mocha, Tokyo Night, Gruvbox Dark, Rosé Pine, Nord, Everforest, Kanagawa, Dracula, Matte Black e Decay Green, e as versões claras Catppuccin Latte e Rosé Pine Dawn, nas paletas oficiais, trocáveis ao vivo.
 - **Papel de parede animado e leve**: cada tema tem um efeito em shader que combina com ele (aurora, bokeh, brasas, luar, neve, vaga-lumes, ondas, névoa, chuva digital), nas cores do tema, a 30 ou 60 fps e em meia resolução. Ele pausa sozinho com tela cheia, tela bloqueada ou tela apagada. Cada tema pode trocar o seu por outro efeito, por uma imagem sua ou por um **vídeo ou GIF**. O vídeo é convertido uma vez para a resolução da tela, sem tarjas, quadros repetidos nem áudio, e toca decodificado pela GPU.
 - **Vidro de verdade**: o desfoque atrás dos painéis é do próprio Hyprland, e o tema ajusta também as bordas das janelas.
@@ -38,7 +38,7 @@ Visão geral, mídia com letra sincronizada, desempenho e clima. Desce de dentro
 
 ### Central
 
-Ações em cima e notificações embaixo, na direita, abertos juntos sobre a área de trabalho (`Super+C`). Os tiles ligam e desligam no corpo e abrem a página do recurso na setinha. O ícone da barra escolhe o que já vem aberto: o de rede abre a página do Wi-Fi; o de som, a da saída de áudio; o de bateria, a da bateria.
+Ações em cima e notificações embaixo, na direita, sobre a área de trabalho. Cada painel abre e fecha sozinho (`Super+A` as ações, `Super+N` as notificações, e o sino da barra), e os dois podem ficar abertos juntos (`Super+C` abre o que falta, ou fecha os dois); sozinhas, as notificações sobem e ocupam a altura toda. Os tiles ligam e desligam no corpo e abrem a página do recurso na setinha. O ícone da barra escolhe a página das ações: o de rede abre a do Wi-Fi; o de som, a da saída de áudio; o de bateria, a da bateria; o mesmo ícone de novo fecha só as ações. `Esc` e o clique fora fecham os dois.
 
 ![Central: ações e notificações](docs/screenshots/central.jpg)
 
@@ -95,8 +95,8 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | Parte | O que faz |
 | --- | --- |
 | **Barra** | Workspaces, hora e data, rede, som, bateria e notificações. Tem quatro estilos e pode ficar fixa ou esconder sozinha. Na área de trabalho vazia fica sempre à mostra, e aparece por um instante ao trocar de workspace. |
-| **Painel superior** | Visão geral (perfil, relógio, calendário, clima, recursos e mídia), mídia com letra sincronizada (LRCLIB) e pulso do áudio na capa, desempenho (CPU, GPU, memória, disco e rede) e clima (Open-Meteo). Abas reordenáveis e opção de abrir ao parar o mouse na hora. |
-| **Central** | Dois painéis flutuantes na direita que abrem juntos (`Super+C`, ou pelos ícones da barra): ações e notificações. As ações são tiles em duas colunas (Wi-Fi, Bluetooth, saída de áudio, bateria, microfone, luz noturna, não perturbe e não apagar a tela; cheios quando ligados), com uma página por recurso: a lista de redes, com senha; os dispositivos Bluetooth, para parear; as saídas e o volume de cada app com áudio aberto; o microfone e as entradas; a bateria (um card em forma de bateria, cheio até a carga), o perfil de energia (Economia, Equilibrado e Turbo), o consumo da última hora num gráfico e a bateria dos dispositivos Bluetooth. Embaixo, os sliders largos de volume e de brilho da tela em foco, com a porcentagem; a engrenagem abre as configurações. |
+| **Painel superior** | Visão geral (perfil, relógio, calendário, clima, recursos e mídia, com a capa num círculo e o espectro do som em volta, pelo `cava`, ou ondas sem ele), mídia com letra sincronizada (LRCLIB) e o espectro em volta da capa, desempenho (CPU, GPU, memória, disco e rede) e clima (Open-Meteo). Abas reordenáveis e opção de abrir ao parar o mouse na hora. |
+| **Central** | Dois painéis flutuantes na direita, independentes (`Super+A`, `Super+N`, os dois com `Super+C`, ou pelos ícones da barra): ações e notificações. As ações são tiles em duas colunas (Wi-Fi, Bluetooth, saída de áudio, bateria, microfone, luz noturna, não perturbe e não apagar a tela; cheios quando ligados), com uma página por recurso: a lista de redes, com senha; os dispositivos Bluetooth, para parear; as saídas e o volume de cada app com áudio aberto; o microfone e as entradas; a bateria (um card em forma de bateria, cheio até a carga), o perfil de energia (Economia, Equilibrado e Turbo), o consumo da última hora num gráfico e a bateria dos dispositivos Bluetooth. Embaixo, os sliders largos de volume e de brilho da tela em foco, com a porcentagem; a engrenagem abre as configurações. |
 | **Notificações** | Popups com ações, pausa no mouse e prazo ajustável, não perturbe e a lista na central. |
 | **Launcher** | Três estilos: compacto (busca e lista), completo (categorias de aplicativos, arquivos, documentos, imagens, músicas, vídeos e web, com favoritos, grade e detalhes: ações do app, descrição, versão e desenvolvedor) e tela cheia (gaveta de apps por categoria). Os apps mais abertos vêm primeiro, com os favoritos na frente. Em todos os estilos: clique direito num item para as opções, `Ctrl+F` fixa ou tira dos favoritos e `Ctrl+H` oculta; no compacto e na tela cheia, `/texto` busca arquivos e `?texto` pesquisa na web. A busca de arquivos usa o `fd` quando há, e, sem busca, mostra os recentes. |
 | **Área de transferência** | Histórico num painel próprio (`Super+V`): textos e imagens, busca, filtro, fixar e apagar. Escolher copia e cola na janela em foco (Ctrl+Shift+V nos terminais). Senhas marcadas pelos gerenciadores ficam de fora. |
@@ -128,7 +128,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | **Painéis** | Se o painel superior abre junto das configurações. |
 | **Launcher** | Estilo, buscador da web, favoritos (ordem e remoção), apps ocultos e histórico de uso. |
 | **Barra** | Estilo, esconder sozinha, mostrar na área vazia e ao trocar de workspace, data. |
-| **Painel superior** | Abas, abrir e fechar pelo mouse, cartões, semana, letra, pulso do áudio, intervalo do desempenho, GPU, cidade, unidades e **modo offline**. |
+| **Painel superior** | Abas, abrir e fechar pelo mouse, cartões, semana, letra, espectro da capa, intervalo do desempenho, GPU, cidade, unidades e **modo offline**. |
 | **Energia e bateria** | Porcentagem na barra, avisos, ação no nível crítico, perfil automático, economia abaixo de um nível e modo leve. |
 | **Atalhos** | As teclas do shell (painéis, bloqueio, som, mídia e brilho): trocar, acrescentar, tirar e voltar ao padrão. Avisa quando a tecla era de outro atalho, da aba Teclado ou do `hyprland.lua`. |
 
@@ -146,6 +146,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
   - `ddcutil`: brilho dos monitores externos (DDC/CI). Precisa do módulo `i2c-dev` carregado (`echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf`); o pacote já dá acesso ao usuário da sessão.
   - `nvidia-smi`: GPU NVIDIA; vem com o driver
   - `hyprsunset`: luz noturna
+  - `cava`: o espectro em volta da capa, no card de mídia da aba Painel e na aba Mídia (um processo só para as duas; sem ele, ondas pelo nível do som)
   - `wl-clipboard`: histórico da área de transferência
   - `grim` e `wf-recorder`: captura de tela e gravação
   - `fd`: busca de arquivos do launcher mais rápida (sem ele, usa o `find`)
@@ -184,11 +185,13 @@ Os atalhos do shell vêm prontos e se editam em Configurações → Atalhos:
 | `Super+Print` | Gravar a tela ou parar |
 | `Super+D` | Painel superior |
 | `Super+S` | Configurações |
-| `Super+C` / `Super+N` | Central / nas notificações |
+| `Super+A` / `Super+N` / `Super+C` | Ações / notificações / as duas (se as duas estão abertas, fecha as duas) |
 | `Super+T` | Seletor de temas |
 | `Super+Esc` | Menu de energia |
 | `Super+L` | Bloquear a tela |
 | Teclas de volume, mudo, microfone, mídia e brilho | O mesmo, com o OSD |
+
+Mudou: `Super+N` (a ação `notifications`) agora abre só as notificações; a central inteira (ações e notificações) fica em `Super+C`.
 
 O shell fica com essas teclas: se o `hyprland.lua` também tiver alguma delas, a dele sai (até o próximo reload). Então tire do `hyprland.lua` os atalhos antigos do Lucerna, se houver. Os do Hyprland (janelas, workspaces) continuam lá; o [`dev/hyprland.lua`](dev/hyprland.lua) tem um exemplo. As regras de desfoque dos painéis são aplicadas pelo próprio shell, sem mexer no `hyprland.lua`.
 
@@ -198,11 +201,12 @@ Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [arg
 
 | Alvo | Funções |
 | --- | --- |
-| `panels` | `open <nome>`, `toggle <nome>`, `dismiss <nome>` (fecha só esse), `close` (fecha todos), `get`. Nomes: `launcher`, `dashboard`, `central`, `settings`, `themes`, `power`, `clipboard`, `capture`, `overview` |
+| `panels` | `open <nome>`, `toggle <nome>`, `dismiss <nome>` (fecha só esse), `close` (fecha todos), `get`. Nomes: `launcher`, `dashboard`, `central` (as ações e as notificações juntas), `settings`, `themes`, `power`, `clipboard`, `capture`, `overview` |
 | `dashboard` | `open <aba>` (`overview`, `media`, `performance`, `weather`), `toggle` |
-| `central` | `open <entrada>`, `toggle <entrada>` (`rede`, `bluetooth`, `som`, `energia`, `microfone` abrem a página do recurso; `notificacoes` e `""`, o estado inicial), `close` |
+| `central` | As ações e as notificações. `open <entrada>` abre as duas (`rede`, `bluetooth`, `som`, `energia`, `microfone` abrem a página do recurso nas ações; `notificacoes`, o estado inicial; `""` não troca a página), `toggle <entrada>` (sem entrada: fecha as duas se as duas estão abertas, senão abre o que falta; com entrada: fecha só se as duas estão abertas por ela), `close` |
+| `controls` | Só as ações: `open <entrada>`, `toggle <entrada>` (a mesma entrada, ou `""`, fecha), `close` |
 | `settings` | `open <tópico>` (`appearance`, `wallpaper`, `displays`, `idle`, `nightlight`, `launcher`, `clipboard`, `capture`, `mouse`, `keyboard`, `glass`, `notifications`, `panels`, `bar`, `dashboard`, `power`, `shortcuts`, `about`) |
-| `notifications` | `clear`, `toggleDnd`, `count` |
+| `notifications` | `open`, `toggle`, `close` (o painel das notificações), `clear`, `toggleDnd`, `count` |
 | `launcher` | `open <categoria> <busca>` (`apps`, `files`, `documents`, `images`, `music`, `videos`, `web`; a busca pode ser `""`), `toggle` |
 | `session` | `lock`, `isLocked` |
 | `theme` | `set <id>`, `get`, `list` |
@@ -279,8 +283,9 @@ Atalhos no Hyprland aninhado (a tecla de mod é `Alt`, para não brigar com o de
 | `Alt+Space` | Launcher |
 | `Alt+S` | Configurações |
 | `Alt+D` | Painel superior (também clicando na hora da barra). Dentro dele, `Tab`/`Shift+Tab` ou `1`–`4` trocam de aba |
-| `Alt+N` | Central nas notificações |
-| `Alt+C` | Central |
+| `Alt+A` | Ações da central |
+| `Alt+N` | Notificações da central |
+| `Alt+C` | As duas |
 | `Alt+T` | Seletor de temas |
 | `Alt+Esc` | Menu de energia |
 | `Alt+L` | Bloquear a tela |
@@ -312,6 +317,10 @@ dev/ci.sh shell lint   # um bash no container de um check, com o repositório em
 ```
 
 A saída fica em `ci-out/<check>/`. Como escrever um teste e o que a cobertura exige está no [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+## Créditos
+
+O painel superior (o dashboard que desce da barra, com as abas Painel, Mídia, Desempenho e Clima) foi inspirado no dashboard do [Caelestia Shell](https://github.com/caelestia-dots/shell), assim como as curvas e durações de animação do Material 3 em `ThemeManager.anim`. O código do Lucerna foi escrito do zero, com componentes, serviços e recursos próprios; do Caelestia vieram a ideia e a referência visual. Obrigado ao projeto e a quem contribui com ele.
 
 ## Licença
 

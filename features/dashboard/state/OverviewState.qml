@@ -53,20 +53,36 @@ Singleton {
 
     // Calendário: mês mostrado (deslocamento em relação ao atual) e 42 células.
     property int monthOffset: 0
-    readonly property var shownMonth: new Date(clock.date.getFullYear(), clock.date.getMonth() + monthOffset, 1)
+    // O dia de hoje em inteiros: só notificam quando o dia vira, não a cada minuto
+    // do relógio, e o calendário depende só deles (não é recriado a cada minuto).
+    readonly property int todayYear: clock.date.getFullYear()
+    readonly property int todayMonth: clock.date.getMonth()
+    readonly property int todayDay: clock.date.getDate()
+    readonly property var shownMonth: new Date(todayYear, todayMonth + monthOffset, 1)
     readonly property string monthTitle: Format.capitalize(shownMonth.toLocaleDateString(locale, "MMMM 'de' yyyy"))
     readonly property int weekStart: Config.weekStart
-    readonly property var weekdayInitials: [0, 1, 2, 3, 4, 5, 6].map(i => locale.dayName((i + weekStart) % 7, Locale.NarrowFormat).toUpperCase())
-    readonly property var calendarDays: {
-        const first = shownMonth;
-        const lead = (first.getDay() - weekStart + 7) % 7;
-        const start = new Date(first.getFullYear(), first.getMonth(), 1 - lead);
-        const today = clock.date.toDateString();
-        return Array.from({ length: 42 }, (_, i) => {
-            const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-            return { day: d.getDate(), inMonth: d.getMonth() === first.getMonth(), today: d.toDateString() === today };
+    // Cabeçalho: a inicial de cada dia da semana, na ordem de `start` (0 = domingo), e se é domingo.
+    function weekdayCells(start: int): var {
+        return [0, 1, 2, 3, 4, 5, 6].map(i => {
+            const dow = (i + start) % 7;
+            return { initial: locale.dayName(dow, Locale.NarrowFormat).toUpperCase(), sunday: dow === 0 };
         });
     }
+
+    readonly property var weekdays: weekdayCells(weekStart)
+
+    // As 42 células do mês `first` (dia 1), começando em weekStart (0 = domingo):
+    // dia, se é do mês, se é hoje (`today`, um Date) e se cai num domingo.
+    function monthCells(first: date, start: int, today: date): var {
+        const lead = (first.getDay() - start + 7) % 7;
+        const todayKey = today.toDateString();
+        return Array.from({ length: 42 }, (_, i) => {
+            const d = new Date(first.getFullYear(), first.getMonth(), 1 - lead + i);
+            return { day: d.getDate(), inMonth: d.getMonth() === first.getMonth(), today: d.toDateString() === todayKey, sunday: d.getDay() === 0 };
+        });
+    }
+
+    readonly property var calendarDays: monthCells(shownMonth, weekStart, new Date(todayYear, todayMonth, todayDay))
 
     function shiftMonth(step: int): void {
         monthOffset += step;
@@ -95,6 +111,20 @@ Singleton {
 
     function togglePlaying(): void {
         Media.togglePlaying();
+    }
+
+    readonly property int playerCount: Media.players.length
+
+    function cyclePlayer(): void {
+        Media.cycle();
+    }
+
+    function nextTrack(): void {
+        Media.next();
+    }
+
+    function previousTrack(): void {
+        Media.previous();
     }
 
     // Atalhos no cartão do usuário (a barra não tem mais esses botões).

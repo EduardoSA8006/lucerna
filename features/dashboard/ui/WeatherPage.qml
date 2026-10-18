@@ -97,6 +97,7 @@ Item {
                 }
                 color: ThemeManager.colors.text
                 font.family: ThemeManager.font.sans
+                font.variableAxes: ThemeManager.fontAxes(Font.Normal)
                 font.pixelSize: ThemeManager.font.normal
                 clip: true
                 onAccepted: root.submit()
@@ -146,29 +147,26 @@ Item {
 
             Column {
                 anchors.fill: parent
-                anchors.margins: ThemeManager.spacing.large - 4
+                anchors.margins: ThemeManager.spacing.normal + 2
                 spacing: ThemeManager.spacing.small
 
+                // O título (a cidade) no padrão dos outros cards, com editar e atualizar.
                 Row {
+                    id: placeRow
+
                     width: parent.width
                     spacing: 4
 
-                    Icon {
+                    CardTitle {
                         anchors.verticalCenter: parent.verticalCenter
+                        width: placeRow.width - editButton.width - refreshButton.width - placeRow.spacing * 2
                         icon: Icons.location
-                        size: 16
-                        color: ThemeManager.colors.textMuted
-                    }
-
-                    Txt {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width - 16 - 56 - 8
                         text: WeatherState.place
-                        muted: true
-                        font.pixelSize: ThemeManager.font.small + 1
                     }
 
                     IconButton {
+                        id: editButton
+
                         anchors.verticalCenter: parent.verticalCenter
                         icon: Icons.edit
                         iconSize: 16
@@ -176,6 +174,8 @@ Item {
                     }
 
                     IconButton {
+                        id: refreshButton
+
                         anchors.verticalCenter: parent.verticalCenter
                         icon: Icons.refresh
                         iconSize: 16
@@ -243,7 +243,7 @@ Item {
                             Icon {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 icon: stat.modelData.icon
-                                size: 20
+                                size: 22
                                 color: ThemeManager.colors.accent
                             }
 
@@ -284,7 +284,7 @@ Item {
 
                 Row {
                     anchors.fill: parent
-                    anchors.margins: ThemeManager.spacing.normal
+                    anchors.margins: ThemeManager.spacing.normal + 2
 
                     Repeater {
                         model: WeatherState.hourly
@@ -308,7 +308,7 @@ Item {
                             Icon {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 icon: hour.modelData.icon
-                                size: 24
+                                size: 22
                                 color: ThemeManager.colors.textMuted
                             }
 
@@ -330,7 +330,7 @@ Item {
 
                 Column {
                     anchors.fill: parent
-                    anchors.margins: ThemeManager.spacing.normal
+                    anchors.margins: ThemeManager.spacing.normal + 2
                     spacing: 2
 
                     Repeater {

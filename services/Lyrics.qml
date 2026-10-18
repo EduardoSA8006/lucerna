@@ -98,6 +98,14 @@ Singleton {
         });
     }
 
+    // O papel de uma linha para a formatação: "current" (a cantada agora),
+    // "past" (já cantada), "next" (por vir) ou "plain" (letra sem tempo).
+    function lineRole(index: int, current: int, synced: bool): string {
+        if (!synced)
+            return "plain";
+        return index === current ? "current" : index < current ? "past" : "next";
+    }
+
     // Índice da linha atual para uma posição, em segundos; -1 antes da primeira.
     function lineAt(position: real): int {
         if (!synced)

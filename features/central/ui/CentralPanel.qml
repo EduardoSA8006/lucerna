@@ -4,9 +4,10 @@ import qs.core.widgets
 
 // Um dos dois painéis da central: o vidro dos painéis do shell, `panelWidth`
 // de largura, colado na borda direita a `margin` dela. Entra deslizando da
-// direita, com um atraso pela ordem (`order`: 40 ms por passo, na escala das
-// animações), e sai junto com o outro, mais rápido. Os filhos vão para dentro
-// da margem interna (`padding`).
+// direita e sai, mais rápido, pelo mesmo caminho. Com os dois abrindo juntos,
+// a entrada vai em cascata, com um atraso pela ordem (`order`: 40 ms por
+// passo, na escala das animações). Os filhos vão para dentro da margem
+// interna (`padding`).
 Surface {
     id: root
 
@@ -17,6 +18,10 @@ Surface {
     property real panelWidth: 440
     // Entrada e saída (0 → 1), animadas por enter() e leave().
     property real shown: 0
+    // Pedido aberto (o último enter() ou leave()).
+    property bool wanted: false
+    // A entrada atual espera a vez da ordem (os dois abrindo juntos).
+    property bool cascade: false
     readonly property real padding: ThemeManager.spacing.normal
     readonly property real travel: width + margin + 24
     default property alias content: body.data
@@ -28,7 +33,9 @@ Surface {
     opacity: Math.min(1, shown)
     x: areaWidth - width - margin + (1 - shown) * travel
 
-    function enter(): void {
+    function enter(cascade: bool): void {
+        wanted = true;
+        root.cascade = cascade;
         // Reaberta na saída, segue de onde está; senão, entra do zero.
         if (leaving.running)
             leaving.stop();
@@ -38,6 +45,7 @@ Surface {
     }
 
     function leave(): void {
+        wanted = false;
         entering.stop();
         leaving.restart();
     }
@@ -45,7 +53,7 @@ Surface {
     SequentialAnimation {
         id: entering
 
-        PauseAnimation { duration: root.order * 40 * ThemeManager.anim.scale }
+        PauseAnimation { duration: root.cascade ? root.order * 40 * ThemeManager.anim.scale : 0 }
         Anim { target: root; property: "shown"; to: 1; type: Anim.Spatial }
     }
 

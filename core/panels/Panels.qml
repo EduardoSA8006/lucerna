@@ -173,45 +173,118 @@ Singleton {
         return opened.includes(name);
     }
 
-    // Central: os dois painéis (ações e notificações). A entrada diz por onde
-    // ela abriu e qual página do painel de ações já vem aberta: "rede" (o
-    // Wi-Fi), "bluetooth", "som" (a saída de áudio), "energia" (a bateria) e
-    // "microfone" (só pelo IPC); "notificacoes" e "" (o atalho e o IPC sem
-    // entrada) abrem o estado inicial.
+    // Central: um painel modal só, com dois sub-estados independentes, as
+    // Ações (em cima) e as Notificações (embaixo). Ela está aberta enquanto um
+    // dos dois estiver; fechada por fora (outro modal, Esc, `panels close`),
+    // zera os dois. A entrada diz por onde as Ações abriram e qual página delas
+    // já vem aberta: "rede" (o Wi-Fi), "bluetooth", "som" (a saída de áudio),
+    // "energia" (a bateria) e "microfone" (só pelo IPC); "notificacoes" e ""
+    // abrem o estado inicial.
     readonly property var centralEntries: ["rede", "bluetooth", "som", "notificacoes", "energia", "microfone"]
     property string centralEntry: ""
+    property bool actionsOpen: false
+    property bool notificationsOpen: false
 
-    // A cada abertura ou troca de entrada, com a entrada que valeu.
-    signal centralOpened(string entry)
+    // A cada abertura das Ações ou troca de entrada, com a entrada que valeu.
+    signal actionsOpened(string entry)
 
-    // A central fechada não guarda a entrada: a próxima abertura começa do zero.
+    // A central fechada não guarda nada: a próxima abertura começa do zero.
+    // Aberta pelo nome (`panels open central`, sem sub-estado), abre os dois.
     onOpenedChanged: {
-        if (!opened.includes("central"))
+        if (!opened.includes("central")) {
+            actionsOpen = false;
+            notificationsOpen = false;
+        } else if (!actionsOpen && !notificationsOpen) {
+            actionsOpen = true;
+            notificationsOpen = true;
+        }
+    }
+
+    // As Ações fechadas esquecem a entrada, mesmo com as Notificações abertas.
+    onActionsOpenChanged: {
+        if (!actionsOpen)
             centralEntry = "";
     }
 
-    // Abre a central na entrada (uma desconhecida vale como ""); aberta, troca
-    // de entrada.
-    function openCentral(entry: string): void {
-        centralEntry = centralEntries.includes(entry) ? entry : "";
-        open("central");
-        centralOpened(centralEntry);
+    // Os dois sub-estados de uma vez: a central abre quando um fica aberto e
+    // fecha quando os dois fecham.
+    function setCentral(actions: bool, notifications: bool): void {
+        actionsOpen = actions;
+        notificationsOpen = notifications;
+        if (actions || notifications)
+            open("central");
+        else if (isOpen("central"))
+            dismiss("central");
     }
 
-    // Fecha se ela já estiver aberta pela mesma entrada, ou se a pedida é a
-    // vazia (o atalho fecha de qualquer entrada); senão abre ou troca.
-    function toggleCentral(entry: string): void {
-        if (isOpen("central") && (entry === centralEntry || !centralEntries.includes(entry)))
-            dismiss("central");
+    // Abre as Ações na entrada (uma desconhecida vale como ""); abertas, troca
+    // de entrada. As Notificações ficam como estão.
+    function openActions(entry: string): void {
+        setCentral(true, notificationsOpen);
+        centralEntry = centralEntries.includes(entry) ? entry : "";
+        actionsOpened(centralEntry);
+    }
+
+    function closeActions(): void {
+        setCentral(false, notificationsOpen);
+    }
+
+    // Fecha as Ações se já estiverem abertas pela mesma entrada, ou se a
+    // pedida é a vazia (o atalho fecha de qualquer entrada); senão abre ou troca.
+    function toggleActions(entry: string): void {
+        if (actionsOpen && (entry === centralEntry || !centralEntries.includes(entry)))
+            closeActions();
         else
-            openCentral(entry);
+            openActions(entry);
+    }
+
+    function openNotifications(): void {
+        setCentral(actionsOpen, true);
+    }
+
+    function closeNotifications(): void {
+        setCentral(actionsOpen, false);
+    }
+
+    function toggleNotifications(): void {
+        setCentral(actionsOpen, !notificationsOpen);
+    }
+
+    // Abre os dois. A entrada, se houver, define a página das Ações; sem ela,
+    // Ações já abertas ficam na página em que estão.
+    function openCentral(entry: string): void {
+        if (entry !== "" || !actionsOpen) {
+            openActions(entry);
+            openNotifications();
+        } else {
+            setCentral(true, true);
+        }
+    }
+
+    // O atalho geral (sem entrada, ou com uma desconhecida): fecha os dois se
+    // os dois estão abertos; senão abre o que falta. Com entrada: fecha os dois
+    // só se os dois estão abertos por ela; senão abre o que falta e troca a página.
+    function toggleCentral(entry: string): void {
+        const own = centralEntries.includes(entry) ? entry : "";
+        if (actionsOpen && notificationsOpen && (own === "" || own === centralEntry))
+            setCentral(false, false);
+        else
+            openCentral(own);
+    }
+
+    // O ícone da barra dessa entrada fica aceso: as Ações abertas por ela.
+    function actionsAt(entry: string): bool {
+        return actionsOpen && centralEntry === entry;
     }
 
     IpcHandler {
         target: "panels"
 
+        // A central abre os dois.
         function open(name: string): void {
-            if (root.isPanel(name))
+            if (name === "central")
+                root.openCentral("");
+            else if (root.isPanel(name))
                 root.open(name);
         }
 
@@ -224,7 +297,9 @@ Singleton {
         }
 
         function toggle(name: string): void {
-            if (root.isPanel(name))
+            if (name === "central" && !root.isOpen(name))
+                root.openCentral("");
+            else if (root.isPanel(name))
                 root.toggle(name);
         }
 

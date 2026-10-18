@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Widgets
+import qs.core.config
 import qs.core.format
 import qs.core.theme
 import qs.core.widgets
@@ -11,6 +12,14 @@ import qs.features.dashboard.state
 // Aba Painel: usuário, relógio e clima, calendário, recursos e mídia.
 Item {
     id: root
+
+    readonly property bool onScreen: DashboardState.isShowing("overview")
+    // Os cards de cima das colunas esquerda (usuário) e direita (sistema) têm a mesma altura.
+    readonly property int topCardHeight: 132
+    // Margem interna dos cards, a mesma das outras abas.
+    readonly property int cardMargin: ThemeManager.spacing.normal + 2
+    // O clima só entra com dados (ou o aviso do modo offline); senão o relógio fica sozinho.
+    readonly property bool weatherOn: OverviewState.shows("weather") && (OverviewState.hasWeather || Config.offline)
 
     implicitHeight: layout.visibleChildren.length ? layout.implicitHeight : 120
 
@@ -33,17 +42,17 @@ Item {
             Layout.fillWidth: !calendarCard.visible && !column3.visible
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignTop
-            visible: OverviewState.shows("user") || OverviewState.shows("clock") || OverviewState.shows("weather")
+            visible: OverviewState.shows("user") || OverviewState.shows("clock") || root.weatherOn
             spacing: ThemeManager.spacing.normal
 
             Surface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 92
+                Layout.preferredHeight: root.topCardHeight
                 visible: OverviewState.shows("user")
 
                 Row {
                     anchors.fill: parent
-                    anchors.margins: ThemeManager.spacing.normal
+                    anchors.margins: root.cardMargin
                     spacing: ThemeManager.spacing.normal
 
                     Item {
@@ -53,10 +62,12 @@ Item {
 
                         Blob {
                             anchors.fill: parent
-                            lobes: 9
-                            amplitude: 0.07
+                            morphing: true
+                            active: root.onScreen
+                            steps: 96
                             color: ThemeManager.alpha(ThemeManager.colors.accent, 0.22)
                             spinning: true
+                            spinDuration: 30000
                         }
 
                         Icon {
@@ -147,58 +158,160 @@ Item {
                 }
             }
 
+            // Na altura do conteúdo; com sobra (o calendário mais alto), cresce até
+            // terminar na mesma linha que ele.
             Surface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 196
+                Layout.preferredHeight: clockContent.implicitHeight + 2 * root.cardMargin
                 Layout.fillHeight: true
-                visible: OverviewState.shows("clock") || OverviewState.shows("weather")
+                visible: OverviewState.shows("clock") || root.weatherOn
 
-                Column {
-                    visible: OverviewState.shows("clock")
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.margins: ThemeManager.spacing.large - 4
-                    spacing: 0
+                // Duas colunas, centradas na altura: hora e data à esquerda, clima à direita.
+                // Sem clima (desligado, sem dados e fora do modo offline), o relógio fica
+                // sozinho e centralizado. Em card estreito, a data quebra em duas
+                // linhas e o clima encolhe (duas linhas ou elide); a hora, não.
+                RowLayout {
+                    id: clockContent
 
-                    Txt {
-                        text: OverviewState.time
-                        mono: true
-                        font.pixelSize: ThemeManager.font.huge + 12
-                        font.weight: Font.Medium
-                    }
-
-                    Txt {
-                        text: `${OverviewState.weekday}, ${OverviewState.date}`
-                        muted: true
-                    }
-                }
-
-                Row {
-                    anchors.left: parent.left
-                    anchors.bottom: parent.bottom
-                    anchors.margins: ThemeManager.spacing.large - 4
-                    visible: OverviewState.shows("weather")
-                    spacing: ThemeManager.spacing.small
-
-                    Icon {
-                        anchors.verticalCenter: parent.verticalCenter
-                        icon: OverviewState.weatherIcon
-                        filled: true
-                        size: 30
-                        color: ThemeManager.colors.accent
-                    }
+                    anchors.centerIn: parent
+                    width: Math.min(implicitWidth, parent.width - 2 * root.cardMargin)
+                    spacing: ThemeManager.spacing.normal + 2
 
                     Column {
-                        anchors.verticalCenter: parent.verticalCenter
+                        id: clockColumn
 
-                        Txt {
-                            text: OverviewState.hasWeather ? `${OverviewState.weatherTemp}  ${OverviewState.weatherText}` : OverviewState.weatherText
-                            font.weight: OverviewState.hasWeather ? Font.DemiBold : Font.Normal
-                            muted: !OverviewState.hasWeather
-                            font.pixelSize: OverviewState.hasWeather ? ThemeManager.font.normal : ThemeManager.font.small
+                        // A data numa linha ("Sábado, 17 de outubro"); se não couber, o dia da
+                        // semana numa linha e o dia e o mês na de baixo, sem reticências.
+                        readonly property string oneLine: `${OverviewState.weekday}, ${OverviewState.date}`
+                        readonly property bool dateFits: oneLineMetrics.advanceWidth <= width
+
+                        visible: OverviewState.shows("clock")
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.minimumWidth: Math.max(clockRow.width, weekdayMetrics.advanceWidth, dayMetrics.advanceWidth)
+                        Layout.preferredWidth: Math.max(clockRow.width, oneLineMetrics.advanceWidth)
+                        Layout.maximumWidth: Layout.preferredWidth
+                        Layout.fillWidth: true
+                        spacing: 0
+
+                        TextMetrics {
+                            id: oneLineMetrics
+
+                            font: dateText.font
+                            text: clockColumn.oneLine
+                        }
+
+                        TextMetrics {
+                            id: weekdayMetrics
+
+                            font: dateText.font
+                            text: `${OverviewState.weekday},`
+                        }
+
+                        TextMetrics {
+                            id: dayMetrics
+
+                            font: dateText.font
+                            text: OverviewState.date
+                        }
+
+                        // Dígitos em células de largura fixa (a do dígito mais largo): a hora não
+                        // pula ao mudar de minuto, mesmo numa fonte sem números tabulares.
+                        Row {
+                            id: clockRow
+
+                            readonly property real digitWidth: {
+                                // Ler a família religa a conta quando a fonte do tema muda.
+                                if (!digitMetrics.font.family)
+                                    return 0;
+                                return Math.max(...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => digitMetrics.advanceWidth(String(d))));
+                            }
+
+                            FontMetrics {
+                                id: digitMetrics
+
+                                font.family: ThemeManager.font.sans
+                                font.variableAxes: ThemeManager.fontAxes(Font.Light)
+                                font.pixelSize: ThemeManager.font.huge - 6
+                                font.weight: Font.Light
+                                font.features: { "tnum": 1 }
+                            }
+
+                            Repeater {
+                                model: 5
+
+                                delegate: Txt {
+                                    required property int index
+
+                                    width: index === 2 ? implicitWidth : clockRow.digitWidth
+                                    horizontalAlignment: Text.AlignHCenter
+                                    elide: Text.ElideNone
+                                    text: OverviewState.time.charAt(index)
+                                    font.pixelSize: digitMetrics.font.pixelSize
+                                    font.weight: digitMetrics.font.weight
+                                    font.features: { "tnum": 1 }
+                                }
+                            }
                         }
 
                         Txt {
+                            id: dateText
+
+                            width: parent.width
+                            text: clockColumn.dateFits ? clockColumn.oneLine : `${OverviewState.weekday},\n${OverviewState.date}`
+                            muted: true
+                            font.pixelSize: ThemeManager.font.small + 1
+                        }
+                    }
+
+                    Column {
+                        visible: root.weatherOn
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.minimumWidth: weatherRow.width
+                        Layout.preferredWidth: Math.max(weatherRow.width, conditionText.implicitWidth, placeText.implicitWidth)
+                        Layout.maximumWidth: Layout.preferredWidth
+                        Layout.fillWidth: true
+                        spacing: 2
+
+                        Row {
+                            id: weatherRow
+
+                            spacing: ThemeManager.spacing.small
+                            anchors.horizontalCenter: parent.horizontalCenter
+
+                            Icon {
+                                anchors.verticalCenter: parent.verticalCenter
+                                icon: OverviewState.weatherIcon
+                                filled: true
+                                size: 30
+                                color: ThemeManager.colors.accent
+                            }
+
+                            Txt {
+                                visible: OverviewState.hasWeather
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: OverviewState.weatherTemp
+                                font.pixelSize: ThemeManager.font.huge - 14
+                                font.weight: Font.DemiBold
+                            }
+                        }
+
+                        Txt {
+                            id: conditionText
+
+                            width: parent.width
+                            horizontalAlignment: Text.AlignHCenter
+                            text: OverviewState.weatherText
+                            muted: true
+                            wrapMode: Text.WordWrap
+                            maximumLineCount: 2
+                            font.pixelSize: ThemeManager.font.small
+                        }
+
+                        Txt {
+                            id: placeText
+
+                            width: parent.width
+                            horizontalAlignment: Text.AlignHCenter
                             visible: text !== ""
                             text: OverviewState.weatherPlace
                             faint: true
@@ -214,14 +327,16 @@ Item {
             id: calendarCard
 
             Layout.preferredWidth: 300
-            Layout.preferredHeight: 300
+            Layout.preferredHeight: calendar.implicitHeight + 2 * root.cardMargin
             Layout.fillHeight: true
             Layout.fillWidth: !column3.visible
             visible: OverviewState.shows("calendar")
 
             Calendar {
+                id: calendar
+
                 anchors.fill: parent
-                anchors.margins: ThemeManager.spacing.normal
+                anchors.margins: root.cardMargin
             }
         }
 
@@ -237,7 +352,7 @@ Item {
 
             Surface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 150
+                Layout.preferredHeight: root.topCardHeight
                 Layout.fillHeight: !OverviewState.shows("media")
                 visible: OverviewState.shows("resources")
 
@@ -303,80 +418,17 @@ Item {
                 }
             }
 
+            // O visualizador (88) e as margens; a mesma altura tocando ou não.
             Surface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 138
+                Layout.preferredHeight: 88 + 2 * root.cardMargin
                 Layout.fillHeight: true
                 visible: OverviewState.shows("media")
 
-                Row {
+                MediaCard {
                     anchors.fill: parent
-                    anchors.margins: ThemeManager.spacing.normal
-                    spacing: ThemeManager.spacing.normal
-
-                    ClippingRectangle {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 88
-                        height: 88
-                        radius: ThemeManager.radius.normal
-                        color: ThemeManager.colors.raised
-
-                        Icon {
-                            anchors.centerIn: parent
-                            visible: art.status !== Image.Ready
-                            icon: OverviewState.hasMedia ? Icons.album : Icons.musicOff
-                            size: 36
-                            color: ThemeManager.colors.textFaint
-                        }
-
-                        Image {
-                            id: art
-
-                            anchors.fill: parent
-                            source: OverviewState.mediaArt
-                            sourceSize: Qt.size(176, 176)
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                        }
-                    }
-
-                    Column {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width - 88 - 48 - parent.spacing * 2
-                        spacing: 2
-
-                        Txt {
-                            width: parent.width
-                            text: OverviewState.mediaTitle
-                            font.weight: Font.DemiBold
-                            muted: !OverviewState.hasMedia
-                        }
-
-                        Txt {
-                            width: parent.width
-                            visible: text !== ""
-                            text: OverviewState.mediaArtist
-                            color: ThemeManager.colors.accent
-                            font.pixelSize: ThemeManager.font.small + 1
-                        }
-                    }
-
-                    Clickable {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: OverviewState.hasMedia
-                        width: 48
-                        height: 48
-                        radius: 24
-                        active: true
-                        onClicked: OverviewState.togglePlaying()
-
-                        Icon {
-                            anchors.centerIn: parent
-                            icon: OverviewState.mediaPlaying ? Icons.pause : Icons.play
-                            filled: true
-                            color: ThemeManager.colors.accentText
-                        }
-                    }
+                    anchors.margins: root.cardMargin
+                    onScreen: root.onScreen
                 }
             }
         }

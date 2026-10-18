@@ -12,6 +12,10 @@ function run(t) {
         t.eq([T.font.sans, T.font.normal, T.radius.large, T.spacing.large, T.barHeight], ["Rubik", 13, 22, 20, 44]);
     });
 
+    t.test("theme: o eixo de peso da fonte variável", () => {
+        t.eq([T.fontAxes(Font.Normal), T.fontAxes(Font.DemiBold), T.fontAxes(300)], [{ wght: 400 }, { wght: 600 }, { wght: 300 }]);
+    });
+
     t.test("theme: cor com opacidade", () => {
         const c = T.alpha(Qt.rgba(1, 0, 0, 1), 0.5);
         t.near(c.a, 0.5, 0.01);

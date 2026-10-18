@@ -35,7 +35,7 @@ Singleton {
     }
 
     // Parar de procurar ao sair da página.
-    readonly property bool showing: CentralState.open && CentralState.page === "bluetooth"
+    readonly property bool showing: CentralState.actionsOpen && CentralState.page === "bluetooth"
     onShowingChanged: {
         if (!showing)
             searching = false;

@@ -36,7 +36,13 @@ function run(t) {
 
     t.test("shellshortcuts: teclas padrão de uma ação", () => {
         t.eq(S.defaultKeys("capture-screen"), [{ mods: "SHIFT", trigger: "Print" }]);
+        t.eq(["actions", "notifications", "central"].map(id => S.defaultKeys(id)), [[{ mods: S.mod, trigger: "a" }], [{ mods: S.mod, trigger: "n" }], [{ mods: S.mod, trigger: "c" }]], "os painéis da central, cada um com a sua");
         t.eq(S.defaultKeys("nada"), []);
+    });
+
+    t.test("shellshortcuts: nenhuma tecla padrão repetida", () => {
+        const keys = [].concat(...S.defaults.map(d => d.keys.map(k => `${S.normalizeMods(k.mods)}+${k.trigger.toLowerCase()}`)));
+        t.eq(keys.filter((k, i) => keys.indexOf(k) !== i), []);
     });
 
     t.test("shellshortcuts: modificadores em ordem fixa", () => {

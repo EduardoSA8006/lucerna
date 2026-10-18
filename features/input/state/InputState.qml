@@ -191,8 +191,11 @@ Singleton {
         case "central":
             Panels.toggleCentral("");
             break;
+        case "actions":
+            Panels.toggleActions("");
+            break;
         case "notifications":
-            Panels.toggleCentral("notificacoes");
+            Panels.toggleNotifications();
             break;
         case "lock":
             Session.lock();

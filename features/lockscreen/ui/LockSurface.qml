@@ -139,6 +139,7 @@ Item {
                 enabled: !LockscreenState.busy
                 color: ThemeManager.colors.text
                 font.family: ThemeManager.font.sans
+                font.variableAxes: ThemeManager.fontAxes(Font.Normal)
                 font.pixelSize: ThemeManager.font.large
                 font.letterSpacing: 2
                 clip: true

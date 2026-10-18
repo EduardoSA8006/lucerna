@@ -24,7 +24,7 @@ Column {
                 spacing: ThemeManager.spacing.normal
 
                 // Os cartões dividem a linha por igual: sem vão sobrando à direita.
-                readonly property int columns: Math.min(SettingsState.themes.length, Math.max(1, Math.floor((width + spacing) / (110 + spacing))))
+                readonly property int columns: Math.min(SettingsState.themes.length, Math.max(1, Math.floor((width + spacing) / (135 + spacing))))
                 readonly property real chipWidth: (width - (columns - 1) * spacing) / columns
 
                 Repeater {
@@ -76,6 +76,7 @@ Column {
                             text: chip.modelData.name
                             color: chip.modelData.colors.text ?? "white"
                             font.family: ThemeManager.font.sans
+                            font.variableAxes: ThemeManager.fontAxes(Font.DemiBold)
                             font.pixelSize: ThemeManager.font.normal
                             font.weight: Font.DemiBold
                         }

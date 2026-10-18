@@ -28,6 +28,12 @@ function run(t) {
         t.eq([L.synced, L.lines], [false, []]);
     });
 
+    t.test("lyrics: o papel de cada linha", () => {
+        t.eq([0, 1, 2].map(i => L.lineRole(i, 1, true)), ["past", "current", "next"]);
+        t.eq(L.lineRole(0, -1, true), "next", "antes da primeira, tudo por vir");
+        t.eq(L.lineRole(0, 0, false), "plain", "letra sem tempo, sem destaque");
+    });
+
     L.lines = original.lines;
     L.synced = original.synced;
 

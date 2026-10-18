@@ -1,5 +1,5 @@
 // Testes de core/panels/Panels: modais, o acompanhante (dashboard), a base
-// (settings) e a central pela entrada.
+// (settings) e a central (as ações, pela entrada, e as notificações).
 function run(t) {
     const P = t.Panels;
     const C = t.Config;
@@ -76,38 +76,166 @@ function run(t) {
         }
     });
 
-    t.test("panels: central pela entrada", () => {
+    // A central: [ações, notificações, entrada das ações, central no Panels].
+    const central = () => [P.actionsOpen, P.notificationsOpen, P.centralEntry, P.isOpen("central")];
+
+    t.test("panels: os sub-estados da central", () => {
         P.close();
         try {
-            P.openCentral("rede");
-            t.eq([P.opened, P.centralEntry], [["central"], "rede"]);
-            P.openCentral("som");
-            t.eq([P.opened, P.centralEntry], [["central"], "som"], "outra entrada troca, aberta");
-            P.openCentral("microfone");
-            t.eq(P.centralEntry, "microfone", "a entrada só do IPC");
-            P.openCentral("sound");
-            t.eq(P.centralEntry, "", "entrada desconhecida vale como a vazia");
-            P.close();
-            t.eq(P.centralEntry, "", "fechada, esquece a entrada");
+            P.setCentral(true, false);
+            t.eq([central(), P.opened], [[true, false, "", true], ["central"]], "só as ações abrem a central");
+            P.setCentral(true, true);
+            t.eq(central(), [true, true, "", true], "as duas");
+            P.setCentral(false, true);
+            t.eq([central(), P.opened], [[false, true, "", true], ["central"]], "só as notificações seguram a central aberta");
+            P.setCentral(false, false);
+            t.eq([central(), P.opened], [[false, false, "", false], []], "as duas fechadas fecham a central");
+            P.open("central");
+            t.eq(central(), [true, true, "", true], "aberta pelo nome (panels open central): as duas");
         } finally {
             P.close();
         }
     });
 
-    t.test("panels: alternar a central", () => {
+    t.test("panels: as ações pela entrada", () => {
+        P.close();
         try {
-            P.toggleCentral("notificacoes");
-            t.eq([P.isOpen("central"), P.centralEntry], [true, "notificacoes"]);
-            P.toggleCentral("rede");
-            t.eq([P.isOpen("central"), P.centralEntry], [true, "rede"], "outra entrada troca");
-            P.toggleCentral("rede");
-            t.eq([P.isOpen("central"), P.centralEntry], [false, ""], "a mesma entrada fecha");
+            P.openActions("rede");
+            t.eq(central(), [true, false, "rede", true]);
+            P.openActions("som");
+            t.eq(central(), [true, false, "som", true], "outra entrada troca, aberta");
+            P.openActions("microfone");
+            t.eq(P.centralEntry, "microfone", "a entrada só do IPC");
+            P.openActions("sound");
+            t.eq(P.centralEntry, "", "entrada desconhecida vale como a vazia");
+            P.openActions("energia");
+            P.closeActions();
+            t.eq(central(), [false, false, "", false], "fechadas, esquecem a entrada");
+        } finally {
+            P.close();
+        }
+    });
+
+    t.test("panels: alternar as ações", () => {
+        P.close();
+        try {
+            P.toggleActions("rede");
+            t.eq(central(), [true, false, "rede", true]);
+            P.toggleActions("som");
+            t.eq(central(), [true, false, "som", true], "outro ícone troca a página");
+            P.toggleActions("som");
+            t.eq(central(), [false, false, "", false], "o mesmo ícone fecha");
+            P.toggleActions("");
+            t.eq(central(), [true, false, "", true], "o atalho abre no estado inicial");
+            P.toggleActions("bluetooth");
+            P.toggleActions("");
+            t.eq(central(), [false, false, "", false], "o atalho fecha de qualquer entrada");
+            P.toggleActions("wifi");
+            P.toggleActions("x");
+            t.eq(central(), [false, false, "", false], "entrada desconhecida vale como o atalho");
+        } finally {
+            P.close();
+        }
+    });
+
+    t.test("panels: as ações não mexem nas notificações", () => {
+        P.close();
+        try {
+            P.openNotifications();
+            P.toggleActions("rede");
+            t.eq(central(), [true, true, "rede", true], "abrem ao lado das notificações");
+            P.toggleActions("rede");
+            t.eq(central(), [false, true, "", true], "o mesmo ícone fecha só as ações, e a entrada some");
+            P.openActions("som");
+            P.closeActions();
+            t.eq(central(), [false, true, "", true]);
+        } finally {
+            P.close();
+        }
+    });
+
+    t.test("panels: alternar as notificações", () => {
+        P.close();
+        try {
+            P.toggleNotifications();
+            t.eq(central(), [false, true, "", true], "sozinhas");
+            P.toggleNotifications();
+            t.eq(central(), [false, false, "", false], "e fecham a central");
+            P.openActions("bluetooth");
+            P.toggleNotifications();
+            t.eq(central(), [true, true, "bluetooth", true], "com as ações abertas, a entrada fica");
+            P.toggleNotifications();
+            t.eq(central(), [true, false, "bluetooth", true], "fecham só elas");
+            P.openNotifications();
+            P.openNotifications();
+            t.eq(central(), [true, true, "bluetooth", true], "abrir de novo não muda nada");
+            P.closeNotifications();
+            P.closeNotifications();
+            t.eq(central(), [true, false, "bluetooth", true]);
+        } finally {
+            P.close();
+        }
+    });
+
+    t.test("panels: o atalho geral nos quatro estados", () => {
+        P.close();
+        try {
             P.toggleCentral("");
-            t.eq([P.isOpen("central"), P.centralEntry], [true, ""], "o atalho abre no estado inicial");
+            t.eq(central(), [true, true, "", true], "nenhum aberto: abre os dois");
+            P.toggleCentral("");
+            t.eq(central(), [false, false, "", false], "os dois abertos: fecha os dois");
+            P.openActions("som");
+            P.toggleCentral("");
+            t.eq(central(), [true, true, "som", true], "só as ações: abre as notificações, e a página fica");
+            P.closeActions();
+            P.toggleCentral("");
+            t.eq(central(), [true, true, "", true], "só as notificações: abre as ações no estado inicial");
+        } finally {
+            P.close();
+        }
+    });
+
+    t.test("panels: o central com entrada", () => {
+        P.close();
+        try {
+            P.openCentral("rede");
+            t.eq(central(), [true, true, "rede", true], "abre os dois na página");
+            P.openCentral("");
+            t.eq(central(), [true, true, "rede", true], "sem entrada, a página fica");
+            P.openCentral("notificacoes");
+            t.eq(central(), [true, true, "notificacoes", true], "notificacoes: o estado inicial das ações");
             P.toggleCentral("som");
-            t.eq(P.centralEntry, "som");
-            P.toggleCentral("");
-            t.eq(P.isOpen("central"), false, "o atalho fecha de qualquer entrada");
+            t.eq(central(), [true, true, "som", true], "outra entrada troca a página");
+            P.toggleCentral("som");
+            t.eq(central(), [false, false, "", false], "a mesma entrada com os dois abertos fecha os dois");
+            P.openActions("som");
+            P.toggleCentral("som");
+            t.eq(central(), [true, true, "som", true], "a mesma entrada com só as ações: abre o que falta");
+            P.closeActions();
+            P.toggleCentral("bluetooth");
+            t.eq(central(), [true, true, "bluetooth", true], "com só as notificações: abre as ações na página");
+            P.toggleCentral("sound");
+            t.eq(central(), [false, false, "", false], "entrada desconhecida vale como o atalho geral");
+        } finally {
+            P.close();
+        }
+    });
+
+    t.test("panels: o fechamento por fora zera os dois", () => {
+        P.close();
+        try {
+            P.openCentral("som");
+            P.dismiss("central");
+            t.eq(central(), [false, false, "", false], "Esc e o clique fora");
+            P.openCentral("rede");
+            P.close();
+            t.eq(central(), [false, false, "", false], "panels close");
+            P.openActions("energia");
+            P.openNotifications();
+            P.open("launcher");
+            t.eq([central(), P.opened], [[false, false, "", false], ["launcher"]], "outro modal");
+            P.toggleNotifications();
+            t.eq(central(), [false, true, "", true], "reaberta, começa do zero");
         } finally {
             P.close();
         }
@@ -116,33 +244,63 @@ function run(t) {
     t.test("panels: a central é modal", () => {
         try {
             P.open("dashboard");
-            P.openCentral("som");
-            t.eq(P.opened, ["central"], "fecha o painel superior");
+            P.openActions("som");
+            t.eq(P.opened, ["central"], "as ações fecham o painel superior");
             P.open("dashboard");
-            t.eq([P.opened, P.centralEntry], [["dashboard"], ""], "o painel superior fecha a central");
+            t.eq([P.opened, central()], [["dashboard"], [false, false, "", false]], "o painel superior fecha a central");
+            P.toggleNotifications();
+            t.eq(P.opened, ["central"], "as notificações também");
             P.open("settings");
             P.openCentral("");
             t.eq(P.opened, ["central"], "fecha as configurações");
             P.open("launcher");
-            t.eq(P.opened, ["launcher"], "o launcher fecha a central");
+            t.eq([P.opened, central()], [["launcher"], [false, false, "", false]], "o launcher fecha a central");
+            P.toggleActions("rede");
+            t.eq(P.opened, ["central"], "e as ações fecham o launcher");
         } finally {
             P.close();
         }
     });
 
-    t.test("panels: aviso de abertura da central", () => {
-        const got = [];
-        const listen = entry => got.push(entry);
-        P.centralOpened.connect(listen);
+    t.test("panels: os ícones acesos da barra", () => {
+        P.close();
         try {
-            P.openCentral("bluetooth");
-            P.openCentral("wifi");
-            P.toggleCentral("bluetooth");
+            const lit = () => ["rede", "som", "energia"].filter(e => P.actionsAt(e)).concat(P.notificationsOpen ? ["sino"] : []);
+            t.eq(lit(), [], "nada aberto");
+            P.openActions("som");
+            t.eq(lit(), ["som"], "as ações abertas pelo som");
+            P.openNotifications();
+            t.eq(lit(), ["som", "sino"], "e o sino com as notificações");
+            P.closeActions();
+            t.eq(lit(), ["sino"], "só as notificações: nenhum ícone das ações");
+            P.toggleActions("rede");
+            t.eq(lit(), ["rede", "sino"], "com só as notificações, a rede abre as ações");
+            P.openActions("");
+            t.eq(lit(), ["sino"], "ações sem entrada (o atalho): nenhum ícone");
         } finally {
-            P.centralOpened.disconnect(listen);
             P.close();
         }
-        t.eq(got, ["bluetooth", "", "bluetooth"], "uma vez por abertura ou troca, com a entrada que valeu");
+    });
+
+    t.test("panels: aviso de abertura das ações", () => {
+        const got = [];
+        const listen = entry => got.push(entry);
+        P.close();
+        P.actionsOpened.connect(listen);
+        try {
+            P.openActions("bluetooth");
+            P.openActions("wifi");
+            P.toggleActions("bluetooth");
+            P.toggleNotifications();
+            P.openCentral("");
+            P.openCentral("som");
+            P.closeActions();
+            P.toggleCentral("");
+        } finally {
+            P.actionsOpened.disconnect(listen);
+            P.close();
+        }
+        t.eq(got, ["bluetooth", "", "bluetooth", "som", ""], "uma vez por abertura ou troca, com a entrada que valeu; o central sem entrada não troca a página");
     });
 
     t.test("panels: janelas registradas", () => {

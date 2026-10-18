@@ -28,6 +28,9 @@ Item {
     property BlobMorph driver: null
     // Pontos do contorno: menos numa bolha pequena.
     property int steps: 144
+    // Numa bolha pequena (menos de 48 px), os lobos ficam mais suaves, na
+    // proporção do tamanho; de 48 px para cima, nada muda.
+    readonly property real softness: Math.min(1, Math.min(width, height) / 48)
 
     readonly property bool live: visible && active
     readonly property BlobMorph clock: root.driver ?? own
@@ -48,7 +51,7 @@ Item {
 
     readonly property var points: {
         const extra = animatedPulse * 0.08;
-        const grow = s => ({ lobes: s.lobes, amplitude: s.amplitude + extra });
+        const grow = s => ({ lobes: s.lobes, amplitude: s.amplitude * softness + extra });
         const a = shaped ? BlobShapes.shapes[shapeFrom] : { lobes: lobes, amplitude: amplitude };
         const b = shaped ? BlobShapes.shapes[shapeTo] : a;
         return BlobShapes.outline(width, height, grow(a), grow(b), shaped ? morph : 0, steps);

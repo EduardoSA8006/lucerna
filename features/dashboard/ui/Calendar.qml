@@ -9,7 +9,13 @@ import qs.features.dashboard.state
 Item {
     id: root
 
-    implicitHeight: column.implicitHeight
+    readonly property bool onScreen: DashboardState.isShowing("overview")
+
+    // Altura de cada linha de dias: fixa, o calendário não se espalha pela altura do card.
+    readonly property int rowHeight: 30
+
+    // Título, cabeçalho e seis linhas.
+    implicitHeight: 28 + ThemeManager.spacing.small + 22 + 6 * rowHeight
 
     MouseArea {
         anchors.fill: parent
@@ -99,16 +105,16 @@ Item {
             columns: 7
 
             Repeater {
-                model: OverviewState.weekdayInitials
+                model: OverviewState.weekdays
 
                 delegate: Txt {
-                    required property string modelData
+                    required property var modelData
 
                     width: grid.cell
                     height: 22
                     horizontalAlignment: Text.AlignHCenter
-                    text: modelData
-                    faint: true
+                    text: modelData.initial
+                    color: modelData.sunday ? ThemeManager.colors.danger : ThemeManager.colors.textFaint
                     font.pixelSize: ThemeManager.font.small
                     font.weight: Font.DemiBold
                 }
@@ -121,24 +127,34 @@ Item {
                     required property var modelData
 
                     width: grid.cell
-                    height: 26
+                    height: root.rowHeight
 
-                    Rectangle {
+                    // Hoje: uma bolha só, criada apenas na célula de hoje; anima só com o
+                    // painel aberto na aba Painel.
+                    Loader {
                         anchors.centerIn: parent
-                        width: 26
-                        height: 26
-                        radius: 13
-                        color: parent.modelData.today ? ThemeManager.colors.accent : "transparent"
+                        active: parent.modelData.today
+
+                        sourceComponent: Blob {
+                            width: 30
+                            height: 30
+                            active: root.onScreen
+                            morphing: true
+                            spinning: true
+                            spinDuration: 30000
+                            steps: 48
+                            color: ThemeManager.colors.accent
+                        }
                     }
 
                     Txt {
                         anchors.fill: parent
                         horizontalAlignment: Text.AlignHCenter
                         text: parent.modelData.day
-                        mono: true
                         font.pixelSize: ThemeManager.font.small + 1
-                        color: parent.modelData.today ? ThemeManager.colors.accentText : parent.modelData.inMonth ? ThemeManager.colors.text : ThemeManager.colors.textFaint
-                        font.weight: parent.modelData.today ? Font.Bold : Font.Normal
+                        font.features: { "tnum": 1 }
+                        color: parent.modelData.today ? ThemeManager.colors.accentText : parent.modelData.sunday ? (parent.modelData.inMonth ? ThemeManager.colors.danger : ThemeManager.alpha(ThemeManager.colors.danger, 0.45)) : parent.modelData.inMonth ? ThemeManager.colors.text : ThemeManager.colors.textFaint
+                        font.weight: parent.modelData.today ? Font.DemiBold : Font.Normal
                     }
                 }
             }

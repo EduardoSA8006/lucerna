@@ -6,7 +6,7 @@ import Quickshell.Io
 
 // Uso do sistema lido direto do kernel (/proc e /sys), sem bibliotecas externas.
 // Só coleta enquanto `active` for verdadeiro (quem mostra os dados liga), a
-// cada `interval` ms. Disco usa `df` (coreutils); GPU, services/scripts/gpu-status.sh.
+// cada `interval` ms. Disco usa `df` (coreutils) e `lsblk` (util-linux); GPU, services/scripts/gpu-status.sh.
 Singleton {
     id: root
 
@@ -27,6 +27,8 @@ Singleton {
     onActiveChanged: {
         if (!active)
             resetDrm();
+        else
+            refreshBlocks();
     }
     readonly property int historyLength: 30
 
@@ -42,7 +44,8 @@ Singleton {
     property real swapTotal: 0
     property real swapUsed: 0
 
-    // Discos: [{ mount, size, used }], em bytes
+    // Discos físicos: [{ name ("nvme0n1", "sda"), size, used (em bytes, as
+    // partições montadas somadas), root (tem a raiz "/") }], o da raiz primeiro.
     property var disks: []
 
     // Rede (interfaces físicas e Wi-Fi), em bytes e bytes/s
@@ -271,14 +274,108 @@ Singleton {
         gpus = gpus.map(g => !(g.pci in next) ? g : Object.assign({}, g, { usage: next[g.pci] }));
     }
 
+    // Saída do lsblk -lnpo NAME,KNAME,TYPE,PKNAME: { caminho: { type, parent } },
+    // pelo nome (/dev/mapper/root) e pelo nome de kernel (/dev/dm-0), porque
+    // o PKNAME é o nome de kernel do pai e o df pode trazer qualquer um. Um
+    // dispositivo com vários pais (RAID do mdraid, LVM com o grupo em vários
+    // discos) aparece numa linha por pai, e fica o último.
+    function parseBlock(text: string): var {
+        const blocks = ({});
+        for (const line of text.split("\n")) {
+            const f = line.trim().split(/\s+/);
+            if (f.length >= 3)
+                blocks[f[0]] = blocks[f[1]] = { type: f[2], parent: f[3] ?? "" };
+        }
+        return blocks;
+    }
+
+    // O nome curto do disco físico de uma origem do df ("/dev/nvme0n1p2" →
+    // "nvme0n1"), subindo pelos pais (LUKS, LVM) até o tipo "disk". Com vários
+    // pais (ver parseBlock), cai num disco só, o do último pai. Fora do lsblk,
+    // o próprio nome ("/dev/dm-7" → "dm-7"); "" para o que não é dispositivo
+    // (tmpfs, overlay, rede, ZFS, que o df mostra como "pool/dataset"), para
+    // loop e zram.
+    function diskOf(blocks: var, source: string): string {
+        if (!source.startsWith("/dev/") || /^\/dev\/(loop|zram|ram)\d/.test(source))
+            return "";
+        let dev = source;
+        for (let step = 0; step < 8; step++) {
+            const b = blocks[dev];
+            if (!b)
+                return step === 0 ? source.replace(/^.*\//, "") : "";
+            if (b.type === "disk")
+                return dev.replace(/^.*\//, "");
+            if (!b.parent)
+                return "";
+            dev = b.parent;
+        }
+        return "";
+    }
+
+    // Os dispositivos do lsblk (parseBlock), lidos ao ligar, a cada
+    // `blocksEvery` leituras do df e quando o df traz uma origem nova; o df
+    // segue a cada ciclo.
+    property var blocks: ({})
+    // As origens do df na última leitura do lsblk: uma que o lsblk não conhece
+    // (/dev/root numa VM) não o faz rodar de novo a cada ciclo.
+    property var blockSources: []
+    property string lastDf: ""
+    property int dfReads: 0
+    readonly property int blocksEvery: 30
+
+    // Só lido ativo (a aba à mostra).
+    function refreshBlocks(): void {
+        if (active && !lsblk.running)
+            lsblk.running = true;
+    }
+
+    // As origens de dispositivo do df ("/dev/...", sem loop e zram).
+    function dfSources(text: string): var {
+        return text.split("\n").slice(1).map(l => l.trim().split(/\s+/)[0] ?? "").filter(s => diskOf({}, s) !== "");
+    }
+
+    // As origens do df que nem o lsblk nem a última leitura dele conhecem.
+    function newSources(text: string, blocks: var, known: var): var {
+        return dfSources(text).filter(s => !(s in blocks) && !known.includes(s));
+    }
+
+    // Uma leitura do df: pede o lsblk de novo quando é a hora ou há origem nova.
+    function readDf(text: string): void {
+        lastDf = text;
+        dfReads++;
+        if (dfReads % blocksEvery === 0 || newSources(text, blocks, blockSources).length > 0)
+            refreshBlocks();
+        parseDf(text);
+    }
+
+    // Saída do df (origem, tamanho, usado e ponto de montagem), com os
+    // dispositivos de `blocks`. Cada partição conta uma vez (montada em vários
+    // lugares, os números são os mesmos); as de um disco são somadas.
     function parseDf(text: string): void {
         const seen = new Set();
-        disks = text.trim().split("\n").slice(1).map(l => l.trim().split(/\s+/)).filter(f => {
-            if (f.length < 3 || seen.has(f[0]))
-                return false;
+        const byName = ({});
+        const list = [];
+        for (const line of text.split("\n").slice(1)) {
+            const f = line.trim().split(/\s+/);
+            if (f.length < 4)
+                continue;
+            const name = diskOf(blocks, f[0]);
+            const root = f.slice(3).join(" ") === "/";
+            if (!name || seen.has(f[0])) {
+                if (name && root)
+                    byName[name].root = true;
+                continue;
+            }
             seen.add(f[0]);
-            return true;
-        }).map(f => ({ mount: f[0], size: Number(f[1]), used: Number(f[2]) }));
+            if (!byName[name]) {
+                byName[name] = { name: name, size: 0, used: 0, root: false };
+                list.push(byName[name]);
+            }
+            byName[name].size += Number(f[1]);
+            byName[name].used += Number(f[2]);
+            byName[name].root = byName[name].root || root;
+        }
+        disks = list.filter(d => d.root).concat(list.filter(d => !d.root));
     }
 
     Timer {
@@ -364,9 +461,25 @@ Singleton {
     Process {
         id: df
 
-        command: ["df", "-B1", "--output=target,size,used", "/", "/home"]
+        // -l: só sistemas de arquivos locais (um de rede travado não trava a
+        // leitura).
+        command: ["df", "-lB1", "--output=source,size,used,target"]
         stdout: StdioCollector {
-            onStreamFinished: root.parseDf(text)
+            onStreamFinished: root.readDf(text)
+        }
+    }
+
+    Process {
+        id: lsblk
+
+        command: ["lsblk", "-lnpo", "NAME,KNAME,TYPE,PKNAME"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.blocks = root.parseBlock(text);
+                root.blockSources = root.dfSources(root.lastDf);
+                if (root.lastDf)
+                    root.parseDf(root.lastDf);
+            }
         }
     }
 

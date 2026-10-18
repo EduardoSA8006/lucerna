@@ -50,6 +50,7 @@ Rectangle {
         selectionColor: ThemeManager.alpha(ThemeManager.colors.accent, 0.35)
         selectedTextColor: ThemeManager.colors.text
         font.family: ThemeManager.font.sans
+        font.variableAxes: ThemeManager.fontAxes(Font.Normal)
         font.pixelSize: root.textSize
         clip: true
         focus: true

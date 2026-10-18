@@ -139,6 +139,7 @@ Item {
                 text: card.theme.name
                 color: card.c.text ?? "white"
                 font.family: ThemeManager.font.sans
+                font.variableAxes: ThemeManager.fontAxes(Font.DemiBold)
                 font.pixelSize: ThemeManager.font.normal
                 font.weight: Font.DemiBold
             }

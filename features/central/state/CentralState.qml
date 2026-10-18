@@ -6,16 +6,20 @@ import Quickshell.Io
 import qs.core.panels
 import qs.services
 
-// View model da central: os dois painéis flutuantes da direita (ações em
-// cima, notificações embaixo) que abrem e fecham juntos. O painel de ações
-// mostra os tiles e os sliders ou a página de um recurso (`page`). A entrada
+// View model da central: os dois painéis flutuantes da direita (Ações em
+// cima, Notificações embaixo), que abrem e fecham cada um por si
+// (Panels.actionsOpen e Panels.notificationsOpen). O painel de Ações mostra os
+// tiles e os sliders ou a página de um recurso (`page`). A entrada
 // (Panels.centralEntry) escolhe a página que já vem aberta; sem o recurso, o
-// estado inicial. A abertura volta tudo ao estado inicial (o fechamento não:
+// estado inicial. Abrir as Ações volta tudo ao estado inicial (fechá-las não:
 // o card fica na página até sumir).
 Singleton {
     id: root
 
+    // A janela da central: aberta com qualquer um dos dois.
     readonly property bool open: Panels.isOpen("central")
+    readonly property bool actionsOpen: Panels.actionsOpen
+    readonly property bool notificationsOpen: Panels.notificationsOpen
     readonly property var screen: Hypr.focusedScreen
     // Distância do topo da tela: abaixo da barra, como o painel superior.
     readonly property real top: Panels.topInset
@@ -33,9 +37,9 @@ Singleton {
     // "bluetooth", "output", "input" ou "battery".
     property string page: ""
 
-    // Zera só ao abrir: na saída, o card continua na página até sumir.
-    onOpenChanged: {
-        if (open)
+    // Zera só ao abrir as Ações: na saída, o card continua na página até sumir.
+    onActionsOpenChanged: {
+        if (actionsOpen)
             reset();
     }
 
@@ -46,7 +50,7 @@ Singleton {
     Connections {
         target: Panels
 
-        function onCentralOpened(entry) {
+        function onActionsOpened(entry) {
             root.page = root.pageFor(entry, root.has);
             root.clearWifi();
         }
@@ -56,14 +60,14 @@ Singleton {
     Binding {
         target: Network
         property: "scanning"
-        value: root.open && root.page === "wifi"
+        value: root.actionsOpen && root.page === "wifi"
     }
 
     // E a bateria lê o histórico do consumo enquanto a página dela está à mostra.
     Binding {
         target: Battery
         property: "historyActive"
-        value: root.open && root.page === "battery"
+        value: root.actionsOpen && root.page === "battery"
     }
 
     // A página de cada entrada, se o recurso dela existir.
@@ -93,14 +97,16 @@ Singleton {
         page = value;
     }
 
+    // Fecha os dois (Esc, o clique fora).
     function close(): void {
         Panels.dismiss("central");
     }
 
+    // Os dois painéis. A entrada (rede, bluetooth, som, energia, microfone,
+    // notificacoes; "" = nenhuma) escolhe a página das Ações.
     IpcHandler {
         target: "central"
 
-        // Abre numa entrada: rede, bluetooth, som, energia, microfone, notificacoes ("" = o estado inicial).
         function open(entry: string): void {
             Panels.openCentral(entry);
         }
@@ -111,6 +117,23 @@ Singleton {
 
         function close(): void {
             root.close();
+        }
+    }
+
+    // Só as Ações (o nome `controls` não se confunde com o alvo `action`).
+    IpcHandler {
+        target: "controls"
+
+        function open(entry: string): void {
+            Panels.openActions(entry);
+        }
+
+        function toggle(entry: string): void {
+            Panels.toggleActions(entry);
+        }
+
+        function close(): void {
+            Panels.closeActions();
         }
     }
 }

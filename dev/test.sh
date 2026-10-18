@@ -16,6 +16,16 @@
 #   dev/test.sh run 'COMANDO'      roda um comando na sessão (notify-send, hyprctl...)
 # LUCERNA_TEST_OUT: pasta das capturas (padrão /tmp/lucerna-test).
 # LUCERNA_TEST_GPU="/dev/dri/renderDN /dev/dri/cardN": força a GPU repassada.
+# LUCERNA_TEST_HOST_BUS=1 (no up): o shell usa o barramento de sessão do host,
+# para ver os players MPRIS de fora (o Spotify aberto no host). Opcional porque
+# o resto do shell também vai para o host: o servidor de notificações não pega
+# o nome org.freedesktop.Notifications (o do desktop do host continua com ele),
+# então os popups e a lista de notificações não funcionam nesse modo, e um
+# notify-send no container fica sem servidor. E se o desktop do host largar o
+# nome (o plasmashell reiniciando), o shell do container o pega: faça o up sem
+# ela de novo depois do teste. E o container passa a poder chamar qualquer
+# serviço da sessão do host (o chaveiro, os portais, o systemd --user): o modo
+# é só para desenvolvimento. Vale até o próximo up sem ela.
 # Um `hyprctl reload` ou fechar a janela derruba a saída do Hyprland aninhado
 # (ele cai no monitor FALLBACK e as capturas saem vazias): dev/test.sh up de novo.
 #
@@ -119,6 +129,17 @@ ex() {
         '"$1"
 }
 
+# Sobe o shell; com o barramento do host montado (LUCERNA_TEST_HOST_BUS=1 no
+# up), ele usa esse barramento no lugar do da sessão do container.
+start_shell() {
+    # shellcheck disable=SC2016 # expande dentro do container, não aqui
+    ex 'pkill -x qs; sleep 0.5
+        if [ -S "$XDG_RUNTIME_DIR/host-bus" ]; then
+            export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/host-bus"
+        fi
+        setsid -f qs -c lucerna > /dev/null 2>&1 < /dev/null'
+}
+
 running() {
     [ "$(docker inspect -f '{{.State.Running}}' "$name" 2> /dev/null)" = true ] \
         || fail "o container $name não está de pé: rode dev/test.sh up"
@@ -189,6 +210,18 @@ up() {
     if [ -S /run/dbus/system_bus_socket ]; then
         extra+=(-v /run/dbus/system_bus_socket:/run/dbus/system_bus_socket)
     fi
+    local host_bus=0
+    if [ "${LUCERNA_TEST_HOST_BUS:-}" = 1 ]; then
+        [ -S "$runtime/bus" ] || fail "LUCERNA_TEST_HOST_BUS=1, mas não há barramento de sessão em $runtime/bus"
+        extra+=(-v "$runtime/bus:/run/user/1000/host-bus")
+        host_bus=1
+    fi
+    # Os outros discos montados no host, só para leitura, para o card de Disco
+    # ver os mesmos discos (e a troca por clique) que o shell vê fora do container.
+    local target
+    while read -r target; do
+        extra+=(-v "$target:$target:ro")
+    done < <(findmnt -rno SOURCE,TARGET | awk '$1 ~ "^/dev/" && $1 !~ "^/dev/(loop|zram)" && $2 != "/" { print $2 }')
     docker rm -f "$name" &> /dev/null || true
     docker run -d --name "$name" \
         --user "$(id -u):$(id -g)" \
@@ -202,6 +235,11 @@ up() {
         "${extra[@]}" \
         "$image" > /dev/null
     wait_loaded
+    if [ "$host_bus" = 1 ]; then
+        start_shell
+        wait_loaded
+        echo "barramento de sessão: o do host (MPRIS de fora; sem as notificações do shell)"
+    fi
     # Sem isso a ociosidade apaga a tela em 5 min e as capturas saem pretas.
     setc 'dict(idleEnabled=False)'
     echo "de pé: $name (GPU $render), capturas em $out"
@@ -212,7 +250,7 @@ case "${1:-}" in
     down) docker rm -f "$name" > /dev/null && echo "removido: $name" ;;
     restart)
         running
-        ex 'pkill -x qs; sleep 0.5; setsid -f qs -c lucerna > /dev/null 2>&1 < /dev/null'
+        start_shell
         wait_loaded
         echo "shell reiniciado"
         ;;
@@ -261,7 +299,7 @@ case "${1:-}" in
         ex "$2"
         ;;
     *)
-        sed -n '2,20p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+        sed -n '2,28p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
         exit 2
         ;;
 esac

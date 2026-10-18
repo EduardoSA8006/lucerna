@@ -42,6 +42,20 @@ function run(t) {
         t.near(v.fraction, 1400 / 1450, 1e-9, "véu = freq / maxFreq");
     });
 
+    t.test("performance: temperatura da GPU integrada vem da CPU", () => {
+        const v = P.gpuView(intel, 62);
+        t.eq([v.hasTemp, v.tempText, v.hot], [true, "62 °C", false]);
+        t.near(v.tempFraction, 32 / 70, 1e-9, "mesma escala da CPU");
+        t.eq(P.gpuView(intel, 90).hot, true, "esquenta junto com a CPU");
+        t.eq(P.gpuView(intel, NaN).hasTemp, false, "sem temperatura da CPU, nada");
+        t.eq(P.gpuView(gpu({ vendor: "intel", state: "suspended" }), 62).hasTemp, false, "em repouso, nada");
+        t.eq(P.gpuView(gpu({ vendor: "intel", temp: 50 }), 62).tempText, "50 °C", "com sensor próprio, o dela");
+        t.eq(P.gpuView(gpu({ vendor: "amd", temp: NaN }), 62).tempText, "62 °C", "AMD sem hwmon: a da CPU");
+        t.eq(P.gpuView(gpu({ vendor: "amd", temp: 71 }), 62).tempText, "71 °C", "AMD com hwmon: o dela");
+        t.eq(P.gpuView(nvidia, 62).tempText, "61 °C", "dedicada: a do nvidia-smi");
+        t.eq(P.gpuView(gpu({ usage: 0.1 }), 62).hasTemp, false, "dedicada sem sensor não herda a da CPU");
+    });
+
     t.test("performance: GPU em repouso e sem dados", () => {
         const v = P.gpuView(asleep);
         t.eq([v.asleep, v.hasData, v.label, v.fraction, v.value, v.unit, v.hasTemp], [true, false, "Em repouso", 0, "—", "", false]);
@@ -64,5 +78,25 @@ function run(t) {
         t.eq([P.nextGpu(list, 0), P.nextGpu(list, 1), P.nextGpu(list, 2)], ["card1", "card2", "card0"]);
         t.eq(P.nextGpu(list.slice(0, 1), 0), "card0", "uma só: fica");
         t.eq(P.nextGpu([], -1), "", "nenhuma");
+    });
+
+    const gib = 1024 * 1024 * 1024;
+    const disks = [{ name: "nvme0n1", size: 915 * gib, used: 454 * gib, root: true }, { name: "sda", size: 0, used: 0, root: false }];
+
+    t.test("performance: o disco pronto para o card", () => {
+        const v = P.diskView(disks[0]);
+        t.eq([v.name, v.text], ["nvme0n1", "454 / 915 GiB"]);
+        t.near(v.fraction, 454 / 915, 1e-9);
+        t.eq(P.diskView(disks[1]).fraction, 0, "tamanho 0 não divide");
+    });
+
+    t.test("performance: qual disco mostrar e o próximo", () => {
+        const list = disks.map(d => P.diskView(d));
+        t.eq(P.diskPick(list, ""), 0, "sem escolha, o primeiro (o da raiz)");
+        t.eq(P.diskPick(list, "sda"), 1, "o escolhido");
+        t.eq(P.diskPick(list, "sdb"), 0, "o escolhido sumiu: o primeiro");
+        t.eq(P.diskPick([], ""), -1, "nenhum");
+        t.eq([P.nextDisk(list, 0), P.nextDisk(list, 1)], ["sda", "nvme0n1"]);
+        t.eq(P.nextDisk([], -1), "", "nenhum");
     });
 }

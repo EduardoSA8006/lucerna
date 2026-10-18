@@ -26,7 +26,11 @@ function run(t) {
         gpus: S.gpus,
         lastDrm: S.lastDrm,
         drmUsage: S.drmUsage,
-        disks: S.disks
+        disks: S.disks,
+        blocks: S.blocks,
+        blockSources: S.blockSources,
+        lastDf: S.lastDf,
+        dfReads: S.dfReads
     };
 
     t.test("systemstats: histórico limitado", () => {
@@ -220,9 +224,77 @@ function run(t) {
         t.eq([S.lastDrm, S.drmUsage], [null, {}]);
     });
 
-    t.test("systemstats: discos do df, sem repetir", () => {
-        S.parseDf("Mounted on     1B-blocks      Used\n/ 1000 400\n/home 2000 500\n/ 1000 400\n");
-        t.eq(S.disks, [{ mount: "/", size: 1000, used: 400 }, { mount: "/home", size: 2000, used: 500 }]);
+    // Saída do lsblk -lnpo NAME,KNAME,TYPE,PKNAME: o disco não tem pai, e o
+    // PKNAME é o nome de kernel do pai (/dev/dm-0, não /dev/mapper/root). Um
+    // RAID aparece uma vez por pai, na ordem da lista.
+    const lsblk = "/dev/sda /dev/sda disk\n/dev/sda2 /dev/sda2 part /dev/sda\n/dev/zram0 /dev/zram0 disk\n/dev/loop0 /dev/loop0 loop\n"
+        + "/dev/nvme0n1 /dev/nvme0n1 disk\n/dev/nvme0n1p1 /dev/nvme0n1p1 part /dev/nvme0n1\n/dev/nvme0n1p2 /dev/nvme0n1p2 part /dev/nvme0n1\n"
+        + "/dev/mapper/root /dev/dm-0 crypt /dev/nvme0n1p2\n/dev/mapper/vg-home /dev/dm-1 lvm /dev/dm-0\n"
+        + "/dev/sdb /dev/sdb disk\n/dev/sdb1 /dev/sdb1 part /dev/sdb\n/dev/md0 /dev/md0 raid1 /dev/sdb1\n"
+        + "/dev/sdc /dev/sdc disk\n/dev/sdc1 /dev/sdc1 part /dev/sdc\n/dev/md0 /dev/md0 raid1 /dev/sdc1\n";
+
+    t.test("systemstats: dispositivos do lsblk, com o pai", () => {
+        const b = S.parseBlock(lsblk);
+        t.eq(b["/dev/sda"], { type: "disk", parent: "" });
+        t.eq(b["/dev/sda2"], { type: "part", parent: "/dev/sda" });
+        t.eq(b["/dev/mapper/vg-home"], { type: "lvm", parent: "/dev/dm-0" });
+        t.eq(b["/dev/dm-1"], b["/dev/mapper/vg-home"], "também pelo nome de kernel");
+        t.eq(b["/dev/md0"], { type: "raid1", parent: "/dev/sdc1" }, "vários pais: fica o último");
+        t.eq(S.parseBlock(""), {}, "sem lsblk");
+    });
+
+    t.test("systemstats: o disco físico de cada origem do df", () => {
+        const b = S.parseBlock(lsblk);
+        t.eq(S.diskOf(b, "/dev/sda2"), "sda", "partição");
+        t.eq(S.diskOf(b, "/dev/sda"), "sda", "o disco inteiro, sem partição");
+        t.eq(S.diskOf(b, "/dev/mapper/vg-home"), "nvme0n1", "LVM sobre LUKS: sobe pelo nome de kernel até o disco");
+        t.eq(S.diskOf(b, "/dev/dm-0"), "nvme0n1", "origem dm-N");
+        t.eq(S.diskOf(b, "/dev/md0"), "sdc", "RAID em vários discos: cai num só, o do último pai");
+        t.eq(S.diskOf(b, "/dev/dm-7"), "dm-7", "dm-N fora do lsblk: o próprio nome");
+        t.eq(S.diskOf(b, "tank/home"), "", "ZFS (pool/dataset) fica de fora");
+        t.eq(S.diskOf(b, "/dev/loop0"), "", "loop fica de fora");
+        t.eq(S.diskOf(b, "/dev/zram0"), "", "zram fica de fora");
+        t.eq(S.diskOf(b, "/dev/root"), "root", "fora do lsblk: o próprio nome");
+        t.eq(S.diskOf({}, "/dev/nvme0n1p2"), "nvme0n1p2", "sem lsblk: a própria partição");
+        t.eq([S.diskOf(b, "overlay"), S.diskOf(b, "tmpfs"), S.diskOf(b, "gdrive:")], ["", "", ""], "o que não é dispositivo");
+        const loop = { "/dev/a": { type: "part", parent: "/dev/b" }, "/dev/b": { type: "part", parent: "/dev/a" } };
+        t.eq(S.diskOf(loop, "/dev/a"), "", "ciclo não trava");
+    });
+
+    t.test("systemstats: discos do df somados por disco, o da raiz primeiro", () => {
+        S.blocks = S.parseBlock(lsblk);
+        S.parseDf("Filesystem 1B-blocks Used Mounted on\n"
+            + "overlay 9000 9000 /\ntmpfs 64 0 /dev\n"
+            + "/dev/sda2 1000 400 /mnt/dados antigos\n"
+            + "/dev/nvme0n1p1 100 10 /boot\n"
+            + "/dev/mapper/root 2000 500 /\n"
+            + "/dev/mapper/root 2000 500 /home\n"
+            + "/dev/loop0 50 50 /snap/x\n");
+        t.eq(S.disks, [{ name: "nvme0n1", size: 2100, used: 510, root: true }, { name: "sda", size: 1000, used: 400, root: false }]);
+    });
+
+    t.test("systemstats: raiz fora de um disco (container): a ordem do df", () => {
+        S.blocks = S.parseBlock(lsblk);
+        S.parseDf("Filesystem 1B-blocks Used Mounted on\noverlay 9000 9000 /\n/dev/nvme0n1p2 2000 500 /etc/hosts\n/dev/sda2 1000 400 /etc/hostname\n");
+        t.eq(S.disks.map(d => [d.name, d.root]), [["nvme0n1", false], ["sda", false]]);
+        S.parseDf("Filesystem 1B-blocks Used Mounted on\n");
+        t.eq(S.disks, [], "nenhum disco");
+    });
+
+    t.test("systemstats: o lsblk só com origem nova ou de tempos em tempos", () => {
+        const df = "Filesystem 1B-blocks Used Mounted on\noverlay 9000 9000 /\n/dev/sda2 1000 400 /a\n/dev/root 50 5 /b\n/dev/loop0 1 1 /c\n";
+        const b = S.parseBlock(lsblk);
+        t.eq(S.dfSources(df), ["/dev/sda2", "/dev/root"], "só dispositivos, sem loop");
+        t.eq(S.newSources(df, b, []), ["/dev/root"], "o que o lsblk não conhece");
+        t.eq(S.newSources(df, b, ["/dev/root"]), [], "já visto na última leitura do lsblk: não pede de novo");
+        S.blocks = b;
+        S.blockSources = ["/dev/root"];
+        S.dfReads = 0;
+        S.readDf(df);
+        t.eq([S.lastDf, S.dfReads, S.disks.map(d => d.name)], [df, 1, ["sda", "root"]], "lê o df com os blocos guardados");
+        if (!S.active)
+            S.refreshBlocks();
+        t.eq(S.disks.map(d => d.name), ["sda", "root"], "parado, o lsblk não roda");
     });
 
     S.lastCpu = original.lastCpu;
@@ -241,6 +313,10 @@ function run(t) {
     S.lastDrm = original.lastDrm;
     S.drmUsage = original.drmUsage;
     S.disks = original.disks;
+    S.blocks = original.blocks;
+    S.blockSources = original.blockSources;
+    S.lastDf = original.lastDf;
+    S.dfReads = original.dfReads;
 
     t.test("systemstats: estado original restaurado", () => {
         t.eq([S.lastCpu, S.cpuUsage, S.memTotal, S.memUsed, S.swapTotal, S.swapUsed, S.rxTotal, S.txTotal, S.lastNet, S.cpuModel, S.cpuThreads, S.tempPath, S.gpus, S.lastDrm, S.drmUsage, S.disks],

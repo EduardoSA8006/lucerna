@@ -19,10 +19,13 @@ import qs.core.panels
 import qs.core.shapes
 import qs.core.theme
 import qs.core.time
+import qs.core.widgets
 import qs.features.central.state
 import qs.features.dashboard.state
+import qs.features.notifications.state
 import qs.features.themeSwitcher.state
 import qs.services
+import qs.services.spectrum
 import "appinfo.test.js" as AppInfoTest
 import "audio.test.js" as AudioTest
 import "audiostreams.test.js" as AudioStreamsTest
@@ -43,11 +46,13 @@ import "monitors.test.js" as MonitorsTest
 import "network.test.js" as NetworkTest
 import "nightschedule.test.js" as NightScheduleTest
 import "notifications.test.js" as NotificationsTest
+import "overview.test.js" as OverviewTest
 import "panels.test.js" as PanelsTest
 import "performance.test.js" as PerformanceTest
 import "searchengines.test.js" as SearchEnginesTest
 import "session.test.js" as SessionTest
 import "shellshortcuts.test.js" as ShellShortcutsTest
+import "spectrum.test.js" as SpectrumTest
 import "sun.test.js" as SunTest
 import "systemstats.test.js" as SystemStatsTest
 import "theme.test.js" as ThemeTest
@@ -66,6 +71,7 @@ ShellRoot {
     // Um item por arquivo em tests/*.test.js, com o nome do arquivo sem
     // .test.js: o ci/unit.sh exige uma linha "SUITE <nome> casos=N" (N > 0) de cada.
     readonly property var suites: [
+        ["spectrum", SpectrumTest],
         ["sun", SunTest],
         ["format", FormatTest],
         ["carousel", CarouselTest],
@@ -76,6 +82,7 @@ ShellRoot {
         ["theme", ThemeTest],
         ["panels", PanelsTest],
         ["central", CentralTest],
+        ["overview", OverviewTest],
         ["performance", PerformanceTest],
         ["searchengines", SearchEnginesTest],
         ["clipboard", ClipboardTest],
@@ -146,6 +153,17 @@ ShellRoot {
         return dummy.createObject(root);
     }
 
+    // Um cartão de notificação solto (sem notificação), com as propriedades
+    // iniciais, como o delegate dos popups o cria; para o prazo do popup.
+    function card(props: var): var {
+        return notificationCard.createObject(root, props);
+    }
+
+    // Um backend do cava solto, sem pedido (o processo não roda).
+    function cava(): var {
+        return cavaBackend.createObject(root);
+    }
+
     function enums(): var {
         return {
             wifiOpen: QsNet.WifiSecurityType.Open,
@@ -167,6 +185,8 @@ ShellRoot {
             eq: root.eq,
             near: root.near,
             object: root.object,
+            card: root.card,
+            cava: root.cava,
             enums: root.enums(),
             get Config() { return Config; },
             get Format() { return Format; },
@@ -179,7 +199,9 @@ ShellRoot {
             get Panels() { return Panels; },
             get CentralState() { return CentralState; },
             get ControlsState() { return ControlsState; },
+            get NotificationsState() { return NotificationsState; },
             get PowerState() { return PowerState; },
+            get OverviewState() { return OverviewState; },
             get PerformanceState() { return PerformanceState; },
             get ThemeManager() { return ThemeManager; },
             get Sun() { return Sun; },
@@ -198,6 +220,7 @@ ShellRoot {
             get Network() { return Network; },
             get Notifications() { return Notifications; },
             get Session() { return Session; },
+            get Spectrum() { return Spectrum; },
             get SystemStats() { return SystemStats; },
             get VideoWallpapers() { return VideoWallpapers; },
             get Weather() { return Weather; },
@@ -209,6 +232,20 @@ ShellRoot {
         id: dummy
 
         QtObject {}
+    }
+
+    Component {
+        id: cavaBackend
+
+        Cava {}
+    }
+
+    Component {
+        id: notificationCard
+
+        NotificationCard {
+            notification: null
+        }
     }
 
     Component.onCompleted: {

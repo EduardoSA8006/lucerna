@@ -115,51 +115,16 @@ Surface {
             }
         }
 
-        Row {
+        CardTitle {
             id: titleRow
 
             x: root.margin
             y: root.margin
             width: root.leftLimit - x - ThemeManager.spacing.normal
-            spacing: ThemeManager.spacing.small
-
-            Icon {
-                id: titleIcon
-
-                anchors.verticalCenter: parent.verticalCenter
-                icon: root.icon
-                size: 18
-                color: ThemeManager.colors.accent
-            }
-
-            Txt {
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width - titleIcon.width - (dotsRow.visible ? dotsRow.width + parent.spacing : 0) - parent.spacing * 2
-                text: root.title
-            }
-
-            Row {
-                id: dotsRow
-
-                anchors.verticalCenter: parent.verticalCenter
-                visible: root.dots > 1
-                spacing: 4
-
-                Repeater {
-                    model: root.dots
-
-                    delegate: Rectangle {
-                        id: dotItem
-
-                        required property int index
-
-                        width: 6
-                        height: 6
-                        radius: 3
-                        color: dotItem.index === root.dot ? ThemeManager.colors.accent : ThemeManager.colors.track
-                    }
-                }
-            }
+            icon: root.icon
+            text: root.title
+            dots: root.dots
+            dot: root.dot
         }
 
         Column {
@@ -191,6 +156,9 @@ Surface {
             LinearGauge {
                 width: Math.min(220, root.leftLimit - root.margin - ThemeManager.spacing.normal)
                 value: root.tempFraction
+                // O trilho padrão tem a cor do véu do uso e some por cima dele; o texto
+                // com transparência aparece sobre o véu e sobre o fundo, em todos os temas.
+                trackColor: ThemeManager.alpha(ThemeManager.colors.text, 0.2)
                 color: root.hot ? ThemeManager.colors.danger : ThemeManager.colors.accent
             }
         }
