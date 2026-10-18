@@ -42,6 +42,20 @@ function run(t) {
         t.near(v.fraction, 1400 / 1450, 1e-9, "véu = freq / maxFreq");
     });
 
+    t.test("performance: temperatura da GPU integrada vem da CPU", () => {
+        const v = P.gpuView(intel, 62);
+        t.eq([v.hasTemp, v.tempText, v.hot], [true, "62 °C", false]);
+        t.near(v.tempFraction, 32 / 70, 1e-9, "mesma escala da CPU");
+        t.eq(P.gpuView(intel, 90).hot, true, "esquenta junto com a CPU");
+        t.eq(P.gpuView(intel, NaN).hasTemp, false, "sem temperatura da CPU, nada");
+        t.eq(P.gpuView(gpu({ vendor: "intel", state: "suspended" }), 62).hasTemp, false, "em repouso, nada");
+        t.eq(P.gpuView(gpu({ vendor: "intel", temp: 50 }), 62).tempText, "50 °C", "com sensor próprio, o dela");
+        t.eq(P.gpuView(gpu({ vendor: "amd", temp: NaN }), 62).tempText, "62 °C", "AMD sem hwmon: a da CPU");
+        t.eq(P.gpuView(gpu({ vendor: "amd", temp: 71 }), 62).tempText, "71 °C", "AMD com hwmon: o dela");
+        t.eq(P.gpuView(nvidia, 62).tempText, "61 °C", "dedicada: a do nvidia-smi");
+        t.eq(P.gpuView(gpu({ usage: 0.1 }), 62).hasTemp, false, "dedicada sem sensor não herda a da CPU");
+    });
+
     t.test("performance: GPU em repouso e sem dados", () => {
         const v = P.gpuView(asleep);
         t.eq([v.asleep, v.hasData, v.label, v.fraction, v.value, v.unit, v.hasTemp], [true, false, "Em repouso", 0, "—", "", false]);

@@ -156,6 +156,9 @@ Surface {
             LinearGauge {
                 width: Math.min(220, root.leftLimit - root.margin - ThemeManager.spacing.normal)
                 value: root.tempFraction
+                // O trilho padrão tem a cor do véu do uso e some por cima dele; o texto
+                // com transparência aparece sobre o véu e sobre o fundo, em todos os temas.
+                trackColor: ThemeManager.alpha(ThemeManager.colors.text, 0.2)
                 color: root.hot ? ThemeManager.colors.danger : ThemeManager.colors.accent
             }
         }

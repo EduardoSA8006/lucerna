@@ -46,7 +46,7 @@ Singleton {
     // GPUs, na ordem do SystemStats, prontas para o card (gpuView). O card
     // mostra uma por vez: a escolhida pelo clique (gpuCard, o "card" dela, que
     // vale até reiniciar o shell) ou, sem escolha, a dedicada.
-    readonly property var gpus: SystemStats.gpus.map(g => gpuView(g))
+    readonly property var gpus: SystemStats.gpus.map(g => gpuView(g, SystemStats.cpuTemp))
     property string gpuCard: ""
     readonly property int gpuIndex: gpuPick(gpus, gpuCard)
     readonly property var gpu: gpus[gpuIndex] ?? null
@@ -69,12 +69,15 @@ Singleton {
     // Uma GPU do SystemStats para o card: com uso, a %; sem uso (a
     // Intel sem fdinfo do DRM), os MHz, com o véu em freq/maxFreq (sem rótulo: a
     // unidade já diz o que é); em repouso, o rótulo
-    // "Em repouso", véu vazio e sem temperatura (não acorda a placa).
-    function gpuView(g: var): var {
+    // "Em repouso", véu vazio e sem temperatura (não acorda a placa). Sem sensor
+    // próprio, a GPU integrada (Intel ou AMD sem hwmon) mostra a temperatura do
+    // pacote da CPU (`cpuTemp`), porque fica no mesmo chip; a dedicada não herda.
+    function gpuView(g: var, cpuTemp: var): var {
+        const own = isFinite(g.temp) ? g.temp : (g.vendor === "intel" || g.vendor === "amd") && isFinite(cpuTemp) ? cpuTemp : NaN;
         const asleep = g.state === "suspended";
         const hasUsage = !asleep && isFinite(g.usage);
         const hasFreq = !asleep && !hasUsage && isFinite(g.freq) && isFinite(g.maxFreq) && g.maxFreq > 0;
-        const hasTemp = !asleep && isFinite(g.temp);
+        const hasTemp = !asleep && isFinite(own);
         return {
             card: g.card,
             name: shortGpu(g.name),
@@ -86,9 +89,9 @@ Singleton {
             value: hasUsage ? `${Math.round(g.usage * 100)}` : hasFreq ? `${g.freq}` : "—",
             unit: hasUsage ? "%" : hasFreq ? "MHz" : "",
             hasTemp: hasTemp,
-            tempText: hasTemp ? `${Math.round(g.temp)} °C` : "",
-            tempFraction: hasTemp ? (g.temp - 30) / 70 : 0,
-            hot: hasTemp && g.temp >= 85
+            tempText: hasTemp ? `${Math.round(own)} °C` : "",
+            tempFraction: hasTemp ? (own - 30) / 70 : 0,
+            hot: hasTemp && own >= 85
         };
     }
 
