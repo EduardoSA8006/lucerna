@@ -313,6 +313,10 @@ dev/ci.sh shell lint   # um bash no container de um check, com o repositório em
 
 A saída fica em `ci-out/<check>/`. Como escrever um teste e o que a cobertura exige está no [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
+## Créditos
+
+O painel superior (o dashboard que desce da barra, com as abas Painel, Mídia, Desempenho e Clima) foi inspirado no dashboard do [Caelestia Shell](https://github.com/caelestia-dots/shell), assim como as curvas e durações de animação do Material 3 em `ThemeManager.anim`. O código do Lucerna foi escrito do zero, com componentes, serviços e recursos próprios; do Caelestia vieram a ideia e a referência visual. Obrigado ao projeto e a quem contribui com ele.
+
 ## Licença
 
 GPL-3.0. O texto está em [`LICENSE`](LICENSE).
