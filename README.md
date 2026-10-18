@@ -146,6 +146,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
   - `ddcutil`: brilho dos monitores externos (DDC/CI). Precisa do módulo `i2c-dev` carregado (`echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf`); o pacote já dá acesso ao usuário da sessão.
   - `nvidia-smi`: GPU NVIDIA; vem com o driver
   - `hyprsunset`: luz noturna
+  - `cava`: o espectro em volta da capa no card de mídia da aba Painel (sem ele, ondas pelo nível do som)
   - `wl-clipboard`: histórico da área de transferência
   - `grim` e `wf-recorder`: captura de tela e gravação
   - `fd`: busca de arquivos do launcher mais rápida (sem ele, usa o `find`)

@@ -51,6 +51,7 @@ import "performance.test.js" as PerformanceTest
 import "searchengines.test.js" as SearchEnginesTest
 import "session.test.js" as SessionTest
 import "shellshortcuts.test.js" as ShellShortcutsTest
+import "spectrum.test.js" as SpectrumTest
 import "sun.test.js" as SunTest
 import "systemstats.test.js" as SystemStatsTest
 import "theme.test.js" as ThemeTest
@@ -69,6 +70,7 @@ ShellRoot {
     // Um item por arquivo em tests/*.test.js, com o nome do arquivo sem
     // .test.js: o ci/unit.sh exige uma linha "SUITE <nome> casos=N" (N > 0) de cada.
     readonly property var suites: [
+        ["spectrum", SpectrumTest],
         ["sun", SunTest],
         ["format", FormatTest],
         ["carousel", CarouselTest],
@@ -211,6 +213,7 @@ ShellRoot {
             get Network() { return Network; },
             get Notifications() { return Notifications; },
             get Session() { return Session; },
+            get Spectrum() { return Spectrum; },
             get SystemStats() { return SystemStats; },
             get VideoWallpapers() { return VideoWallpapers; },
             get Weather() { return Weather; },
