@@ -114,6 +114,12 @@ Singleton {
         Media.togglePlaying();
     }
 
+    readonly property int playerCount: Media.players.length
+
+    function cyclePlayer(): void {
+        Media.cycle();
+    }
+
     function nextTrack(): void {
         Media.next();
     }

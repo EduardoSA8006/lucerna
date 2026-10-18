@@ -13,14 +13,15 @@ Singleton {
     readonly property bool available: Media.available
     readonly property string title: Media.title || "Sem título"
     readonly property string artist: Media.artist
-    readonly property string album: Media.album
+    // O álbum só quando acrescenta algo ao título.
+    readonly property string album: Media.albumShown(Media.album, Media.title)
     readonly property string art: Media.artUrl
     readonly property string player: Media.identity
     readonly property bool playing: Media.playing
     readonly property real progress: Media.length > 0 ? Media.position / Media.length : 0
     readonly property string positionText: Format.clock(Media.position)
     readonly property string lengthText: Format.clock(Media.length)
-    readonly property var players: Media.players.map(p => ({ player: p, name: p.identity, active: p === Media.active }))
+    readonly property int playerCount: Media.players.length
 
     // O espectro em volta da capa (lido do DashboardState, o mesmo do card da
     // aba Painel), ou as ondas sem ele; desligável nas configurações.
@@ -59,7 +60,8 @@ Singleton {
         Media.seek(fraction);
     }
 
-    function select(player: var): void {
-        Media.select(player);
+    // Passa para o próximo player (o ícone de troca ao lado do nome).
+    function cyclePlayer(): void {
+        Media.cycle();
     }
 }

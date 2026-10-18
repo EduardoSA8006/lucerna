@@ -95,6 +95,17 @@ Item {
         }
     }
 
+    // A troca de player: o conteúdo novo vem de quase apagado.
+    Anim {
+        id: cardSwap
+
+        target: root
+        property: "opacity"
+        from: 0.2
+        to: 1
+        type: Anim.FastEffects
+    }
+
     Column {
         anchors.left: visual.right
         anchors.leftMargin: ThemeManager.spacing.normal
@@ -145,6 +156,19 @@ Item {
                 icon: Icons.next
                 iconSize: 20
                 onClicked: OverviewState.nextTrack()
+            }
+
+            // Com mais de um player, passa para o próximo (sem lista).
+            IconButton {
+                anchors.verticalCenter: parent.verticalCenter
+                visible: OverviewState.playerCount > 1
+                icon: Icons.swap
+                iconSize: 16
+                foreground: ThemeManager.colors.textFaint
+                onClicked: {
+                    OverviewState.cyclePlayer();
+                    cardSwap.restart();
+                }
             }
         }
     }

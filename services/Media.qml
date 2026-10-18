@@ -33,6 +33,27 @@ Singleton {
         chosen = player;
     }
 
+    // O player depois de `current` na lista, dando a volta; null sem players.
+    function nextPlayer(list: var, current: var): var {
+        if (!list || list.length === 0)
+            return null;
+        return list[(list.indexOf(current) + 1) % list.length];
+    }
+
+    // Passa para o próximo player.
+    function cycle(): void {
+        if (players.length > 1)
+            select(nextPlayer(players, active));
+    }
+
+    // O álbum só quando acrescenta algo: diferente do título e não contido
+    // nele (o single "Música" do álbum "Música", "Música - Ao vivo").
+    function albumShown(album: string, title: string): string {
+        const a = String(album ?? "").trim();
+        const t = String(title ?? "").trim().toLowerCase();
+        return a && !t.includes(a.toLowerCase()) ? a : "";
+    }
+
     function togglePlaying(): void {
         if (active?.canTogglePlaying)
             active.togglePlaying();

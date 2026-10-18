@@ -109,14 +109,45 @@ Item {
 
         // Faixa e controles
         ColumnLayout {
+            id: track
+
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
             spacing: ThemeManager.spacing.small
 
-            Txt {
-                text: MediaState.player
-                faint: true
-                font.pixelSize: ThemeManager.font.small
+            // A troca de player: o conteúdo novo vem de quase apagado.
+            Anim {
+                id: playerSwap
+
+                target: track
+                property: "opacity"
+                from: 0.2
+                to: 1
+                type: Anim.FastEffects
+            }
+
+            // O nome do player e, com mais de um, o ícone que passa para o próximo.
+            Row {
+                spacing: ThemeManager.spacing.tiny
+
+                Txt {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: MediaState.player
+                    faint: true
+                    font.pixelSize: ThemeManager.font.small
+                }
+
+                IconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: MediaState.playerCount > 1
+                    icon: Icons.swap
+                    iconSize: 16
+                    foreground: ThemeManager.colors.textFaint
+                    onClicked: {
+                        MediaState.cyclePlayer();
+                        playerSwap.restart();
+                    }
+                }
             }
 
             Txt {
@@ -223,36 +254,6 @@ Item {
                     icon: Icons.next
                     iconSize: 28
                     onClicked: MediaState.next()
-                }
-            }
-
-            // Escolha do player, quando há mais de um.
-            Flow {
-                Layout.fillWidth: true
-                visible: MediaState.players.length > 1
-                spacing: ThemeManager.spacing.tiny
-
-                Repeater {
-                    model: MediaState.players
-
-                    delegate: Clickable {
-                        required property var modelData
-
-                        implicitWidth: chip.implicitWidth + ThemeManager.spacing.normal * 2
-                        implicitHeight: 26
-                        radius: 13
-                        active: modelData.active
-                        onClicked: MediaState.select(modelData.player)
-
-                        Txt {
-                            id: chip
-
-                            anchors.centerIn: parent
-                            text: parent.modelData.name
-                            color: parent.active ? ThemeManager.colors.accentText : ThemeManager.colors.text
-                            font.pixelSize: ThemeManager.font.small
-                        }
-                    }
                 }
             }
         }
