@@ -12,4 +12,17 @@ Text {
     font.pixelSize: ThemeManager.font.normal
     elide: Text.ElideRight
     verticalAlignment: Text.AlignVCenter
+
+    // A Rubik dos temas é variável e carregada pelo FontLoader: o Qt não leva o
+    // `font.weight` para o eixo wght dela (ficava a instância padrão, Light, e
+    // os pesos maiores saíam como negrito sintético). O eixo explícito aplica
+    // o peso de verdade; numa fonte estática, o eixo é ignorado. Atualizado à
+    // mão: uma binding de font.variableAxes lendo font.weight é um laço.
+    onFontChanged: syncWeight()
+    Component.onCompleted: syncWeight()
+
+    function syncWeight(): void {
+        if (font.variableAxes.wght !== font.weight)
+            font.variableAxes = ({ wght: font.weight });
+    }
 }

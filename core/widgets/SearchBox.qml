@@ -50,6 +50,8 @@ Rectangle {
         selectionColor: ThemeManager.alpha(ThemeManager.colors.accent, 0.35)
         selectedTextColor: ThemeManager.colors.text
         font.family: ThemeManager.font.sans
+        // O peso no eixo da Rubik variável (ver o Txt).
+        font.variableAxes: ({ wght: 400 })
         font.pixelSize: root.textSize
         clip: true
         focus: true

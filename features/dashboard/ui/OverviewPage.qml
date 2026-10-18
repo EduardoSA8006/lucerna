@@ -230,6 +230,8 @@ Item {
                                 id: digitMetrics
 
                                 font.family: ThemeManager.font.sans
+                                // O peso no eixo da Rubik variável (ver o Txt).
+                                font.variableAxes: ({ wght: 300 })
                                 font.pixelSize: ThemeManager.font.huge - 6
                                 font.weight: Font.Light
                                 font.features: { "tnum": 1 }

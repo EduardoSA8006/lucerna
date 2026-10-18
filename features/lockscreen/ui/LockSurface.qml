@@ -139,6 +139,8 @@ Item {
                 enabled: !LockscreenState.busy
                 color: ThemeManager.colors.text
                 font.family: ThemeManager.font.sans
+                // O peso no eixo da Rubik variável (ver o Txt).
+                font.variableAxes: ({ wght: 400 })
                 font.pixelSize: ThemeManager.font.large
                 font.letterSpacing: 2
                 clip: true

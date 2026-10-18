@@ -76,6 +76,8 @@ Column {
                             text: chip.modelData.name
                             color: chip.modelData.colors.text ?? "white"
                             font.family: ThemeManager.font.sans
+                            // O peso no eixo da Rubik variável (ver o Txt).
+                            font.variableAxes: ({ wght: 600 })
                             font.pixelSize: ThemeManager.font.normal
                             font.weight: Font.DemiBold
                         }
