@@ -167,8 +167,7 @@ Column {
                     verticalAlignment: TextInput.AlignVCenter
                     color: ThemeManager.colors.text
                     font.family: ThemeManager.font.sans
-                    // O peso no eixo da Rubik variável (ver o Txt).
-                    font.variableAxes: ({ wght: 400 })
+                    font.variableAxes: ThemeManager.fontAxes(Font.Normal)
                     font.pixelSize: ThemeManager.font.normal
                     clip: true
 

@@ -27,6 +27,8 @@ Singleton {
     onActiveChanged: {
         if (!active)
             resetDrm();
+        else
+            refreshBlocks();
     }
     readonly property int historyLength: 30
 
@@ -310,16 +312,50 @@ Singleton {
         return "";
     }
 
-    // Saída do df (origem, tamanho, usado e ponto de montagem), uma linha "--" e
-    // a do lsblk. Cada partição conta uma vez (montada em vários lugares, os
-    // números são os mesmos); as de um disco são somadas.
+    // Os dispositivos do lsblk (parseBlock), lidos ao ligar, a cada
+    // `blocksEvery` leituras do df e quando o df traz uma origem nova; o df
+    // segue a cada ciclo.
+    property var blocks: ({})
+    // As origens do df na última leitura do lsblk: uma que o lsblk não conhece
+    // (/dev/root numa VM) não o faz rodar de novo a cada ciclo.
+    property var blockSources: []
+    property string lastDf: ""
+    property int dfReads: 0
+    readonly property int blocksEvery: 30
+
+    // Só lido ativo (a aba à mostra).
+    function refreshBlocks(): void {
+        if (active && !lsblk.running)
+            lsblk.running = true;
+    }
+
+    // As origens de dispositivo do df ("/dev/...", sem loop e zram).
+    function dfSources(text: string): var {
+        return text.split("\n").slice(1).map(l => l.trim().split(/\s+/)[0] ?? "").filter(s => diskOf({}, s) !== "");
+    }
+
+    // As origens do df que nem o lsblk nem a última leitura dele conhecem.
+    function newSources(text: string, blocks: var, known: var): var {
+        return dfSources(text).filter(s => !(s in blocks) && !known.includes(s));
+    }
+
+    // Uma leitura do df: pede o lsblk de novo quando é a hora ou há origem nova.
+    function readDf(text: string): void {
+        lastDf = text;
+        dfReads++;
+        if (dfReads % blocksEvery === 0 || newSources(text, blocks, blockSources).length > 0)
+            refreshBlocks();
+        parseDf(text);
+    }
+
+    // Saída do df (origem, tamanho, usado e ponto de montagem), com os
+    // dispositivos de `blocks`. Cada partição conta uma vez (montada em vários
+    // lugares, os números são os mesmos); as de um disco são somadas.
     function parseDf(text: string): void {
-        const parts = text.split("\n--\n");
-        const blocks = parseBlock(parts[1] ?? "");
         const seen = new Set();
         const byName = ({});
         const list = [];
-        for (const line of parts[0].split("\n").slice(1)) {
+        for (const line of text.split("\n").slice(1)) {
             const f = line.trim().split(/\s+/);
             if (f.length < 4)
                 continue;
@@ -427,9 +463,23 @@ Singleton {
 
         // -l: só sistemas de arquivos locais (um de rede travado não trava a
         // leitura).
-        command: ["sh", "-c", "df -lB1 --output=source,size,used,target; echo --; lsblk -lnpo NAME,KNAME,TYPE,PKNAME"]
+        command: ["df", "-lB1", "--output=source,size,used,target"]
         stdout: StdioCollector {
-            onStreamFinished: root.parseDf(text)
+            onStreamFinished: root.readDf(text)
+        }
+    }
+
+    Process {
+        id: lsblk
+
+        command: ["lsblk", "-lnpo", "NAME,KNAME,TYPE,PKNAME"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.blocks = root.parseBlock(text);
+                root.blockSources = root.dfSources(root.lastDf);
+                if (root.lastDf)
+                    root.parseDf(root.lastDf);
+            }
         }
     }
 

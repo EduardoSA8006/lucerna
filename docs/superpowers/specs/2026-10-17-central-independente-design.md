@@ -64,7 +64,7 @@ Os popups ficam no canto superior direito, exatamente onde as Ações aparecem, 
 
 ## Testes
 
-- Unidade (`tests/panels.test.js`, `tests/central.test.js`): cada atalho sozinho e com o outro aberto; o fechamento por fora zerando os dois sub-estados; o `central toggle` com e sem entrada; as regras de aceso da barra; o atalho geral nos quatro estados (nenhum, só Ações, só Notificações, os dois); o toggle por entrada das Ações sem afetar as Notificações; a modalidade com o painel superior e o launcher; os popups escondidos só com as Notificações.
+- Unidade (`tests/panels.test.js`, `tests/central.test.js`): cada atalho sozinho e com o outro aberto; o fechamento por fora zerando os dois sub-estados; o `central toggle` com e sem entrada; as regras de aceso da barra; o atalho geral nos quatro estados (nenhum, só Ações, só Notificações, os dois); o toggle por entrada das Ações sem afetar as Notificações; a modalidade com o painel superior e o launcher; os popups escondidos com qualquer um dos dois painéis aberto (e a fila limpa só pelas Notificações).
 - Fumaça: IPC de cada um e do geral, sem avisos.
 - Na tela: só as Ações, só as Notificações (subindo), os dois, e a animação ao abrir/fechar um com o outro aberto.
 

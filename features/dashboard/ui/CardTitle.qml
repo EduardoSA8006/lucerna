@@ -28,7 +28,7 @@ Row {
 
     Txt {
         anchors.verticalCenter: parent.verticalCenter
-        width: root.width - titleIcon.width - (dotsRow.visible ? dotsRow.width + root.spacing : 0) - root.spacing * 2
+        width: root.width - titleIcon.width - root.spacing - (dotsRow.visible ? dotsRow.width + root.spacing : 0)
         text: root.text
     }
 

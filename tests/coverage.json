@@ -22,7 +22,7 @@
         "services/Session.qml": ["lock", "unlock"],
         "services/Spectrum.qml": ["shape", "failuresAfter", "retryDelay"],
         "services/spectrum/Cava.qml": ["configFor", "parse"],
-        "services/SystemStats.qml": ["push", "parseStat", "parseMeminfo", "isPhysical", "parseNetdev", "parseCpuinfo", "pickTempSensor", "parseGpus", "parseDrm", "drmBusy", "resetDrm", "probeDrm", "applyDrm", "parseBlock", "diskOf", "parseDf"],
+        "services/SystemStats.qml": ["push", "parseStat", "parseMeminfo", "isPhysical", "parseNetdev", "parseCpuinfo", "pickTempSensor", "parseGpus", "parseDrm", "drmBusy", "resetDrm", "probeDrm", "applyDrm", "parseBlock", "diskOf", "parseDf", "refreshBlocks", "dfSources", "newSources", "readDf"],
         "services/VideoWallpapers.qml": ["isVideo", "targetFor", "keyOf", "parseKey", "isQueued", "isPreparing", "forget"],
         "services/Weather.qml": ["isStale"]
     },

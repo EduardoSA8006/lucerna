@@ -23,6 +23,6 @@ Text {
 
     function syncWeight(): void {
         if (font.variableAxes.wght !== font.weight)
-            font.variableAxes = ({ wght: font.weight });
+            font.variableAxes = ThemeManager.fontAxes(font.weight);
     }
 }

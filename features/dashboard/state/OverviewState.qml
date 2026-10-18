@@ -58,7 +58,6 @@ Singleton {
     readonly property int todayYear: clock.date.getFullYear()
     readonly property int todayMonth: clock.date.getMonth()
     readonly property int todayDay: clock.date.getDate()
-    readonly property string dayKey: `${todayYear}-${todayMonth}-${todayDay}`
     readonly property var shownMonth: new Date(todayYear, todayMonth + monthOffset, 1)
     readonly property string monthTitle: Format.capitalize(shownMonth.toLocaleDateString(locale, "MMMM 'de' yyyy"))
     readonly property int weekStart: Config.weekStart

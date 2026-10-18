@@ -246,6 +246,13 @@ Singleton {
     // Cor com a transparência do tema. level 0 = fundo de painel, 1 = cartão.
     // Cartões translúcidos clareiam um pouco (proporcional à transparência)
     // para continuar se destacando do painel sem precisar de contorno.
+    // O eixo de peso de uma fonte variável (a Rubik dos temas), que o Qt não
+    // tira do font.weight sozinho: `font.variableAxes: ThemeManager.fontAxes(Font.DemiBold)`
+    // junto do mesmo `font.weight`. Numa fonte estática, o eixo é ignorado.
+    function fontAxes(weight: int): var {
+        return { wght: weight };
+    }
+
     function glass(c: color, level: int): color {
         if (!transparency.enabled)
             return c;
