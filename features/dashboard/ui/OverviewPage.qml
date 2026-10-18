@@ -157,52 +157,88 @@ Item {
                 Layout.fillHeight: true
                 visible: OverviewState.shows("clock") || OverviewState.shows("weather")
 
-                Column {
-                    visible: OverviewState.shows("clock")
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.margins: ThemeManager.spacing.large - 4
-                    spacing: 0
-
-                    Txt {
-                        text: OverviewState.time
-                        mono: true
-                        font.pixelSize: ThemeManager.font.huge + 12
-                        font.weight: Font.Medium
-                    }
-
-                    Txt {
-                        text: `${OverviewState.weekday}, ${OverviewState.date}`
-                        muted: true
-                    }
-                }
-
+                // Duas colunas, centradas na altura: hora e data à esquerda, clima à direita.
+                // Sem clima (escondido), o relógio fica centralizado; sem relógio, o clima.
                 Row {
-                    anchors.left: parent.left
-                    anchors.bottom: parent.bottom
-                    anchors.margins: ThemeManager.spacing.large - 4
-                    visible: OverviewState.shows("weather")
-                    spacing: ThemeManager.spacing.small
-
-                    Icon {
-                        anchors.verticalCenter: parent.verticalCenter
-                        icon: OverviewState.weatherIcon
-                        filled: true
-                        size: 30
-                        color: ThemeManager.colors.accent
-                    }
+                    anchors.centerIn: parent
+                    spacing: ThemeManager.spacing.normal + 2
 
                     Column {
+                        visible: OverviewState.shows("clock")
                         anchors.verticalCenter: parent.verticalCenter
+                        spacing: 0
 
-                        Txt {
-                            text: OverviewState.hasWeather ? `${OverviewState.weatherTemp}  ${OverviewState.weatherText}` : OverviewState.weatherText
-                            font.weight: OverviewState.hasWeather ? Font.DemiBold : Font.Normal
-                            muted: !OverviewState.hasWeather
-                            font.pixelSize: OverviewState.hasWeather ? ThemeManager.font.normal : ThemeManager.font.small
+                        // Dígitos em células de largura fixa: a hora não pula ao mudar de minuto,
+                        // mesmo numa fonte sem números tabulares.
+                        Row {
+                            id: clockRow
+
+                            readonly property font digitFont: Qt.font({ family: ThemeManager.font.sans, pixelSize: ThemeManager.font.huge - 10, weight: Font.Light, features: { "tnum": 1 } })
+                            readonly property real digitWidth: digitMetrics.advanceWidth
+
+                            TextMetrics {
+                                id: digitMetrics
+
+                                font: clockRow.digitFont
+                                text: "0"
+                            }
+
+                            Repeater {
+                                model: 5
+
+                                delegate: Txt {
+                                    required property int index
+
+                                    width: index === 2 ? implicitWidth : clockRow.digitWidth
+                                    horizontalAlignment: Text.AlignHCenter
+                                    text: OverviewState.time.charAt(index)
+                                    font: clockRow.digitFont
+                                }
+                            }
                         }
 
                         Txt {
+                            text: `${OverviewState.weekday}, ${OverviewState.date}`
+                            muted: true
+                            font.pixelSize: ThemeManager.font.small + 1
+                        }
+                    }
+
+                    Column {
+                        visible: OverviewState.shows("weather")
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 2
+
+                        Row {
+                            spacing: ThemeManager.spacing.small
+                            anchors.horizontalCenter: parent.horizontalCenter
+
+                            Icon {
+                                anchors.verticalCenter: parent.verticalCenter
+                                icon: OverviewState.weatherIcon
+                                filled: true
+                                size: 34
+                                color: ThemeManager.colors.accent
+                            }
+
+                            Txt {
+                                visible: OverviewState.hasWeather
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: OverviewState.weatherTemp
+                                font.pixelSize: ThemeManager.font.huge - 8
+                                font.weight: Font.DemiBold
+                            }
+                        }
+
+                        Txt {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: OverviewState.weatherText
+                            muted: true
+                            font.pixelSize: ThemeManager.font.small
+                        }
+
+                        Txt {
+                            anchors.horizontalCenter: parent.horizontalCenter
                             visible: text !== ""
                             text: OverviewState.weatherPlace
                             faint: true
