@@ -14,6 +14,8 @@ Item {
     id: root
 
     readonly property bool onScreen: DashboardState.isShowing("overview")
+    // Os cards de cima das colunas esquerda (usuário) e direita (sistema) têm a mesma altura.
+    readonly property int topCardHeight: 132
     // O clima só entra com dados (ou o aviso do modo offline); senão o relógio fica sozinho.
     readonly property bool weatherOn: OverviewState.shows("weather") && (OverviewState.hasWeather || Config.offline)
 
@@ -43,7 +45,7 @@ Item {
 
             Surface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 92
+                Layout.preferredHeight: root.topCardHeight
                 visible: OverviewState.shows("user")
 
                 Row {
@@ -173,6 +175,9 @@ Item {
                         visible: OverviewState.shows("clock")
                         Layout.alignment: Qt.AlignVCenter
                         Layout.minimumWidth: clockRow.width
+                        Layout.preferredWidth: Math.max(clockRow.width, dateText.implicitWidth)
+                        Layout.maximumWidth: Layout.preferredWidth
+                        Layout.fillWidth: true
                         spacing: 0
 
                         // Dígitos em células de largura fixa (a do dígito mais largo): a hora não
@@ -191,7 +196,7 @@ Item {
                                 id: digitMetrics
 
                                 font.family: ThemeManager.font.sans
-                                font.pixelSize: ThemeManager.font.huge - 10
+                                font.pixelSize: ThemeManager.font.huge - 6
                                 font.weight: Font.Light
                                 font.features: { "tnum": 1 }
                             }
@@ -214,6 +219,8 @@ Item {
                         }
 
                         Txt {
+                            id: dateText
+
                             width: parent.width
                             text: `${OverviewState.weekday}, ${OverviewState.date}`
                             muted: true
@@ -225,6 +232,9 @@ Item {
                         visible: root.weatherOn
                         Layout.alignment: Qt.AlignVCenter
                         Layout.minimumWidth: weatherRow.width
+                        Layout.preferredWidth: Math.max(weatherRow.width, conditionText.implicitWidth, placeText.implicitWidth)
+                        Layout.maximumWidth: Layout.preferredWidth
+                        Layout.fillWidth: true
                         spacing: 2
 
                         Row {
@@ -237,7 +247,7 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 icon: OverviewState.weatherIcon
                                 filled: true
-                                size: 34
+                                size: 30
                                 color: ThemeManager.colors.accent
                             }
 
@@ -245,12 +255,14 @@ Item {
                                 visible: OverviewState.hasWeather
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: OverviewState.weatherTemp
-                                font.pixelSize: ThemeManager.font.huge - 8
+                                font.pixelSize: ThemeManager.font.huge - 14
                                 font.weight: Font.DemiBold
                             }
                         }
 
                         Txt {
+                            id: conditionText
+
                             width: parent.width
                             horizontalAlignment: Text.AlignHCenter
                             text: OverviewState.weatherText
@@ -261,6 +273,8 @@ Item {
                         }
 
                         Txt {
+                            id: placeText
+
                             width: parent.width
                             horizontalAlignment: Text.AlignHCenter
                             visible: text !== ""
@@ -301,7 +315,7 @@ Item {
 
             Surface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 150
+                Layout.preferredHeight: root.topCardHeight
                 Layout.fillHeight: !OverviewState.shows("media")
                 visible: OverviewState.shows("resources")
 
