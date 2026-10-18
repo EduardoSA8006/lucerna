@@ -12,6 +12,8 @@ import qs.features.dashboard.state
 Item {
     id: root
 
+    readonly property bool onScreen: DashboardState.isShowing("overview")
+
     implicitHeight: layout.visibleChildren.length ? layout.implicitHeight : 120
 
     Txt {
@@ -53,10 +55,12 @@ Item {
 
                         Blob {
                             anchors.fill: parent
-                            lobes: 9
-                            amplitude: 0.07
+                            morphing: true
+                            active: root.onScreen
+                            steps: 96
                             color: ThemeManager.alpha(ThemeManager.colors.accent, 0.22)
                             spinning: true
+                            spinDuration: 30000
                         }
 
                         Icon {
