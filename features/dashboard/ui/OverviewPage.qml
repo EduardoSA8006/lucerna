@@ -164,21 +164,49 @@ Item {
 
                 // Duas colunas, centradas na altura: hora e data à esquerda, clima à direita.
                 // Sem clima (desligado, sem dados e fora do modo offline), o relógio fica
-                // sozinho e centralizado. Em card estreito, a data e o clima encolhem
-                // (elide ou duas linhas); a hora, não.
+                // sozinho e centralizado. Em card estreito, a data quebra em duas
+                // linhas e o clima encolhe (duas linhas ou elide); a hora, não.
                 RowLayout {
                     anchors.centerIn: parent
                     width: Math.min(implicitWidth, parent.width - 2 * (ThemeManager.spacing.large - 4))
                     spacing: ThemeManager.spacing.normal + 2
 
                     Column {
+                        id: clockColumn
+
+                        // A data numa linha ("Sábado, 17 de outubro"); se não couber, o dia da
+                        // semana numa linha e o dia e o mês na de baixo, sem reticências.
+                        readonly property string oneLine: `${OverviewState.weekday}, ${OverviewState.date}`
+                        readonly property bool dateFits: oneLineMetrics.advanceWidth <= width
+
                         visible: OverviewState.shows("clock")
                         Layout.alignment: Qt.AlignVCenter
-                        Layout.minimumWidth: clockRow.width
-                        Layout.preferredWidth: Math.max(clockRow.width, dateText.implicitWidth)
+                        Layout.minimumWidth: Math.max(clockRow.width, weekdayMetrics.advanceWidth, dayMetrics.advanceWidth)
+                        Layout.preferredWidth: Math.max(clockRow.width, oneLineMetrics.advanceWidth)
                         Layout.maximumWidth: Layout.preferredWidth
                         Layout.fillWidth: true
                         spacing: 0
+
+                        TextMetrics {
+                            id: oneLineMetrics
+
+                            font: dateText.font
+                            text: clockColumn.oneLine
+                        }
+
+                        TextMetrics {
+                            id: weekdayMetrics
+
+                            font: dateText.font
+                            text: `${OverviewState.weekday},`
+                        }
+
+                        TextMetrics {
+                            id: dayMetrics
+
+                            font: dateText.font
+                            text: OverviewState.date
+                        }
 
                         // Dígitos em células de largura fixa (a do dígito mais largo): a hora não
                         // pula ao mudar de minuto, mesmo numa fonte sem números tabulares.
@@ -222,7 +250,7 @@ Item {
                             id: dateText
 
                             width: parent.width
-                            text: `${OverviewState.weekday}, ${OverviewState.date}`
+                            text: clockColumn.dateFits ? clockColumn.oneLine : `${OverviewState.weekday},\n${OverviewState.date}`
                             muted: true
                             font.pixelSize: ThemeManager.font.small + 1
                         }
