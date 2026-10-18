@@ -132,7 +132,7 @@ Singleton {
 
     // O card de mídia da aba Painel, tocando: o espectro pelo cava; sem ele,
     // as ondas pelo pico do som.
-    readonly property bool overviewMediaLive: root.isShowing("overview") && !(Config.overviewHidden ?? []).includes("media") && Media.playing
+    readonly property bool overviewMediaLive: root.isShowing("overview") && OverviewState.shows("media") && Media.playing
 
     Binding {
         target: Spectrum

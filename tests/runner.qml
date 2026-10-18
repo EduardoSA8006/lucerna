@@ -25,6 +25,7 @@ import qs.features.dashboard.state
 import qs.features.notifications.state
 import qs.features.themeSwitcher.state
 import qs.services
+import qs.services.spectrum
 import "appinfo.test.js" as AppInfoTest
 import "audio.test.js" as AudioTest
 import "audiostreams.test.js" as AudioStreamsTest
@@ -158,6 +159,11 @@ ShellRoot {
         return notificationCard.createObject(root, props);
     }
 
+    // Um backend do cava solto, sem pedido (o processo não roda).
+    function cava(): var {
+        return cavaBackend.createObject(root);
+    }
+
     function enums(): var {
         return {
             wifiOpen: QsNet.WifiSecurityType.Open,
@@ -180,6 +186,7 @@ ShellRoot {
             near: root.near,
             object: root.object,
             card: root.card,
+            cava: root.cava,
             enums: root.enums(),
             get Config() { return Config; },
             get Format() { return Format; },
@@ -225,6 +232,12 @@ ShellRoot {
         id: dummy
 
         QtObject {}
+    }
+
+    Component {
+        id: cavaBackend
+
+        Cava {}
     }
 
     Component {

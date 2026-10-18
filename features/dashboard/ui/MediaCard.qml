@@ -55,8 +55,7 @@ Item {
                     x: (root.visualSize - width) / 2
                     y: root.visualSize / 2 - root.barStart - height
                     width: 3
-                    // A raiz realça as faixas fracas (o cava entrega quase tudo baixo).
-                    height: 2 + root.gain * Math.sqrt(bar.level) * (root.barReach - 2)
+                    height: 2 + root.gain * bar.level * (root.barReach - 2)
                     radius: 1.5
                     color: ThemeManager.colors.accent
                     opacity: 0.85
