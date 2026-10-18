@@ -94,9 +94,11 @@ OverlayPanel {
         id: focusSink
     }
 
+    // Por cima das Notificações: na saída das Ações, elas sobem por baixo.
     ActionsPanel {
         id: actions
 
+        z: 1
         order: 0
         margin: panel.margin
         areaWidth: panel.width

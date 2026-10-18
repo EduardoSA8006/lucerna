@@ -19,6 +19,7 @@ import qs.core.panels
 import qs.core.shapes
 import qs.core.theme
 import qs.core.time
+import qs.core.widgets
 import qs.features.central.state
 import qs.features.dashboard.state
 import qs.features.notifications.state
@@ -149,6 +150,12 @@ ShellRoot {
         return dummy.createObject(root);
     }
 
+    // Um cartão de notificação solto (sem notificação), com as propriedades
+    // iniciais, como o delegate dos popups o cria; para o prazo do popup.
+    function card(props: var): var {
+        return notificationCard.createObject(root, props);
+    }
+
     function enums(): var {
         return {
             wifiOpen: QsNet.WifiSecurityType.Open,
@@ -170,6 +177,7 @@ ShellRoot {
             eq: root.eq,
             near: root.near,
             object: root.object,
+            card: root.card,
             enums: root.enums(),
             get Config() { return Config; },
             get Format() { return Format; },
@@ -214,6 +222,14 @@ ShellRoot {
         id: dummy
 
         QtObject {}
+    }
+
+    Component {
+        id: notificationCard
+
+        NotificationCard {
+            notification: null
+        }
     }
 
     Component.onCompleted: {

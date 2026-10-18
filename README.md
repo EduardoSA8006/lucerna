@@ -190,6 +190,8 @@ Os atalhos do shell vêm prontos e se editam em Configurações → Atalhos:
 | `Super+L` | Bloquear a tela |
 | Teclas de volume, mudo, microfone, mídia e brilho | O mesmo, com o OSD |
 
+Mudou: `Super+N` (a ação `notifications`) agora abre só as notificações; a central inteira (ações e notificações) fica em `Super+C`.
+
 O shell fica com essas teclas: se o `hyprland.lua` também tiver alguma delas, a dele sai (até o próximo reload). Então tire do `hyprland.lua` os atalhos antigos do Lucerna, se houver. Os do Hyprland (janelas, workspaces) continuam lá; o [`dev/hyprland.lua`](dev/hyprland.lua) tem um exemplo. As regras de desfoque dos painéis são aplicadas pelo próprio shell, sem mexer no `hyprland.lua`.
 
 ## Comandos IPC

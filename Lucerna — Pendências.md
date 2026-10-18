@@ -15,7 +15,7 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 9. [x] **Captura de tela e gravação:** área, janela ou tela, com notificação e atalho.
 10. [x] **Visão geral dos workspaces**, com as janelas em miniatura.
 11. [x] **Brilho de monitores externos** por DDC/CI.
-12. [x] **Central.** Dois painéis flutuantes na direita, no lugar da barra lateral: ações (tiles com uma página por recurso, inclusive o volume de cada app, e os sliders de volume e brilho) e notificações, independentes (`Super+A`, `Super+N`; os dois com `Super+C`).
+12. [x] **Central.** Dois painéis flutuantes na direita, no lugar da barra lateral: ações (tiles com uma página por recurso, inclusive o volume de cada app, e os sliders de volume e brilho) e notificações, independentes (`Super+A`, `Super+N`; os dois com `Super+C`). Mudança de comportamento: `Super+N` (a ação `notifications`) agora abre só as notificações; a central inteira fica em `Super+C`.
 13. [ ] **Dock**, com spec próprio.
 14. [ ] **Instalação e distribuição:** script de instalação (link, trecho do `hyprland.lua`, atalhos padrão) e pacote no AUR. A verificação no CI já está feita: quatro checks obrigatórios (`ci/`, `dev/ci.sh`).
 15. [ ] **Plugins próprios**, na ordem de `Lucerna — Plugins Próprios.md`: `lucerna-sysinfo`, depois `lucerna-spectrum`, depois os demais.

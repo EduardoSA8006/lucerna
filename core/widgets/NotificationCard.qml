@@ -8,7 +8,8 @@ import Quickshell.Widgets
 import qs.core.theme
 
 // Cartão de uma notificação, usado nos popups e na central. Em modo popup,
-// uma linha de acento mostra o tempo restante (pausa com o mouse em cima).
+// uma linha de acento mostra o tempo restante (pausa com o mouse em cima e
+// enquanto `held`, com o popup escondido).
 Surface {
     id: card
 
@@ -20,6 +21,10 @@ Surface {
     // aos sinais; o cartão não conhece estado nenhum.
     property string timeText: ""
     property int timeout: 0
+    // Segura o prazo: o popup está escondido (a central aberta) e não conta.
+    property bool held: false
+    // O prazo correndo agora.
+    readonly property bool counting: countdown.running && !countdown.paused
     readonly property bool critical: notification?.urgency === NotificationUrgency.Critical
     readonly property string image: {
         if (!notification)
@@ -55,7 +60,7 @@ Surface {
         id: countdown
 
         running: card.timeout > 0
-        paused: running && hover.hovered
+        paused: running && (hover.hovered || card.held)
         from: 1
         to: 0
         duration: card.timeout

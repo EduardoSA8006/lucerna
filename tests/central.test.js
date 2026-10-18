@@ -416,4 +416,17 @@ function run(t) {
             N.popups = popups0;
         }
     });
+
+    t.test("notificações: o prazo do popup para enquanto ele está escondido", () => {
+        const card = t.card({ popup: true, held: true, timeout: 5000 });
+        try {
+            t.eq([card.counting, card.remaining], [false, 1], "chegou escondido: o prazo fica cheio");
+            card.held = false;
+            t.eq(card.counting, true, "à mostra, corre");
+            card.held = true;
+            t.eq(card.counting, false, "escondido de novo, para");
+        } finally {
+            card.destroy();
+        }
+    });
 }

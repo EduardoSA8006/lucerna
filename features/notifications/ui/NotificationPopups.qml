@@ -65,6 +65,8 @@ PanelWindow {
             popup: true
             timeText: NotificationsState.timeLabel(modelData)
             timeout: NotificationsState.timeoutFor(modelData)
+            // Com a central aberta a janela some, mas o prazo não corre.
+            held: NotificationsState.popupsHidden
             onExpired: NotificationsState.hidePopup(modelData)
             onDismissRequested: NotificationsState.dismiss(modelData)
             onActionInvoked: action => NotificationsState.invoke(modelData, action)
