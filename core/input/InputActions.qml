@@ -17,8 +17,9 @@ Singleton {
     readonly property var actions: [
         { id: "launcher", group: "Lucerna", label: "Abrir o launcher", icon: Icons.apps, kind: "shell" },
         { id: "dashboard", group: "Lucerna", label: "Abrir o painel superior", icon: Icons.dashboard, kind: "shell" },
-        { id: "central", group: "Lucerna", label: "Abrir a central", icon: Icons.central, kind: "shell" },
-        { id: "notifications", group: "Lucerna", label: "Abrir a central nas notificações", icon: Icons.bell, kind: "shell" },
+        { id: "actions", group: "Lucerna", label: "Abrir as ações", icon: Icons.central, kind: "shell" },
+        { id: "notifications", group: "Lucerna", label: "Abrir as notificações", icon: Icons.bell, kind: "shell" },
+        { id: "central", group: "Lucerna", label: "Abrir a central", icon: Icons.centralBoth, kind: "shell" },
         { id: "settings", group: "Lucerna", label: "Abrir as configurações", icon: Icons.settings, kind: "shell" },
         { id: "overview", group: "Lucerna", label: "Visão geral dos workspaces", icon: "overview_key", kind: "shell" },
         { id: "clipboard", group: "Lucerna", label: "Abrir o histórico da área de transferência", icon: "content_paste", kind: "shell" },

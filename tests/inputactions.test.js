@@ -13,6 +13,10 @@ function run(t) {
         t.eq(A.find("central").label, "Abrir a central");
     });
 
+    t.test("inputactions: os painéis da central", () => {
+        t.eq(["actions", "notifications", "central"].map(id => A.describe({ id })), ["Abrir as ações", "Abrir as notificações", "Abrir a central"]);
+    });
+
     t.test("inputactions: descreve a ação configurada", () => {
         t.eq(A.describe({ id: "lock" }), "Bloquear a tela");
         t.eq(A.describe({ id: "shortcut", mods: "SUPER SHIFT", key: "q" }), "Enviar Super + Shift + Q");

@@ -27,7 +27,7 @@ PanelWindow {
         interval: 600
     }
 
-    visible: (hasPopups || linger.running) && !NotificationsState.centralOpen
+    visible: (hasPopups || linger.running) && !NotificationsState.popupsHidden
     screen: NotificationsState.screen
     anchors {
         top: true

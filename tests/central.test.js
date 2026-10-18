@@ -1,7 +1,8 @@
 // Testes da central (features/central/state): a página que cada entrada
-// abre, a volta ao estado inicial, os tiles do painel de Ações e a linha de
-// estado da bateria. Abre pelo Panels, como a barra e os atalhos; cada caso
-// fecha a central e devolve os painéis abertos ao que eram.
+// abre, a volta ao estado inicial, os tiles do painel de Ações, a linha de
+// estado da bateria e os popups de notificação com a central aberta. Abre
+// pelo Panels, como a barra e os atalhos; cada caso fecha a central e devolve
+// os painéis abertos ao que eram.
 function run(t) {
     const S = t.CentralState;
     const P = t.Panels;
@@ -49,16 +50,20 @@ function run(t) {
         const profiles0 = B.profilesAvailable;
         try {
             B.simulated = { percentage: 0.5, onBattery: true };
-            P.openCentral("energia");
-            t.eq([S.open, P.centralEntry, S.page], [true, "energia", "battery"]);
+            P.openActions("energia");
+            t.eq([S.actionsOpen, P.centralEntry, S.page], [true, "energia", "battery"]);
             for (const entry of ["notificacoes", ""]) {
-                P.openCentral(entry);
+                P.openActions(entry);
                 t.eq(S.page, "", `entrada "${entry}": o estado inicial`);
             }
+            P.openCentral("energia");
+            t.eq([S.actionsOpen, S.notificationsOpen, S.page], [true, true, "battery"], "o central com entrada também");
+            P.openCentral("");
+            t.eq(S.page, "battery", "o central sem entrada não troca a página");
             B.simulated = null;
             B.profilesAvailable = false;
             if (t.PowerState.devices.length === 0) {
-                P.openCentral("energia");
+                P.openActions("energia");
                 t.eq([P.centralEntry, S.page], ["energia", ""], "sem bateria, perfil e dispositivos: o estado inicial");
             }
         } finally {
@@ -74,7 +79,7 @@ function run(t) {
         try {
             B.simulated = null;
             B.profilesAvailable = true;
-            P.openCentral("");
+            P.openActions("");
             S.setPage("battery");
             t.eq(S.page, "battery");
             B.profilesAvailable = false;
@@ -90,17 +95,42 @@ function run(t) {
     });
 
     scenario("central: entrada desconhecida abre o estado inicial", () => {
-        P.openCentral("wifi");
-        t.eq([S.open, P.centralEntry, S.page], [true, "", ""], "o nome antigo do IPC");
+        P.openActions("wifi");
+        t.eq([S.actionsOpen, P.centralEntry, S.page], [true, "", ""], "o nome antigo do IPC");
     });
 
     scenario("central: a reabertura começa do zero", () => {
         P.openCentral("rede");
         S.setPage("battery");
         P.toggleCentral("rede");
-        t.eq([S.open, P.centralEntry, S.page], [false, "", "battery"], "na saída, a página fica até o painel sumir");
+        t.eq([S.actionsOpen, P.centralEntry, S.page], [false, "", "battery"], "na saída, a página fica até o painel sumir");
         P.open("central");
-        t.eq([S.open, P.centralEntry, S.page], [true, "", ""], "aberta sem entrada (panels open central)");
+        t.eq([S.actionsOpen, P.centralEntry, S.page], [true, "", ""], "aberta sem entrada (panels open central)");
+    });
+
+    scenario("central: só as ações voltam ao estado inicial", () => {
+        P.openActions("rede");
+        S.setPage("bluetooth");
+        P.openNotifications();
+        t.eq(S.page, "bluetooth", "abrir as notificações não mexe na página");
+        P.closeNotifications();
+        t.eq(S.page, "bluetooth", "nem fechá-las");
+        P.openNotifications();
+        P.closeActions();
+        t.eq([S.actionsOpen, S.notificationsOpen, S.open, S.page], [false, true, true, "bluetooth"], "fechar as ações deixa a página até o painel sumir");
+        P.toggleActions("");
+        t.eq([S.actionsOpen, S.page], [true, ""], "reabertas com as notificações abertas, começam do zero");
+    });
+
+    scenario("central: a busca de redes só com a página do Wi-Fi nas ações", () => {
+        const N = t.Network;
+        P.openNotifications();
+        t.eq(N.scanning, false, "só as notificações");
+        P.openActions("");
+        S.setPage("wifi");
+        t.eq(N.scanning, true, "a página do Wi-Fi");
+        P.closeActions();
+        t.eq([S.notificationsOpen, N.scanning], [true, false], "as ações fecharam, as notificações não");
     });
 
     scenario("central: trocar de entrada troca a página", () => {
@@ -114,8 +144,8 @@ function run(t) {
         P.openCentral("rede");
         S.setPage("bluetooth");
         P.open("launcher");
-        t.eq([S.open, P.centralEntry], [false, ""]);
-        P.openCentral("");
+        t.eq([S.open, S.actionsOpen, S.notificationsOpen, P.centralEntry], [false, false, false, ""]);
+        P.openActions("");
         t.eq(S.page, "", "reaberta, começa do zero");
     });
 
@@ -200,7 +230,7 @@ function run(t) {
     });
 
     scenario("ações: o corpo dos tiles sem liga/desliga abre a página", () => {
-        P.openCentral("");
+        P.openActions("");
         K.activate("output");
         t.eq(S.page, "output");
         K.activate("battery");
@@ -212,7 +242,7 @@ function run(t) {
     scenario("ações: a engrenagem abre as configurações e fecha a central", () => {
         P.openCentral("");
         K.openSettings();
-        t.eq([P.opened, S.open], [["settings"], false]);
+        t.eq([P.opened, S.open, S.actionsOpen, S.notificationsOpen], [["settings"], false, false, false]);
     });
 
     const E = t.PowerState;
@@ -337,11 +367,16 @@ function run(t) {
         try {
             B.simulated = { percentage: 0.5, onBattery: true };
             t.eq(B.historyActive, false, "fechada");
-            P.openCentral("energia");
+            P.openActions("energia");
             t.eq(B.historyActive, true, "a página da bateria");
             S.setPage("");
             t.eq(B.historyActive, false, "voltou aos tiles");
+            P.openNotifications();
             S.setPage("battery");
+            t.eq(B.historyActive, true, "as notificações abertas junto não mudam nada");
+            P.closeActions();
+            t.eq(B.historyActive, false, "as ações fecharam, as notificações não");
+            P.openActions("energia");
             P.close();
             t.eq(B.historyActive, false, "a central fechou");
         } finally {
@@ -349,6 +384,36 @@ function run(t) {
             B.history = saved.history;
             B.historyAt = saved.historyAt;
             B.upowerHistory = saved.upowerHistory;
+        }
+    });
+
+    // Os popups ficam no canto das ações: escondidos com qualquer um dos dois
+    // aberto; a fila só é limpa ao abrir e ao fechar as notificações.
+    scenario("notificações: os popups com a central aberta", () => {
+        const N = t.Notifications;
+        const Q = t.NotificationsState;
+        const popups0 = N.popups;
+        try {
+            N.popups = ["a"];
+            t.eq([Q.popupsHidden, N.popups], [false, ["a"]], "fechada: à mostra");
+            P.openActions("som");
+            t.eq([Q.popupsHidden, N.popups], [true, ["a"]], "só as ações: escondidos, na fila");
+            N.popups = ["b", "a"];
+            t.eq(N.popups, ["b", "a"], "o que chega com só as ações espera");
+            P.closeActions();
+            t.eq([Q.popupsHidden, N.popups], [false, ["b", "a"]], "as ações fecharam: voltam");
+            P.openActions("");
+            P.openNotifications();
+            t.eq([Q.popupsHidden, N.popups], [true, []], "abrir as notificações limpa");
+            N.popups = ["c"];
+            t.eq(N.popups, [], "o que chega com as notificações abertas já está na lista");
+            P.closeNotifications();
+            t.eq([Q.popupsHidden, N.popups], [true, []], "fechadas, as ações ainda escondem");
+            N.popups = ["d"];
+            P.close();
+            t.eq([Q.popupsHidden, N.popups], [false, ["d"]], "fechar só as ações não limpa a fila");
+        } finally {
+            N.popups = popups0;
         }
     });
 }

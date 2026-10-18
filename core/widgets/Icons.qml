@@ -88,6 +88,8 @@ Singleton {
     readonly property string speaker: "speaker"
     readonly property string sound: "graphic_eq"
     readonly property string central: "tune"
+    // As Ações e as Notificações juntas.
+    readonly property string centralBoth: "view_sidebar"
     readonly property string panels: "stacks"
     readonly property string monitor: "desktop_windows"
     readonly property string resolution: "aspect_ratio"

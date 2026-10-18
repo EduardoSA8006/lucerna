@@ -15,7 +15,7 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 9. [x] **Captura de tela e gravação:** área, janela ou tela, com notificação e atalho.
 10. [x] **Visão geral dos workspaces**, com as janelas em miniatura.
 11. [x] **Brilho de monitores externos** por DDC/CI.
-12. [x] **Central.** Dois painéis flutuantes na direita, no lugar da barra lateral: ações (tiles com uma página por recurso, inclusive o volume de cada app, e os sliders de volume e brilho) e notificações.
+12. [x] **Central.** Dois painéis flutuantes na direita, no lugar da barra lateral: ações (tiles com uma página por recurso, inclusive o volume de cada app, e os sliders de volume e brilho) e notificações, independentes (`Super+A`, `Super+N`; os dois com `Super+C`).
 13. [ ] **Dock**, com spec próprio.
 14. [ ] **Instalação e distribuição:** script de instalação (link, trecho do `hyprland.lua`, atalhos padrão) e pacote no AUR. A verificação no CI já está feita: quatro checks obrigatórios (`ci/`, `dev/ci.sh`).
 15. [ ] **Plugins próprios**, na ordem de `Lucerna — Plugins Próprios.md`: `lucerna-sysinfo`, depois `lucerna-spectrum`, depois os demais.
@@ -31,6 +31,8 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 - [ ] Central, saída de áudio: o volume por app mostra qualquer app com áudio aberto, inclusive pausado, porque o `PwNode` do Quickshell 0.3 não diz se o stream está tocando. Filtrar quando houver esse estado.
 - [ ] Central, saída de áudio (aceito): sem saída padrão, o volume por app não aparece, porque a página da Saída some junto com o tile.
 - [ ] Central, sliders (aceito): a roda do mouse sobre um slider largo (volume, brilho, microfone) muda o valor em vez de rolar a página.
+- [ ] Central (aceito): as ações e as notificações são sub-estados de um painel modal só, então o `panels get` mostra só `central`, sem dizer qual dos dois está aberto.
+- [ ] Central (aceito): durante a saída animada de um dos dois painéis, um clique na área dele ainda conta como dentro (não fecha a central).
 - [ ] Central, saída de áudio (aceito; conferir com o mouse): ao trocar para um sink Bluetooth recém-conectado, a página da Saída pode voltar ao estado inicial se o sink demorar a ficar pronto (o recurso "some" por um instante).
 
 ## Verificar com hardware e entrada reais
@@ -48,7 +50,7 @@ No ambiente de teste não dá para simular cliques, e o Hyprland ignora teclado 
 - [ ] Visão geral: arrastar uma janela para outro workspace (no container não dá para simular o arrasto) e vários monitores.
 - [ ] Brilho: as teclas ajustando o monitor em foco (no container o foco é a janela aninhada, não o HDMI).
 - [ ] Launcher: navegação pelo teclado nos três estilos, `Ctrl+1…9` nas ações do app e o "Mais opções".
-- [ ] Central: os ícones da barra abrindo na página certa e fechando no mesmo ícone; os tiles (o corpo liga e desliga, a setinha abre a página), os sliders de volume e brilho e os volumes do microfone e de cada app; a troca de dispositivo, conectar a uma rede com senha, parear, os perfis de energia, a engrenagem e o "Limpar".
+- [ ] Central: os ícones da barra abrindo as ações na página certa e fechando no mesmo ícone (sem fechar as notificações), o sino abrindo e fechando só as notificações, e o foco voltando ao painel (o `Esc` fecha) depois de fechar as ações com a senha do Wi-Fi sendo digitada; os tiles (o corpo liga e desliga, a setinha abre a página), os sliders de volume e brilho e os volumes do microfone e de cada app; a troca de dispositivo, conectar a uma rede com senha, parear, os perfis de energia, a engrenagem e o "Limpar".
 
 ## Ambiente de teste
 

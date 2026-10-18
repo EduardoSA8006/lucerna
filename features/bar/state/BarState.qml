@@ -190,13 +190,22 @@ Singleton {
         onTriggered: Panels.open("dashboard")
     }
 
-    // Abre a central na entrada (ou fecha, se ela já estiver aberta por ela).
+    // Abre as Ações da central na entrada (ou fecha, se já estiverem abertas
+    // por ela); as Notificações ficam como estão.
     function toggleEntry(entry: string): void {
-        Panels.toggleCentral(entry);
+        Panels.toggleActions(entry);
     }
 
+    // O ícone da entrada aceso: as Ações abertas por ela.
     function entryOpen(entry: string): bool {
-        return Panels.isOpen("central") && Panels.centralEntry === entry;
+        return Panels.actionsAt(entry);
+    }
+
+    // O sino: só as Notificações da central.
+    readonly property bool notificationsOpen: Panels.notificationsOpen
+
+    function toggleNotifications(): void {
+        Panels.toggleNotifications();
     }
 
     // Gravação de tela em andamento: o tempo, e parar pela barra.

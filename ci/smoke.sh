@@ -207,7 +207,16 @@ done
 for entry in "" rede bluetooth som energia microfone notificacoes; do
     step central central open "$entry"
 done
+# Cada um dos dois painéis da central sozinho e os dois juntos: todos ficam
+# no painel modal central.
 step central central toggle som
+step central central toggle ""
+step central controls open rede
+step central controls toggle ""
+step central notifications open
+step central notifications toggle
+step central panels open central
+step central panels toggle central
 for topic in appearance wallpaper displays idle nightlight launcher clipboard capture mouse keyboard glass \
     notifications panels bar dashboard power shortcuts about; do
     step settings settings open "$topic"

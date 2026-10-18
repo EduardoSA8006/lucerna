@@ -9,23 +9,26 @@ import qs.core.format
 import qs.core.panels
 import qs.services
 
-// View model das notificações: os popups (a lista fica na central).
+// View model das notificações: os popups (a lista fica na central) e o IPC.
 Singleton {
     id: root
 
-    // A central mostra a lista de notificações: com ela aberta, os popups
-    // esperam (ficariam por cima dela); abrir e fechar contam como tê-los visto.
-    readonly property bool centralOpen: Panels.isOpen("central")
+    // Os popups ficam no canto das Ações: com qualquer um dos dois painéis da
+    // central aberto, esperam escondidos (ficariam por cima deles).
+    readonly property bool popupsHidden: Panels.isOpen("central")
+    // As Notificações mostram a lista: abri-las e fechá-las contam como ter
+    // visto os popups. Com só as Ações, o que chega fica para depois.
+    readonly property bool listOpen: Panels.notificationsOpen
 
-    onCentralOpenChanged: Notifications.clearPopups()
+    onListOpenChanged: Notifications.clearPopups()
 
-    // O que chega com a central aberta já está na lista: sai na hora, sem
-    // sobrar popup para piscar quando a central fecha.
+    // O que chega com as Notificações abertas já está na lista: sai na hora,
+    // sem sobrar popup para piscar quando elas fecham.
     Connections {
         target: Notifications
 
         function onPopupsChanged(): void {
-            if (root.centralOpen && Notifications.popups.length > 0)
+            if (root.listOpen && Notifications.popups.length > 0)
                 Notifications.clearPopups();
         }
     }
@@ -50,6 +53,19 @@ Singleton {
 
     IpcHandler {
         target: "notifications"
+
+        // O painel das Notificações da central.
+        function open(): void {
+            Panels.openNotifications();
+        }
+
+        function toggle(): void {
+            Panels.toggleNotifications();
+        }
+
+        function close(): void {
+            Panels.closeNotifications();
+        }
 
         function clear(): void {
             root.clearAll();

@@ -16,6 +16,7 @@ Singleton {
         { id: "launcher", keys: [{ mods: mod, trigger: "space" }] },
         { id: "dashboard", keys: [{ mods: mod, trigger: "d" }] },
         { id: "settings", keys: [{ mods: mod, trigger: "s" }] },
+        { id: "actions", keys: [{ mods: mod, trigger: "a" }] },
         { id: "notifications", keys: [{ mods: mod, trigger: "n" }] },
         { id: "central", keys: [{ mods: mod, trigger: "c" }] },
         { id: "overview", keys: [{ mods: mod, trigger: "Tab" }] },

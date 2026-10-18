@@ -21,6 +21,7 @@ import qs.core.theme
 import qs.core.time
 import qs.features.central.state
 import qs.features.dashboard.state
+import qs.features.notifications.state
 import qs.features.themeSwitcher.state
 import qs.services
 import "appinfo.test.js" as AppInfoTest
@@ -181,6 +182,7 @@ ShellRoot {
             get Panels() { return Panels; },
             get CentralState() { return CentralState; },
             get ControlsState() { return ControlsState; },
+            get NotificationsState() { return NotificationsState; },
             get PowerState() { return PowerState; },
             get OverviewState() { return OverviewState; },
             get PerformanceState() { return PerformanceState; },
