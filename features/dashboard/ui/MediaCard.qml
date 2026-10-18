@@ -34,10 +34,10 @@ Item {
             visible: root.hasMedia
             size: root.visualSize
             innerSize: root.coverSize
-            values: OverviewState.spectrum
-            bands: OverviewState.spectrumBars
-            hasSpectrum: OverviewState.hasSpectrum
-            peak: OverviewState.mediaPeak
+            values: DashboardState.spectrum
+            bands: DashboardState.spectrumBars
+            hasSpectrum: DashboardState.hasSpectrum
+            peak: DashboardState.peak
             live: root.live
         }
 

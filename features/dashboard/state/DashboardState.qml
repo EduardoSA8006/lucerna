@@ -133,6 +133,14 @@ Singleton {
     // O espectro em volta da capa, tocando: no card da aba Painel e na aba
     // Mídia (se ligado nas configurações). Um processo só atende as duas; sem
     // o espectro, as ondas usam o pico do som.
+    // O ponto único de leitura do espectro para a feature (o card da aba
+    // Painel e a aba Mídia): as faixas, se há espectro e o pico do som para as
+    // ondas de quando ele falta.
+    readonly property bool hasSpectrum: Spectrum.available
+    readonly property var spectrum: Spectrum.values
+    readonly property int spectrumBars: Spectrum.bars
+    readonly property real peak: Math.min(1, Audio.peak * 1.6)
+
     readonly property bool overviewMediaLive: root.isShowing("overview") && OverviewState.shows("media") && Media.playing
     readonly property bool mediaTabLive: root.isShowing("media") && Config.audioPulse && Media.playing
 

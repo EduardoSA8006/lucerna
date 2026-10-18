@@ -23,7 +23,9 @@
 # então os popups e a lista de notificações não funcionam nesse modo, e um
 # notify-send no container fica sem servidor. E se o desktop do host largar o
 # nome (o plasmashell reiniciando), o shell do container o pega: faça o up sem
-# ela de novo depois do teste. Vale até o próximo up sem ela.
+# ela de novo depois do teste. E o container passa a poder chamar qualquer
+# serviço da sessão do host (o chaveiro, os portais, o systemd --user): o modo
+# é só para desenvolvimento. Vale até o próximo up sem ela.
 # Um `hyprctl reload` ou fechar a janela derruba a saída do Hyprland aninhado
 # (ele cai no monitor FALLBACK e as capturas saem vazias): dev/test.sh up de novo.
 #
@@ -297,7 +299,7 @@ case "${1:-}" in
         ex "$2"
         ;;
     *)
-        sed -n '2,27p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+        sed -n '2,28p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
         exit 2
         ;;
 esac

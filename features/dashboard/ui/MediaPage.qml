@@ -56,10 +56,10 @@ Item {
                 visible: MediaState.visualizer
                 size: 276
                 innerSize: cover.width
-                values: MediaState.spectrum
-                bands: MediaState.spectrumBars
-                hasSpectrum: MediaState.hasSpectrum
-                peak: MediaState.pulse
+                values: DashboardState.spectrum
+                bands: DashboardState.spectrumBars
+                hasSpectrum: DashboardState.hasSpectrum
+                peak: DashboardState.peak
                 live: MediaState.live
                 mirrored: true
                 barWidth: 4

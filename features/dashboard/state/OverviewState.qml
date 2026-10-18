@@ -109,11 +109,6 @@ Singleton {
     readonly property string mediaArtist: Media.artist
     readonly property string mediaArt: Media.artUrl
     readonly property bool mediaPlaying: Media.playing
-    // Em volta da capa: o espectro (cava) ou, sem ele, as ondas pelo pico do som.
-    readonly property bool hasSpectrum: Spectrum.available
-    readonly property var spectrum: Spectrum.values
-    readonly property int spectrumBars: Spectrum.bars
-    readonly property real mediaPeak: Math.min(1, Audio.peak * 1.6)
 
     function togglePlaying(): void {
         Media.togglePlaying();

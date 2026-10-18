@@ -6,7 +6,7 @@ import qs.core.config
 import qs.core.format
 import qs.services
 
-// View model da aba Mídia: faixa, controles, letra e pulso do áudio.
+// View model da aba Mídia: faixa, controles e letra.
 Singleton {
     id: root
 
@@ -22,14 +22,9 @@ Singleton {
     readonly property string lengthText: Format.clock(Media.length)
     readonly property var players: Media.players.map(p => ({ player: p, name: p.identity, active: p === Media.active }))
 
-    readonly property real pulse: Math.min(1, Audio.peak * 1.6)
-
-    // O espectro em volta da capa (o mesmo processo do card da aba Painel),
-    // ou as ondas sem ele; desligável nas configurações (Config.audioPulse).
+    // O espectro em volta da capa (lido do DashboardState, o mesmo do card da
+    // aba Painel), ou as ondas sem ele; desligável nas configurações.
     readonly property bool visualizer: Config.audioPulse
-    readonly property bool hasSpectrum: Spectrum.available
-    readonly property var spectrum: Spectrum.values
-    readonly property int spectrumBars: Spectrum.bars
     // Anima só com a aba à mostra e tocando.
     readonly property bool live: DashboardState.isShowing("media") && Media.playing
 
