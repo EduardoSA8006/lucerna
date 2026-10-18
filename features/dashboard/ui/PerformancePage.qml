@@ -112,9 +112,6 @@ Item {
                 title: `Disco - ${PerformanceState.disk?.name ?? "nenhum encontrado"}`
                 fraction: PerformanceState.disk?.fraction ?? 0
                 label: PerformanceState.disk?.text ?? ""
-                gaugeSize: 124
-                thickness: 9
-                numberSize: ThemeManager.font.large + 6
                 clickable: PerformanceState.disks.length > 1
                 dots: PerformanceState.disks.length
                 dot: PerformanceState.diskIndex
@@ -128,11 +125,13 @@ Item {
                 Layout.preferredHeight: 190
                 clip: true
 
-                CardHeader {
+                // O título no padrão dos outros cards (o do GaugeCard e do StatCard).
+                CardTitle {
                     id: netHeader
 
                     x: ThemeManager.spacing.normal + 2
                     y: ThemeManager.spacing.normal + 2
+                    width: parent.width - 2 * (ThemeManager.spacing.normal + 2)
                     icon: Icons.network
                     text: "Rede"
                 }
