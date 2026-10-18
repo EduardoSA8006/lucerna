@@ -246,11 +246,12 @@ Item {
             visible: MediaState.lyricsEnabled
             clip: true
 
-            CardHeader {
+            CardTitle {
                 id: lyricsHeader
 
                 x: ThemeManager.spacing.normal + 2
                 y: ThemeManager.spacing.normal + 2
+                width: parent.width - 2 * (ThemeManager.spacing.normal + 2)
                 icon: Icons.lyrics
                 text: "Letra"
             }
