@@ -43,6 +43,7 @@ import "monitors.test.js" as MonitorsTest
 import "network.test.js" as NetworkTest
 import "nightschedule.test.js" as NightScheduleTest
 import "notifications.test.js" as NotificationsTest
+import "overview.test.js" as OverviewTest
 import "panels.test.js" as PanelsTest
 import "performance.test.js" as PerformanceTest
 import "searchengines.test.js" as SearchEnginesTest
@@ -76,6 +77,7 @@ ShellRoot {
         ["theme", ThemeTest],
         ["panels", PanelsTest],
         ["central", CentralTest],
+        ["overview", OverviewTest],
         ["performance", PerformanceTest],
         ["searchengines", SearchEnginesTest],
         ["clipboard", ClipboardTest],
@@ -180,6 +182,7 @@ ShellRoot {
             get CentralState() { return CentralState; },
             get ControlsState() { return ControlsState; },
             get PowerState() { return PowerState; },
+            get OverviewState() { return OverviewState; },
             get PerformanceState() { return PerformanceState; },
             get ThemeManager() { return ThemeManager; },
             get Sun() { return Sun; },

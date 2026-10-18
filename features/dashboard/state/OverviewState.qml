@@ -56,17 +56,24 @@ Singleton {
     readonly property var shownMonth: new Date(clock.date.getFullYear(), clock.date.getMonth() + monthOffset, 1)
     readonly property string monthTitle: Format.capitalize(shownMonth.toLocaleDateString(locale, "MMMM 'de' yyyy"))
     readonly property int weekStart: Config.weekStart
-    readonly property var weekdayInitials: [0, 1, 2, 3, 4, 5, 6].map(i => locale.dayName((i + weekStart) % 7, Locale.NarrowFormat).toUpperCase())
-    readonly property var calendarDays: {
-        const first = shownMonth;
-        const lead = (first.getDay() - weekStart + 7) % 7;
-        const start = new Date(first.getFullYear(), first.getMonth(), 1 - lead);
-        const today = clock.date.toDateString();
+    // Cabeçalho: a inicial de cada dia da semana, na ordem de weekStart, e se é domingo.
+    readonly property var weekdays: [0, 1, 2, 3, 4, 5, 6].map(i => {
+        const dow = (i + weekStart) % 7;
+        return { initial: locale.dayName(dow, Locale.NarrowFormat).toUpperCase(), sunday: dow === 0 };
+    })
+
+    // As 42 células do mês `first` (dia 1), começando em weekStart (0 = domingo):
+    // dia, se é do mês, se é hoje (`today`, um Date) e se cai num domingo.
+    function monthCells(first: date, start: int, today: date): var {
+        const lead = (first.getDay() - start + 7) % 7;
+        const todayKey = today.toDateString();
         return Array.from({ length: 42 }, (_, i) => {
-            const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-            return { day: d.getDate(), inMonth: d.getMonth() === first.getMonth(), today: d.toDateString() === today };
+            const d = new Date(first.getFullYear(), first.getMonth(), 1 - lead + i);
+            return { day: d.getDate(), inMonth: d.getMonth() === first.getMonth(), today: d.toDateString() === todayKey, sunday: d.getDay() === 0 };
         });
     }
+
+    readonly property var calendarDays: monthCells(shownMonth, weekStart, clock.date)
 
     function shiftMonth(step: int): void {
         monthOffset += step;

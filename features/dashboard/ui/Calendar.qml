@@ -9,6 +9,8 @@ import qs.features.dashboard.state
 Item {
     id: root
 
+    readonly property bool onScreen: DashboardState.isShowing("overview")
+
     implicitHeight: column.implicitHeight
 
     MouseArea {
@@ -99,16 +101,17 @@ Item {
             columns: 7
 
             Repeater {
-                model: OverviewState.weekdayInitials
+                model: OverviewState.weekdays
 
                 delegate: Txt {
-                    required property string modelData
+                    required property var modelData
 
                     width: grid.cell
                     height: 22
                     horizontalAlignment: Text.AlignHCenter
-                    text: modelData
-                    faint: true
+                    text: modelData.initial
+                    faint: !modelData.sunday
+                    color: modelData.sunday ? ThemeManager.colors.danger : ThemeManager.colors.textFaint
                     font.pixelSize: ThemeManager.font.small
                     font.weight: Font.DemiBold
                 }
@@ -123,12 +126,18 @@ Item {
                     width: grid.cell
                     height: 26
 
-                    Rectangle {
+                    // Hoje: a bolha anima só com o painel aberto na aba Painel.
+                    Blob {
                         anchors.centerIn: parent
                         width: 26
                         height: 26
-                        radius: 13
-                        color: parent.modelData.today ? ThemeManager.colors.accent : "transparent"
+                        visible: parent.modelData.today
+                        active: root.onScreen
+                        morphing: true
+                        spinning: true
+                        spinDuration: 30000
+                        steps: 48
+                        color: ThemeManager.colors.accent
                     }
 
                     Txt {
@@ -137,7 +146,7 @@ Item {
                         text: parent.modelData.day
                         mono: true
                         font.pixelSize: ThemeManager.font.small + 1
-                        color: parent.modelData.today ? ThemeManager.colors.accentText : parent.modelData.inMonth ? ThemeManager.colors.text : ThemeManager.colors.textFaint
+                        color: parent.modelData.today ? ThemeManager.colors.accentText : parent.modelData.sunday ? (parent.modelData.inMonth ? ThemeManager.colors.danger : ThemeManager.alpha(ThemeManager.colors.danger, 0.45)) : parent.modelData.inMonth ? ThemeManager.colors.text : ThemeManager.colors.textFaint
                         font.weight: parent.modelData.today ? Font.Bold : Font.Normal
                     }
                 }
