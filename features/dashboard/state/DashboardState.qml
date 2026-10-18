@@ -130,20 +130,22 @@ Singleton {
         value: root.isShowing("overview") || root.isShowing("media")
     }
 
-    // O card de mídia da aba Painel, tocando: o espectro pelo cava; sem ele,
-    // as ondas pelo pico do som.
+    // O espectro em volta da capa, tocando: no card da aba Painel e na aba
+    // Mídia (se ligado nas configurações). Um processo só atende as duas; sem
+    // o espectro, as ondas usam o pico do som.
     readonly property bool overviewMediaLive: root.isShowing("overview") && OverviewState.shows("media") && Media.playing
+    readonly property bool mediaTabLive: root.isShowing("media") && Config.audioPulse && Media.playing
 
     Binding {
         target: Spectrum
         property: "active"
-        value: root.overviewMediaLive
+        value: root.overviewMediaLive || root.mediaTabLive
     }
 
     Binding {
         target: Audio
         property: "monitorPeak"
-        value: (root.isShowing("media") && Config.audioPulse) || (root.overviewMediaLive && !Spectrum.available)
+        value: (root.overviewMediaLive || root.mediaTabLive) && !Spectrum.available
     }
 
     Binding {

@@ -7,7 +7,7 @@ import qs.core.theme
 import qs.core.widgets
 import qs.features.dashboard.state
 
-// Aba Mídia: capa com o pulso do áudio, controles, progresso e letra sincronizada.
+// Aba Mídia: capa com o espectro em volta, controles, progresso e letra sincronizada.
 Item {
     id: root
 
@@ -45,46 +45,64 @@ Item {
         visible: MediaState.available
         spacing: ThemeManager.spacing.large
 
-        // Capa: a forma atrás pulsa com o áudio e gira enquanto toca.
+        // Capa redonda, como um disco que gira enquanto toca, com o espectro
+        // em volta (espelhado: o dobro de barras, simétrico).
         Item {
             Layout.preferredWidth: 280
             Layout.fillHeight: true
 
-            Blob {
+            SpectrumRing {
                 anchors.centerIn: parent
-                width: 272
-                height: 272
-                lobes: 9
-                amplitude: 0.045
-                pulse: MediaState.pulse
-                color: ThemeManager.alpha(ThemeManager.colors.accent, 0.16)
-                spinning: MediaState.playing
-                spinDuration: 20000
+                visible: MediaState.visualizer
+                size: 276
+                innerSize: cover.width
+                values: MediaState.spectrum
+                bands: MediaState.spectrumBars
+                hasSpectrum: MediaState.hasSpectrum
+                peak: MediaState.pulse
+                live: MediaState.live
+                mirrored: true
+                barWidth: 4
             }
 
             ClippingRectangle {
+                id: cover
+
                 anchors.centerIn: parent
-                width: 196
-                height: 196
-                radius: ThemeManager.radius.large
+                width: 188
+                height: 188
+                radius: width / 2
                 color: ThemeManager.colors.raised
 
-                Icon {
-                    anchors.centerIn: parent
-                    visible: cover.status !== Image.Ready
-                    icon: Icons.album
-                    size: 72
-                    color: ThemeManager.colors.textFaint
-                }
-
-                Image {
-                    id: cover
-
+                Item {
                     anchors.fill: parent
-                    source: MediaState.art
-                    sourceSize: Qt.size(392, 392)
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
+
+                    NumberAnimation on rotation {
+                        running: true
+                        paused: running && !MediaState.live
+                        from: 0
+                        to: 360
+                        duration: 30000
+                        loops: Animation.Infinite
+                    }
+
+                    Icon {
+                        anchors.centerIn: parent
+                        visible: art.status !== Image.Ready
+                        icon: Icons.album
+                        size: 72
+                        color: ThemeManager.colors.textFaint
+                    }
+
+                    Image {
+                        id: art
+
+                        anchors.fill: parent
+                        source: MediaState.art
+                        sourceSize: Qt.size(376, 376)
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                    }
                 }
             }
         }

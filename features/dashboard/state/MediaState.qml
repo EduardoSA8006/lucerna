@@ -24,6 +24,15 @@ Singleton {
 
     readonly property real pulse: Math.min(1, Audio.peak * 1.6)
 
+    // O espectro em volta da capa (o mesmo processo do card da aba Painel),
+    // ou as ondas sem ele; desligável nas configurações (Config.audioPulse).
+    readonly property bool visualizer: Config.audioPulse
+    readonly property bool hasSpectrum: Spectrum.available
+    readonly property var spectrum: Spectrum.values
+    readonly property int spectrumBars: Spectrum.bars
+    // Anima só com a aba à mostra e tocando.
+    readonly property bool live: DashboardState.isShowing("media") && Media.playing
+
     // Letra
     readonly property bool lyricsEnabled: Config.lyricsEnabled
     readonly property bool offline: Config.offline

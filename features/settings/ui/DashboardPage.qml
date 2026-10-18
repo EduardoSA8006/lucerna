@@ -156,8 +156,8 @@ Column {
 
         SettingRow {
             icon: Icons.sound
-            title: "Pulso do áudio na capa"
-            description: "A forma atrás da capa reage ao volume do que está tocando"
+            title: "Espectro em volta da capa"
+            description: "Na aba Mídia, barras que seguem as frequências do que está tocando (pelo cava; sem ele, ondas pelo volume)"
 
             Switch {
                 checked: SettingsState.audioPulse
