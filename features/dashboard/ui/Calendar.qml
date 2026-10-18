@@ -11,8 +11,11 @@ Item {
 
     readonly property bool onScreen: DashboardState.isShowing("overview")
 
-    // Altura mínima: título, cabeçalho e seis linhas de 26. Com mais altura, as linhas se espalham.
-    implicitHeight: 28 + 22 + 6 * 26 + 2 * ThemeManager.spacing.small
+    // Altura de cada linha de dias: fixa, o calendário não se espalha pela altura do card.
+    readonly property int rowHeight: 30
+
+    // Título, cabeçalho e seis linhas.
+    implicitHeight: 28 + ThemeManager.spacing.small + 22 + 6 * rowHeight
 
     MouseArea {
         anchors.fill: parent
@@ -76,7 +79,6 @@ Item {
             id: grid
 
             readonly property real cell: width / 7
-            readonly property real rowHeight: Math.max(26, (root.height - 28 - 22 - 2 * ThemeManager.spacing.small) / 6)
             property int direction: 1
 
             // Ao trocar de mês, os dias entram deslizando do lado da navegação.
@@ -125,7 +127,7 @@ Item {
                     required property var modelData
 
                     width: grid.cell
-                    height: grid.rowHeight
+                    height: root.rowHeight
 
                     // Hoje: uma bolha só, criada apenas na célula de hoje; anima só com o
                     // painel aberto na aba Painel.

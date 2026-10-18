@@ -156,9 +156,11 @@ Item {
                 }
             }
 
+            // Na altura do conteúdo; com sobra (o calendário mais alto), cresce até
+            // terminar na mesma linha que ele.
             Surface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 196
+                Layout.preferredHeight: clockContent.implicitHeight + 2 * ThemeManager.spacing.normal
                 Layout.fillHeight: true
                 visible: OverviewState.shows("clock") || root.weatherOn
 
@@ -167,6 +169,8 @@ Item {
                 // sozinho e centralizado. Em card estreito, a data quebra em duas
                 // linhas e o clima encolhe (duas linhas ou elide); a hora, não.
                 RowLayout {
+                    id: clockContent
+
                     anchors.centerIn: parent
                     width: Math.min(implicitWidth, parent.width - 2 * (ThemeManager.spacing.large - 4))
                     spacing: ThemeManager.spacing.normal + 2
@@ -320,12 +324,14 @@ Item {
             id: calendarCard
 
             Layout.preferredWidth: 300
-            Layout.preferredHeight: 300
+            Layout.preferredHeight: calendar.implicitHeight + 2 * ThemeManager.spacing.normal
             Layout.fillHeight: true
             Layout.fillWidth: !column3.visible
             visible: OverviewState.shows("calendar")
 
             Calendar {
+                id: calendar
+
                 anchors.fill: parent
                 anchors.margins: ThemeManager.spacing.normal
             }
@@ -409,9 +415,10 @@ Item {
                 }
             }
 
+            // A capa (88) e as margens; a mesma altura tocando ou não.
             Surface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 138
+                Layout.preferredHeight: 88 + 2 * ThemeManager.spacing.normal
                 Layout.fillHeight: true
                 visible: OverviewState.shows("media")
 
