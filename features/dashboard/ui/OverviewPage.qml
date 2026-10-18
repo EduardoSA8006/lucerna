@@ -16,6 +16,8 @@ Item {
     readonly property bool onScreen: DashboardState.isShowing("overview")
     // Os cards de cima das colunas esquerda (usuário) e direita (sistema) têm a mesma altura.
     readonly property int topCardHeight: 132
+    // Margem interna dos cards, a mesma das outras abas.
+    readonly property int cardMargin: ThemeManager.spacing.normal + 2
     // O clima só entra com dados (ou o aviso do modo offline); senão o relógio fica sozinho.
     readonly property bool weatherOn: OverviewState.shows("weather") && (OverviewState.hasWeather || Config.offline)
 
@@ -50,7 +52,7 @@ Item {
 
                 Row {
                     anchors.fill: parent
-                    anchors.margins: ThemeManager.spacing.normal
+                    anchors.margins: root.cardMargin
                     spacing: ThemeManager.spacing.normal
 
                     Item {
@@ -160,7 +162,7 @@ Item {
             // terminar na mesma linha que ele.
             Surface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: clockContent.implicitHeight + 2 * ThemeManager.spacing.normal
+                Layout.preferredHeight: clockContent.implicitHeight + 2 * root.cardMargin
                 Layout.fillHeight: true
                 visible: OverviewState.shows("clock") || root.weatherOn
 
@@ -172,7 +174,7 @@ Item {
                     id: clockContent
 
                     anchors.centerIn: parent
-                    width: Math.min(implicitWidth, parent.width - 2 * (ThemeManager.spacing.large - 4))
+                    width: Math.min(implicitWidth, parent.width - 2 * root.cardMargin)
                     spacing: ThemeManager.spacing.normal + 2
 
                     Column {
@@ -324,7 +326,7 @@ Item {
             id: calendarCard
 
             Layout.preferredWidth: 300
-            Layout.preferredHeight: calendar.implicitHeight + 2 * ThemeManager.spacing.normal
+            Layout.preferredHeight: calendar.implicitHeight + 2 * root.cardMargin
             Layout.fillHeight: true
             Layout.fillWidth: !column3.visible
             visible: OverviewState.shows("calendar")
@@ -333,7 +335,7 @@ Item {
                 id: calendar
 
                 anchors.fill: parent
-                anchors.margins: ThemeManager.spacing.normal
+                anchors.margins: root.cardMargin
             }
         }
 
@@ -418,13 +420,13 @@ Item {
             // O visualizador (88) e as margens; a mesma altura tocando ou não.
             Surface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 88 + 2 * ThemeManager.spacing.normal
+                Layout.preferredHeight: 88 + 2 * root.cardMargin
                 Layout.fillHeight: true
                 visible: OverviewState.shows("media")
 
                 MediaCard {
                     anchors.fill: parent
-                    anchors.margins: ThemeManager.spacing.normal
+                    anchors.margins: root.cardMargin
                     onScreen: root.onScreen
                 }
             }

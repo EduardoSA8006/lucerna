@@ -274,7 +274,7 @@ Item {
                     left: parent.left
                     right: parent.right
                     bottom: parent.bottom
-                    margins: ThemeManager.spacing.normal
+                    margins: ThemeManager.spacing.normal + 2
                 }
                 clip: true
                 spacing: ThemeManager.spacing.small

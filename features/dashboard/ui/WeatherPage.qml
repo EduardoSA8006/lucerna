@@ -242,7 +242,7 @@ Item {
                             Icon {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 icon: stat.modelData.icon
-                                size: 20
+                                size: 22
                                 color: ThemeManager.colors.accent
                             }
 
@@ -283,7 +283,7 @@ Item {
 
                 Row {
                     anchors.fill: parent
-                    anchors.margins: ThemeManager.spacing.normal
+                    anchors.margins: ThemeManager.spacing.normal + 2
 
                     Repeater {
                         model: WeatherState.hourly
@@ -307,7 +307,7 @@ Item {
                             Icon {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 icon: hour.modelData.icon
-                                size: 24
+                                size: 22
                                 color: ThemeManager.colors.textMuted
                             }
 
@@ -329,7 +329,7 @@ Item {
 
                 Column {
                     anchors.fill: parent
-                    anchors.margins: ThemeManager.spacing.normal
+                    anchors.margins: ThemeManager.spacing.normal + 2
                     spacing: 2
 
                     Repeater {
