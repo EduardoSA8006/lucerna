@@ -415,81 +415,17 @@ Item {
                 }
             }
 
-            // A capa (88) e as margens; a mesma altura tocando ou não.
+            // O visualizador (88) e as margens; a mesma altura tocando ou não.
             Surface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 88 + 2 * ThemeManager.spacing.normal
                 Layout.fillHeight: true
                 visible: OverviewState.shows("media")
 
-                Row {
+                MediaCard {
                     anchors.fill: parent
                     anchors.margins: ThemeManager.spacing.normal
-                    spacing: ThemeManager.spacing.normal
-
-                    ClippingRectangle {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 88
-                        height: 88
-                        radius: ThemeManager.radius.normal
-                        color: ThemeManager.colors.raised
-
-                        Icon {
-                            anchors.centerIn: parent
-                            visible: art.status !== Image.Ready
-                            icon: OverviewState.hasMedia ? Icons.album : Icons.musicOff
-                            size: 36
-                            color: ThemeManager.colors.textFaint
-                        }
-
-                        Image {
-                            id: art
-
-                            anchors.fill: parent
-                            source: OverviewState.mediaArt
-                            sourceSize: Qt.size(176, 176)
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                        }
-                    }
-
-                    Column {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width - 88 - 48 - parent.spacing * 2
-                        spacing: 2
-
-                        Txt {
-                            width: parent.width
-                            text: OverviewState.mediaTitle
-                            font.weight: Font.DemiBold
-                            muted: !OverviewState.hasMedia
-                        }
-
-                        Txt {
-                            width: parent.width
-                            visible: text !== ""
-                            text: OverviewState.mediaArtist
-                            color: ThemeManager.colors.accent
-                            font.pixelSize: ThemeManager.font.small + 1
-                        }
-                    }
-
-                    Clickable {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: OverviewState.hasMedia
-                        width: 48
-                        height: 48
-                        radius: 24
-                        active: true
-                        onClicked: OverviewState.togglePlaying()
-
-                        Icon {
-                            anchors.centerIn: parent
-                            icon: OverviewState.mediaPlaying ? Icons.pause : Icons.play
-                            filled: true
-                            color: ThemeManager.colors.accentText
-                        }
-                    }
+                    onScreen: root.onScreen
                 }
             }
         }
