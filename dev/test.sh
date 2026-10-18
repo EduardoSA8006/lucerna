@@ -189,6 +189,12 @@ up() {
     if [ -S /run/dbus/system_bus_socket ]; then
         extra+=(-v /run/dbus/system_bus_socket:/run/dbus/system_bus_socket)
     fi
+    # Os outros discos montados no host, só para leitura, para o card de Disco
+    # ver os mesmos discos (e a troca por clique) que o shell vê fora do container.
+    local target
+    while read -r target; do
+        extra+=(-v "$target:$target:ro")
+    done < <(findmnt -rno SOURCE,TARGET | awk '$1 ~ "^/dev/" && $1 !~ "^/dev/(loop|zram)" && $2 != "/" { print $2 }')
     docker rm -f "$name" &> /dev/null || true
     docker run -d --name "$name" \
         --user "$(id -u):$(id -g)" \
