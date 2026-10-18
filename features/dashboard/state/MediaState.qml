@@ -28,7 +28,9 @@ Singleton {
     // aba Painel), ou as ondas sem ele; desligável nas configurações.
     readonly property bool visualizer: Config.audioPulse
     // Anima só com a aba à mostra e tocando.
-    readonly property bool live: DashboardState.isShowing("media") && Media.playing
+    // A aba à mostra.
+    readonly property bool onScreen: DashboardState.isShowing("media")
+    readonly property bool live: onScreen && Media.playing
 
     // Letra
     readonly property bool lyricsEnabled: Config.lyricsEnabled

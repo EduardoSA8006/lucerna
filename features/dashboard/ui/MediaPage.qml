@@ -14,6 +14,10 @@ Item {
 
     implicitHeight: 300
 
+    // A máscara das bordas da letra (duas texturas refeitas a cada linha) só
+    // com a aba à mostra e com letra; desligada, o ListView fica como está.
+    readonly property bool lyricsMasked: MediaState.onScreen && MediaState.lyrics.length > 0
+
     // Sem player
     Column {
         anchors.centerIn: parent
@@ -339,7 +343,7 @@ Item {
                     height: lyricsView.height * 0.5
                 }
 
-                layer.enabled: true
+                layer.enabled: root.lyricsMasked
                 layer.effect: MultiEffect {
                     maskEnabled: true
                     maskSource: lyricsMask
@@ -383,7 +387,7 @@ Item {
 
                 anchors.fill: lyricsView
                 visible: false
-                layer.enabled: true
+                layer.enabled: root.lyricsMasked
 
                 Rectangle {
                     anchors.fill: parent
