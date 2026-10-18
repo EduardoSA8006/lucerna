@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell.Widgets
 import qs.core.theme
@@ -275,16 +276,34 @@ Item {
                 text: "Letra"
             }
 
-            Txt {
+            // Sem letra: o ícone e o aviso, discretos.
+            Column {
                 anchors.centerIn: parent
                 visible: MediaState.lyrics.length === 0
                 width: parent.width - ThemeManager.spacing.large * 2
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.Wrap
-                text: MediaState.offline ? "Modo offline: a letra não é buscada" : MediaState.lyricsLoading ? "Procurando a letra…" : "Sem letra para esta faixa"
-                faint: true
+                spacing: ThemeManager.spacing.small
+
+                Icon {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    icon: Icons.lyrics
+                    size: 32
+                    color: ThemeManager.colors.textFaint
+                }
+
+                Txt {
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.Wrap
+                    text: MediaState.offline ? "Modo offline: a letra não é buscada" : MediaState.lyricsLoading ? "Procurando a letra…" : "Sem letra"
+                    faint: true
+                }
             }
 
+            // No estilo dos players: à esquerda, em negrito e maior, a linha
+            // atual cheia, as próximas a 45% e as cantadas a 30%; a atual fica
+            // um pouco acima do meio e a troca desliza. As bordas esmaecem (a
+            // máscara). Clicar numa linha vai para o tempo dela. Sem tempo, a
+            // letra fica parada e rola pela roda, sem destaque.
             ListView {
                 id: lyricsView
 
@@ -293,33 +312,87 @@ Item {
                     left: parent.left
                     right: parent.right
                     bottom: parent.bottom
-                    margins: ThemeManager.spacing.normal + 2
+                    topMargin: ThemeManager.spacing.small
+                    leftMargin: ThemeManager.spacing.normal + 2
+                    rightMargin: ThemeManager.spacing.normal + 2
+                    bottomMargin: ThemeManager.spacing.small
                 }
                 clip: true
-                spacing: ThemeManager.spacing.small
+                spacing: ThemeManager.spacing.normal + 2
                 model: MediaState.lyrics
                 currentIndex: MediaState.currentLine
                 interactive: !MediaState.lyricsSynced
                 highlightRangeMode: MediaState.lyricsSynced ? ListView.StrictlyEnforceRange : ListView.NoHighlightRange
-                preferredHighlightBegin: height / 2 - 16
-                preferredHighlightEnd: height / 2 + 16
-                highlightMoveDuration: ThemeManager.anim.normal
+                preferredHighlightBegin: height * 0.36
+                preferredHighlightEnd: height * 0.36 + 24
+                highlightMoveDuration: ThemeManager.anim.large
+                highlightMoveVelocity: -1
                 boundsBehavior: Flickable.StopAtBounds
+                // Respiro em cima e embaixo, para a primeira e a última linha
+                // não ficarem sob o esmaecimento.
+                header: Item {
+                    width: 1
+                    height: ThemeManager.spacing.large
+                }
+                footer: Item {
+                    width: 1
+                    height: lyricsView.height * 0.5
+                }
+
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: lyricsMask
+                    maskThresholdMin: 0
+                    maskSpreadAtMin: 1
+                }
 
                 delegate: Txt {
+                    id: line
+
                     required property var modelData
                     required property int index
-                    readonly property bool current: index === MediaState.currentLine
+                    readonly property string role: MediaState.lineRole(line.index, MediaState.currentLine)
 
                     width: lyricsView.width
-                    text: modelData.text || "♪"
+                    text: line.modelData.text || "♪"
+                    elide: Text.ElideNone
                     wrapMode: Text.Wrap
-                    horizontalAlignment: Text.AlignHCenter
-                    color: current ? ThemeManager.colors.accent : MediaState.lyricsSynced ? ThemeManager.colors.textFaint : ThemeManager.colors.textMuted
-                    font.pixelSize: current ? ThemeManager.font.large : ThemeManager.font.normal
-                    font.weight: current ? Font.DemiBold : Font.Normal
+                    font.pixelSize: ThemeManager.font.large + 2
+                    font.weight: Font.DemiBold
+                    lineHeight: 1.15
+                    opacity: ({ current: 1, next: 0.45, past: 0.3, plain: 0.85 })[line.role]
+                    scale: line.role === "current" ? 1.03 : 1
+                    transformOrigin: Item.Left
 
-                    Behavior on color { ColorAnim {} }
+                    Behavior on opacity { Anim { type: Anim.Effects } }
+                    Behavior on scale { Anim { type: Anim.Spatial } }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        enabled: MediaState.lyricsSynced && MediaState.canSeek
+                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                        onClicked: MediaState.seekTo(line.modelData.time)
+                    }
+                }
+            }
+
+            // A máscara das bordas: opaca no meio, esmaecendo no topo e na base.
+            Item {
+                id: lyricsMask
+
+                anchors.fill: lyricsView
+                visible: false
+                layer.enabled: true
+
+                Rectangle {
+                    anchors.fill: parent
+                    gradient: Gradient {
+                        GradientStop { position: 0; color: "transparent" }
+                        GradientStop { position: 0.12; color: "black" }
+                        GradientStop { position: 0.85; color: "black" }
+                        GradientStop { position: 1; color: "transparent" }
+                    }
                 }
             }
         }

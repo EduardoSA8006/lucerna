@@ -54,6 +54,14 @@ Singleton {
         return a && !t.includes(a.toLowerCase()) ? a : "";
     }
 
+    readonly property bool canSeek: (active?.canSeek ?? false) && length > 0
+
+    // Vai para o tempo, em segundos (a linha da letra clicada).
+    function seekTo(seconds: real): void {
+        if (canSeek)
+            active.position = Math.max(0, Math.min(length, seconds));
+    }
+
     function togglePlaying(): void {
         if (active?.canTogglePlaying)
             active.togglePlaying();

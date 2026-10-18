@@ -35,6 +35,12 @@ function run(t) {
         t.eq([M.albumShown("", "x"), M.albumShown("  ", "x")], ["", ""], "vazio");
     });
 
+    t.test("media: seek sem player não faz nada", () => {
+        t.eq(M.canSeek, false);
+        M.seekTo(10);
+        t.eq(M.position, 0);
+    });
+
     M.select(original.chosen);
 
     t.test("media: estado original restaurado", () => {

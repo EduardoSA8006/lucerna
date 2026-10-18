@@ -22,6 +22,7 @@ Singleton {
     readonly property string positionText: Format.clock(Media.position)
     readonly property string lengthText: Format.clock(Media.length)
     readonly property int playerCount: Media.players.length
+    readonly property bool canSeek: Media.canSeek
 
     // O espectro em volta da capa (lido do DashboardState, o mesmo do card da
     // aba Painel), ou as ondas sem ele; desligável nas configurações.
@@ -63,5 +64,14 @@ Singleton {
     // Passa para o próximo player (o ícone de troca ao lado do nome).
     function cyclePlayer(): void {
         Media.cycle();
+    }
+
+    // A linha da letra clicada: vai para o tempo dela.
+    function seekTo(seconds: real): void {
+        Media.seekTo(seconds);
+    }
+
+    function lineRole(index: int, current: int): string {
+        return Lyrics.lineRole(index, current, Lyrics.synced);
     }
 }
