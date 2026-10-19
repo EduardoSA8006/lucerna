@@ -120,6 +120,8 @@ Singleton {
 
     readonly property var data: parse(activeFile.text())
     readonly property bool dark: data.dark ?? true
+    // Logo do Lucerna na versão que se lê sobre o tema: estrela clara no escuro, escura no claro.
+    readonly property string logo: `file://${Quickshell.shellPath(dark ? "themes/logo.svg" : "themes/logo-claro.svg")}`
     // Papel de parede do tema ativo, já com a escolha do usuário (wallpaperFor).
     readonly property var activeWallpaper: wallpaperFor(current)
     readonly property string wallpaper: activeWallpaper.static
