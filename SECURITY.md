@@ -10,7 +10,7 @@ Use o **relato privado de vulnerabilidade** do GitHub, em
 [Security → Report a vulnerability](https://github.com/lucerna-desktop/lucerna-shell/security/advisories/new).
 Não abra issue pública para vulnerabilidade.
 
-Inclua, se puder, os passos para reproduzir, o commit do Lucerna
+Inclua, se puder, os passos para reproduzir, o commit do `lucerna-shell`
 (`git rev-parse HEAD`) e as versões do Hyprland e do Quickshell
 (`hyprctl version`, `qs --version`).
 

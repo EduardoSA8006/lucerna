@@ -96,7 +96,7 @@ Regras:
 O repositório inteiro é a configuração do shell. Fora do código do shell ficam `dev/` (o ambiente de teste), `ci/` e `tests/` (os checks do CI), `.github/` e a documentação.
 
 ```
-lucerna/
+lucerna-shell/
 ├── shell.qml                   # ponto de entrada, monta as features
 ├── core/
 │   ├── theme/ThemeManager.qml  # carrega o tema ativo e expõe os tokens; papel de parede por tema
@@ -243,7 +243,7 @@ Os scripts ficam em `ci/` e rodam igual no GitHub e na máquina (`dev/ci.sh`). O
 No sistema com Hyprland, o repositório é ligado ao diretório de configuração do Quickshell e iniciado pelo Hyprland:
 
 ```sh
-ln -s ~/Documentos/projetos/lucerna ~/.config/quickshell/lucerna
+ln -s ~/Documentos/projetos/lucerna-shell ~/.config/quickshell/lucerna
 ```
 
 ```lua

@@ -1,4 +1,4 @@
-# CI do Lucerna: os quatro checks obrigatórios do main (lint, rules, unit,
+# CI do `lucerna-shell`: os quatro checks obrigatórios do main (lint, rules, unit,
 # smoke). Cada job só prepara o container (ci/setup.sh, como root) e chama o
 # script do job (ci/run.sh, como usuário comum): a lógica fica em ci/ e roda
 # igual na máquina local (dev/ci.sh).
