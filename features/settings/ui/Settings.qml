@@ -65,26 +65,15 @@ OverlayPanel {
                     y: ThemeManager.spacing.large + 4
                     spacing: ThemeManager.spacing.normal
 
-                    Item {
-                        width: 40
-                        height: 40
-
-                        Blob {
-                            anchors.fill: parent
-                            lobes: 8
-                            amplitude: 0.08
-                            color: ThemeManager.alpha(ThemeManager.colors.accent, 0.2)
-                            spinning: panel.open
-                            spinDuration: 16000
-                        }
-
-                        Icon {
-                            anchors.centerIn: parent
-                            icon: Icons.settings
-                            filled: true
-                            size: 22
-                            color: ThemeManager.colors.accent
-                        }
+                    Image {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 27
+                        height: 35
+                        source: ThemeManager.logo
+                        sourceSize: Qt.size(width * 2, height * 2)
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        mipmap: true
                     }
 
                     Txt {

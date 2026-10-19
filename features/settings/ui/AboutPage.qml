@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell
 import qs.core.theme
 import qs.core.widgets
 import qs.features.settings.state
@@ -17,7 +16,7 @@ Column {
             anchors.verticalCenter: parent.verticalCenter
             width: 65
             height: 84
-            source: `file://${Quickshell.shellPath("themes/logo.svg")}`
+            source: ThemeManager.logo
             sourceSize: Qt.size(width * 2, height * 2)
             fillMode: Image.PreserveAspectFit
             smooth: true
