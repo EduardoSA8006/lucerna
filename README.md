@@ -158,8 +158,8 @@ O remapeamento de teclas usa o `xkbcli`, que vem com o libxkbcommon, dependênci
 ## Instalação
 
 ```sh
-git clone https://github.com/EduardoSA8006/lucerna
-ln -s "$PWD/lucerna" ~/.config/quickshell/lucerna
+git clone https://github.com/lucerna-desktop/lucerna-shell
+ln -s "$PWD/lucerna-shell" ~/.config/quickshell/lucerna
 ```
 
 No `hyprland.lua`:
