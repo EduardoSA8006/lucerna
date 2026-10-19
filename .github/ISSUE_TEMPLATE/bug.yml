@@ -28,6 +28,6 @@ body:
     id: versoes
     attributes:
       label: Versões
-      description: Commit do Lucerna (`git rev-parse --short HEAD`), `hyprctl version` e `qs --version`.
+      description: Commit do `lucerna-shell` (`git rev-parse --short HEAD`), `hyprctl version` e `qs --version`.
     validations:
       required: true
