@@ -7,7 +7,7 @@ Hyprland. Um problema nelas é de segurança, não só um bug.
 ## Como relatar
 
 Use o **relato privado de vulnerabilidade** do GitHub, em
-[Security → Report a vulnerability](https://github.com/EduardoSA8006/lucerna/security/advisories/new).
+[Security → Report a vulnerability](https://github.com/lucerna-desktop/lucerna-shell/security/advisories/new).
 Não abra issue pública para vulnerabilidade.
 
 Inclua, se puder, os passos para reproduzir, o commit do Lucerna

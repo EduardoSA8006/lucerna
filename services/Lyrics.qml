@@ -30,7 +30,7 @@ Singleton {
             done(data);
         };
         xhr.open("GET", url);
-        xhr.setRequestHeader("User-Agent", "Lucerna (https://github.com/EduardoSA8006/lucerna)");
+        xhr.setRequestHeader("User-Agent", "Lucerna (https://github.com/lucerna-desktop/lucerna-shell)");
         xhr.send();
     }
 
