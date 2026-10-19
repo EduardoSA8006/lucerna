@@ -81,7 +81,7 @@
 #   dev/test.sh run 'printf "texto de teste" | wl-copy'; dev/test.sh see $p-clipboard clipboard open
 set -euo pipefail
 
-repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 name=lucerna-polish
 image=lucerna-dev
 out=${LUCERNA_TEST_OUT:-/tmp/lucerna-test}
