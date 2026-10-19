@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
 import qs.core.theme
 import qs.core.widgets
 import qs.features.settings.state
@@ -12,25 +13,15 @@ Column {
     Row {
         spacing: ThemeManager.spacing.large
 
-        Item {
-            width: 84
+        Image {
+            anchors.verticalCenter: parent.verticalCenter
+            width: 65
             height: 84
-
-            Blob {
-                anchors.fill: parent
-                lobes: 8
-                amplitude: 0.07
-                color: ThemeManager.alpha(ThemeManager.colors.accent, 0.2)
-                spinning: true
-            }
-
-            Icon {
-                anchors.centerIn: parent
-                icon: "emoji_objects"
-                filled: true
-                size: 40
-                color: ThemeManager.colors.accent
-            }
+            source: `file://${Quickshell.shellPath("themes/logo.svg")}`
+            sourceSize: Qt.size(width * 2, height * 2)
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            mipmap: true
         }
 
         Column {
