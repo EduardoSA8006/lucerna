@@ -28,6 +28,12 @@
 # é só para desenvolvimento. Vale até o próximo up sem ela.
 # Um `hyprctl reload` ou fechar a janela derruba a saída do Hyprland aninhado
 # (ele cai no monitor FALLBACK e as capturas saem vazias): dev/test.sh up de novo.
+# LUCERNA_TEST_KWIN=0: no up, não posiciona a janela de teste. Com o host KDE
+# (qdbus6 e o serviço org.kde.KWin), o up manda a janela (resourceClass
+# aquamarine) para o primeiro monitor de escala 1 (devicePixelRatio) em que caiba o tamanho, tira
+# a maximização e a borda e a centraliza nesse tamanho; sem monitor assim, ela
+# fica onde está. Em escala fracionária a imagem sai borrada. Fora do KDE, não faz nada.
+# LUCERNA_TEST_SIZE=LARGURAxALTURA: o tamanho da janela (padrão 1920x1080).
 #
 # Teclas com modificador pelo wtype: o Hyprland aninhado resolve os binds pelo
 # keycode do keymap real, e o wtype numera as teclas do keymap dele na ordem em
@@ -195,6 +201,43 @@ shot() {
     echo "$out/$1.png"
 }
 
+# Posiciona a janela do container (resourceClass aquamarine) no KDE do host,
+# por um script do KWin. Não faz nada fora do KDE nem com LUCERNA_TEST_KWIN=0, e
+# nunca derruba o up: a janela pode demorar a aparecer, então tenta por ~5 s,
+# até a saída do Hyprland aninhado ter o tamanho pedido.
+place_window() {
+    [ "${LUCERNA_TEST_KWIN:-1}" = 0 ] && return 0
+    local size=${LUCERNA_TEST_SIZE:-1920x1080} qd w h script id
+    qd=$(command -v qdbus6 || command -v qdbus) || return 0
+    [[ $size =~ ^([0-9]+)x([0-9]+)$ ]] || { echo "aviso: LUCERNA_TEST_SIZE inválido ($size), esperava LARGURAxALTURA" >&2; return 0; }
+    w=${BASH_REMATCH[1]} h=${BASH_REMATCH[2]}
+    "$qd" org.kde.KWin /KWin org.kde.KWin.supportInformation &> /dev/null || return 0
+    script=$(mktemp --suffix=.js)
+    cat > "$script" << JS
+for (const win of workspace.windowList()) {
+    if (win.resourceClass === "aquamarine") {
+        const out = workspace.screens.find(o => o.devicePixelRatio === 1 && o.geometry.width >= $w && o.geometry.height >= $h);
+        if (out) workspace.sendClientToScreen(win, out);
+        win.setMaximize(false, false);
+        win.noBorder = true;
+        const g = out ? out.geometry : win.frameGeometry;
+        win.frameGeometry = { x: g.x + Math.round((g.width - $w) / 2), y: g.y + Math.round((g.height - $h) / 2), width: $w, height: $h };
+    }
+}
+JS
+    for _ in 1 2 3 4 5; do
+        id=$("$qd" org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "$script" "lucerna-test-$$") || break
+        "$qd" org.kde.KWin "/Scripting/Script$id" org.kde.kwin.Script.run &> /dev/null || true
+        "$qd" org.kde.KWin /Scripting org.kde.kwin.Scripting.unloadScript "lucerna-test-$$" &> /dev/null || true
+        sleep 1
+        if ex "hyprctl monitors | grep -q '^Monitor WAYLAND-1 ' && hyprctl monitors | grep -q '${w}x${h}@'" &> /dev/null; then
+            break
+        fi
+    done
+    rm -f "$script"
+    return 0
+}
+
 up() {
     : "${WAYLAND_DISPLAY:?precisa de uma sessão Wayland no host}"
     local runtime=${XDG_RUNTIME_DIR:-/run/user/$(id -u)} devices render card
@@ -243,6 +286,7 @@ up() {
     # Sem isso a ociosidade apaga a tela em 5 min e as capturas saem pretas.
     setc 'dict(idleEnabled=False)'
     echo "de pé: $name (GPU $render), capturas em $out"
+    place_window
 }
 
 case "${1:-}" in
@@ -299,7 +343,7 @@ case "${1:-}" in
         ex "$2"
         ;;
     *)
-        sed -n '2,28p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+        sed -n '2,36p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
         exit 2
         ;;
 esac
