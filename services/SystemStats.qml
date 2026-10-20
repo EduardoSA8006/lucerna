@@ -4,33 +4,27 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Uso do sistema lido direto do kernel (/proc e /sys), sem bibliotecas externas.
-// Só coleta enquanto `active` for verdadeiro (quem mostra os dados liga), a
-// cada `interval` ms. Disco usa `df` (coreutils) e `lsblk` (util-linux); GPU, services/scripts/gpu-status.sh.
+// Dados do sistema vindos do módulo system do lucernad (services/Lucernad).
+// Mesmas propriedades de antes; sem o daemon, `available` fica falso.
+// Os tópicos de medida só são assinados com `active` (quem mostra os dados
+// liga), e o das GPUs só com `gpuEnabled` também: o lucernad mede só com
+// assinante, a cada `interval` ms.
 Singleton {
     id: root
 
     property bool active: false
     property int interval: 2000
-    // A GPU pode ser desligada (nem a consulta leve ao estado da placa roda).
+    // A GPU pode ser desligada (o tópico dela nem é assinado).
     property bool gpuEnabled: true
-
-    onGpuEnabledChanged: {
-        if (!gpuEnabled) {
-            gpus = [];
-            resetDrm();
-        }
-    }
-
-    // Parado, a leitura anterior fica velha: ao voltar, o primeiro delta
-    // cobriria minutos e o uso sairia baixo.
-    onActiveChanged: {
-        if (!active)
-            resetDrm();
-        else
-            refreshBlocks();
-    }
     readonly property int historyLength: 30
+
+    readonly property var client: Lucernad.client
+    // O system.status do daemon: o módulo pode estar indisponível com o
+    // daemon de pé (o /proc/stat ilegível, um erro interno).
+    property bool moduleAvailable: false
+    property string moduleError: ""
+    readonly property bool connected: client.connected
+    readonly property bool available: connected && moduleAvailable
 
     // CPU
     property string cpuModel: ""
@@ -65,373 +59,122 @@ Singleton {
     property string kernel: ""
     property string quickshellVersion: ""
 
-    property var lastCpu: null
-    property var lastNet: null
-    // Leitura anterior do fdinfo do DRM e o uso (0-1) de cada GPU pelo PCI.
-    property var lastDrm: null
-    property var drmUsage: ({})
-    property string tempPath: ""
-
-    function push(list: var, value: real): var {
-        const next = list.concat([value]);
-        return next.length > historyLength ? next.slice(next.length - historyLength) : next;
+    // Os tópicos a assinar: os da máquina e do estado sempre; as medidas com a
+    // aba à mostra; as GPUs só com ela ligada também.
+    function wantedTopics(active: bool, gpuEnabled: bool): var {
+        const topics = ["system.info", "system.status"];
+        if (active)
+            topics.push("system.stats", "system.disks");
+        if (active && gpuEnabled)
+            topics.push("system.gpus");
+        return topics;
     }
 
-    function sample(): void {
-        stat.reload();
-        meminfo.reload();
-        netdev.reload();
-        uptimeFile.reload();
-        if (tempPath)
-            tempFile.reload();
-        if (!df.running)
-            df.running = true;
-        if (gpuEnabled && !gpuProbe.running)
-            gpuProbe.running = true;
+    function sync(): void {
+        client.setTopics(wantedTopics(active, gpuEnabled));
     }
 
-    function parseStat(text: string): void {
-        const fields = text.split("\n")[0].trim().split(/\s+/).slice(1).map(Number);
-        const idle = fields[3] + (fields[4] ?? 0);
-        const total = fields.reduce((a, b) => a + b, 0);
-        if (lastCpu && total > lastCpu.total) {
-            cpuUsage = Math.max(0, Math.min(1, 1 - (idle - lastCpu.idle) / (total - lastCpu.total)));
-        }
-        lastCpu = { idle: idle, total: total };
+    // O intervalo da amostragem do daemon, só com a conexão feita (a cada
+    // conexão nova, o onConnectedChanged manda de novo).
+    function configure(): void {
+        if (client.connected)
+            client.call("system.configure", {
+                interval_ms: interval
+            }, null);
     }
 
-    function parseMeminfo(text: string): void {
-        const kb = key => Number(text.match(new RegExp(`^${key}:\\s+(\\d+)`, "m"))?.[1] ?? 0) * 1024;
-        memTotal = kb("MemTotal");
-        memUsed = memTotal - kb("MemAvailable");
-        swapTotal = kb("SwapTotal");
-        swapUsed = swapTotal - kb("SwapFree");
-    }
-
-    // Ignora loopback e interfaces virtuais (containers, bridges, VPN).
-    function isPhysical(name: string): bool {
-        return !/^(lo|docker|veth|br-|virbr|vnet|tun|tap|wg|zt)/.test(name);
-    }
-
-    function parseNetdev(text: string): void {
-        let rx = 0, tx = 0;
-        for (const line of text.split("\n").slice(2)) {
-            const [name, data] = line.split(":");
-            if (!data || !isPhysical(name.trim()))
-                continue;
-            const f = data.trim().split(/\s+/).map(Number);
-            rx += f[0];
-            tx += f[8];
-        }
-        const now = Date.now();
-        if (lastNet && now > lastNet.time) {
-            const dt = (now - lastNet.time) / 1000;
-            rxRate = Math.max(0, (rx - lastNet.rx) / dt);
-            txRate = Math.max(0, (tx - lastNet.tx) / dt);
-            rxHistory = push(rxHistory, rxRate);
-            txHistory = push(txHistory, txRate);
-        }
-        rxTotal = rx;
-        txTotal = tx;
-        lastNet = { rx: rx, tx: tx, time: now };
-    }
-
-    function parseCpuinfo(text: string): void {
-        cpuModel = (text.match(/^model name\s*:\s*(.+)$/m)?.[1] ?? "").replace(/\s+/g, " ").trim();
-        cpuThreads = (text.match(/^processor\s*:/gm) ?? []).length;
-    }
-
-    // Saída do probe: "<dir> <nome>" por hwmon. Prefere o sensor do pacote da CPU.
-    function pickTempSensor(text: string): void {
-        const chips = text.trim().split("\n").map(l => l.split(" "));
-        for (const want of ["coretemp", "k10temp", "zenpower", "cpu_thermal", "acpitz"]) {
-            const chip = chips.find(c => c[1] === want);
-            if (chip) {
-                tempPath = `${chip[0]}/temp1_input`;
-                return;
-            }
-        }
-    }
-
-    function parseGpus(text: string): void {
-        gpus = text.trim().split("\n").filter(l => l).map(line => {
-            const [card, vendor, pci, state, name, usage, temp, freq, max] = line.split("|");
-            const generic = { nvidia: "NVIDIA", amd: "AMD Radeon", intel: "Intel (integrada)" };
-            return {
-                card: card,
-                vendor: vendor,
-                pci: pci,
-                state: state,
-                name: name || generic[vendor] || vendor,
-                usage: usage !== "" ? Number(usage) / 100 : (drmUsage[pci] ?? NaN),
-                temp: temp !== "" ? Number(temp) : NaN,
-                freq: freq !== "" ? Number(freq) : NaN,
-                maxFreq: max !== "" ? Number(max) : NaN
-            };
-        });
-    }
-
-    // Saída do drm-fdinfo.sh: { ts (ns), clients: { "pdev/id": { driver, pdev, v: { chave: valor } } } }.
-    function parseDrm(text: string): var {
-        const snap = { ts: NaN, clients: ({}) };
-        for (const line of text.split("\n")) {
-            const f = line.split("|");
-            if (f[0] === "T") {
-                snap.ts = Number(f[1]);
-            } else if (f.length >= 4 && f[2] !== "") {
-                const v = ({});
-                for (const kv of f[3].split(",")) {
-                    const i = kv.indexOf("=");
-                    const raw = kv.slice(i + 1);
-                    // Linha malformada ou valor que não é número: fora, para
-                    // nenhum NaN contaminar o Math.max da conta.
-                    if (i > 0 && raw !== "" && isFinite(Number(raw)))
-                        v[kv.slice(0, i)] = Number(raw);
-                }
-                snap.clients[`${f[1]}/${f[2]}`] = { driver: f[0], pdev: f[1], v: v };
-            }
-        }
-        return snap;
-    }
-
-    // Uso (0-1) da GPU `pdev` entre duas leituras do fdinfo: a classe de motor mais
-    // ocupada, como o intel_gpu_top. Só entram os clientes presentes nas duas
-    // leituras: quem nasce e morre dentro da janela não é contado (o uso fica
-    // um pouco subestimado). i915: Δns do engine-<classe> / (Δns da janela ×
-    // engine-capacity-<classe>, padrão 1). xe: Δcycles-<classe> /
-    // Δtotal-cycles-<classe>. NaN sem leitura anterior, sem janela, com janela
-    // maior que 3 intervalos (leitura velha) ou sem cliente em comum; contador
-    // que volta conta 0.
-    function drmBusy(prev: var, cur: var, pdev: string): real {
-        if (!prev || !cur || !(cur.ts > prev.ts))
-            return NaN;
-        const window = cur.ts - prev.ts;
-        if (window > 3 * interval * 1e6)
-            return NaN;
-        const ns = ({}), cap = ({}), cycles = ({}), total = ({});
-        let common = 0;
-        for (const key in cur.clients) {
-            const c = cur.clients[key], p = prev.clients[key];
-            if (!p || c.pdev !== pdev)
-                continue;
-            common++;
-            for (const name in c.v) {
-                if (name.startsWith("engine-capacity-")) {
-                    cap[name.slice(16)] = Math.max(cap[name.slice(16)] ?? 0, c.v[name]);
-                    continue;
-                }
-                const d = Math.max(0, c.v[name] - (p.v[name] ?? c.v[name]));
-                if (name.startsWith("engine-"))
-                    ns[name.slice(7)] = (ns[name.slice(7)] ?? 0) + d;
-                else if (name.startsWith("total-cycles-"))
-                    total[name.slice(13)] = Math.max(total[name.slice(13)] ?? 0, d);
-                else if (name.startsWith("cycles-"))
-                    cycles[name.slice(7)] = (cycles[name.slice(7)] ?? 0) + d;
-            }
-        }
-        if (!common)
-            return NaN;
-        let busy = 0;
-        for (const name in ns)
-            busy = Math.max(busy, ns[name] / (window * (cap[name] > 0 ? cap[name] : 1)));
-        for (const name in cycles)
-            if (total[name] > 0)
-                busy = Math.max(busy, cycles[name] / total[name]);
-        return Math.min(1, busy);
-    }
-
-    function resetDrm(): void {
-        lastDrm = null;
-        drmUsage = ({});
-    }
-
-    // Lê o fdinfo só com uma Intel acordada (em repouso o uso é 0 e a leitura é
-    // desperdício); sem ela, esquece a leitura anterior.
-    function probeDrm(): void {
-        if (gpus.some(g => g.vendor === "intel" && g.state === "active")) {
-            if (!drmProbe.running)
-                drmProbe.running = true;
-        } else {
-            resetDrm();
-        }
-    }
-
-    // Guarda a leitura e atualiza o uso das GPUs Intel (as outras trazem o uso no gpu-status).
-    function applyDrm(text: string): void {
-        if (!gpuEnabled)
+    // Um estado recebido do daemon; `null` (o tópico ainda sem amostra) e
+    // tópico desconhecido não mudam nada.
+    function apply(topic: string, data: var): void {
+        if (data === null || data === undefined)
             return;
-        const cur = parseDrm(text);
-        const next = ({});
-        for (const g of gpus) {
-            if (g.vendor !== "intel")
-                continue;
-            const u = drmBusy(lastDrm, cur, g.pci);
-            if (isFinite(u))
-                next[g.pci] = u;
+        switch (topic) {
+        case "system.info":
+            applyInfo(data);
+            break;
+        case "system.stats":
+            applyStats(data);
+            break;
+        case "system.disks":
+            applyDisks(data);
+            break;
+        case "system.gpus":
+            applyGpus(data);
+            break;
+        case "system.status":
+            applyStatus(data);
+            break;
         }
-        lastDrm = cur;
-        drmUsage = next;
-        gpus = gpus.map(g => !(g.pci in next) ? g : Object.assign({}, g, { usage: next[g.pci] }));
     }
 
-    // Saída do lsblk -lnpo NAME,KNAME,TYPE,PKNAME: { caminho: { type, parent } },
-    // pelo nome (/dev/mapper/root) e pelo nome de kernel (/dev/dm-0), porque
-    // o PKNAME é o nome de kernel do pai e o df pode trazer qualquer um. Um
-    // dispositivo com vários pais (RAID do mdraid, LVM com o grupo em vários
-    // discos) aparece numa linha por pai, e fica o último.
-    function parseBlock(text: string): var {
-        const blocks = ({});
-        for (const line of text.split("\n")) {
-            const f = line.trim().split(/\s+/);
-            if (f.length >= 3)
-                blocks[f[0]] = blocks[f[1]] = { type: f[2], parent: f[3] ?? "" };
+    function applyInfo(data: var): void {
+        cpuModel = data.cpuModel;
+        cpuThreads = data.cpuThreads;
+        hostname = data.hostname;
+        osName = data.osName;
+        kernel = data.kernel;
+    }
+
+    function applyStats(data: var): void {
+        cpuUsage = data.cpuUsage;
+        cpuTemp = data.cpuTemp ?? NaN;
+        memTotal = data.memTotal;
+        memUsed = data.memUsed;
+        swapTotal = data.swapTotal;
+        swapUsed = data.swapUsed;
+        rxRate = data.rxRate;
+        txRate = data.txRate;
+        rxTotal = data.rxTotal;
+        txTotal = data.txTotal;
+        rxHistory = data.rxHistory;
+        txHistory = data.txHistory;
+        uptime = data.uptime;
+    }
+
+    function applyDisks(data: var): void {
+        disks = data.disks;
+    }
+
+    // O daemon manda `null` no que não leu (placa suspensa, sem sensor); a
+    // interface espera NaN.
+    function applyGpus(data: var): void {
+        gpus = data.gpus.map(g => Object.assign({}, g, {
+            usage: g.usage ?? NaN,
+            temp: g.temp ?? NaN,
+            freq: g.freq ?? NaN,
+            maxFreq: g.maxFreq ?? NaN
+        }));
+    }
+
+    function applyStatus(data: var): void {
+        moduleAvailable = data.available === true;
+        moduleError = data.error ?? "";
+    }
+
+    // Um dado da máquina para mostrar: "—" sem o daemon ou sem o valor.
+    function machineText(connected: bool, value: string): string {
+        return connected && value ? value : "—";
+    }
+
+    onActiveChanged: sync()
+    onGpuEnabledChanged: {
+        if (!gpuEnabled)
+            gpus = [];
+        sync();
+    }
+    onIntervalChanged: configure()
+
+    Connections {
+        target: root.client
+
+        function onReceived(topic: string, data: var): void {
+            root.apply(topic, data);
         }
-        return blocks;
-    }
 
-    // O nome curto do disco físico de uma origem do df ("/dev/nvme0n1p2" →
-    // "nvme0n1"), subindo pelos pais (LUKS, LVM) até o tipo "disk". Com vários
-    // pais (ver parseBlock), cai num disco só, o do último pai. Fora do lsblk,
-    // o próprio nome ("/dev/dm-7" → "dm-7"); "" para o que não é dispositivo
-    // (tmpfs, overlay, rede, ZFS, que o df mostra como "pool/dataset"), para
-    // loop e zram.
-    function diskOf(blocks: var, source: string): string {
-        if (!source.startsWith("/dev/") || /^\/dev\/(loop|zram|ram)\d/.test(source))
-            return "";
-        let dev = source;
-        for (let step = 0; step < 8; step++) {
-            const b = blocks[dev];
-            if (!b)
-                return step === 0 ? source.replace(/^.*\//, "") : "";
-            if (b.type === "disk")
-                return dev.replace(/^.*\//, "");
-            if (!b.parent)
-                return "";
-            dev = b.parent;
+        function onConnectedChanged(): void {
+            root.sync();
+            root.configure();
         }
-        return "";
-    }
-
-    // Os dispositivos do lsblk (parseBlock), lidos ao ligar, a cada
-    // `blocksEvery` leituras do df e quando o df traz uma origem nova; o df
-    // segue a cada ciclo.
-    property var blocks: ({})
-    // As origens do df na última leitura do lsblk: uma que o lsblk não conhece
-    // (/dev/root numa VM) não o faz rodar de novo a cada ciclo.
-    property var blockSources: []
-    property string lastDf: ""
-    property int dfReads: 0
-    readonly property int blocksEvery: 30
-
-    // Só lido ativo (a aba à mostra).
-    function refreshBlocks(): void {
-        if (active && !lsblk.running)
-            lsblk.running = true;
-    }
-
-    // As origens de dispositivo do df ("/dev/...", sem loop e zram).
-    function dfSources(text: string): var {
-        return text.split("\n").slice(1).map(l => l.trim().split(/\s+/)[0] ?? "").filter(s => diskOf({}, s) !== "");
-    }
-
-    // As origens do df que nem o lsblk nem a última leitura dele conhecem.
-    function newSources(text: string, blocks: var, known: var): var {
-        return dfSources(text).filter(s => !(s in blocks) && !known.includes(s));
-    }
-
-    // Uma leitura do df: pede o lsblk de novo quando é a hora ou há origem nova.
-    function readDf(text: string): void {
-        lastDf = text;
-        dfReads++;
-        if (dfReads % blocksEvery === 0 || newSources(text, blocks, blockSources).length > 0)
-            refreshBlocks();
-        parseDf(text);
-    }
-
-    // Saída do df (origem, tamanho, usado e ponto de montagem), com os
-    // dispositivos de `blocks`. Cada partição conta uma vez (montada em vários
-    // lugares, os números são os mesmos); as de um disco são somadas.
-    function parseDf(text: string): void {
-        const seen = new Set();
-        const byName = ({});
-        const list = [];
-        for (const line of text.split("\n").slice(1)) {
-            const f = line.trim().split(/\s+/);
-            if (f.length < 4)
-                continue;
-            const name = diskOf(blocks, f[0]);
-            const root = f.slice(3).join(" ") === "/";
-            if (!name || seen.has(f[0])) {
-                if (name && root)
-                    byName[name].root = true;
-                continue;
-            }
-            seen.add(f[0]);
-            if (!byName[name]) {
-                byName[name] = { name: name, size: 0, used: 0, root: false };
-                list.push(byName[name]);
-            }
-            byName[name].size += Number(f[1]);
-            byName[name].used += Number(f[2]);
-            byName[name].root = byName[name].root || root;
-        }
-        disks = list.filter(d => d.root).concat(list.filter(d => !d.root));
-    }
-
-    Timer {
-        running: root.active
-        repeat: true
-        interval: root.interval
-        triggeredOnStart: true
-        onTriggered: root.sample()
-    }
-
-    FileView {
-        id: stat
-
-        path: "/proc/stat"
-        onLoaded: root.parseStat(text())
-    }
-
-    FileView {
-        id: meminfo
-
-        path: "/proc/meminfo"
-        onLoaded: root.parseMeminfo(text())
-    }
-
-    FileView {
-        id: netdev
-
-        path: "/proc/net/dev"
-        onLoaded: root.parseNetdev(text())
-    }
-
-    FileView {
-        id: uptimeFile
-
-        path: "/proc/uptime"
-        onLoaded: root.uptime = Number(text().split(" ")[0])
-    }
-
-    FileView {
-        path: "/proc/cpuinfo"
-        onLoaded: root.parseCpuinfo(text())
-    }
-
-    FileView {
-        path: "/proc/sys/kernel/hostname"
-        onLoaded: root.hostname = text().trim()
-    }
-
-    FileView {
-        path: "/proc/sys/kernel/osrelease"
-        onLoaded: root.kernel = text().trim()
-    }
-
-    FileView {
-        path: "/etc/os-release"
-        onLoaded: root.osName = text().match(/^PRETTY_NAME="?([^"\n]*)"?/m)?.[1] ?? ""
     }
 
     Process {
@@ -442,69 +185,5 @@ Singleton {
         }
     }
 
-    FileView {
-        id: tempFile
-
-        path: root.tempPath
-        printErrors: false
-        onLoaded: root.cpuTemp = Number(text()) / 1000
-    }
-
-    Process {
-        running: true
-        command: ["sh", "-c", "for d in /sys/class/hwmon/hwmon*; do printf '%s %s\\n' \"$d\" \"$(cat \"$d/name\" 2>/dev/null)\"; done"]
-        stdout: StdioCollector {
-            onStreamFinished: root.pickTempSensor(text)
-        }
-    }
-
-    Process {
-        id: df
-
-        // -l: só sistemas de arquivos locais (um de rede travado não trava a
-        // leitura).
-        command: ["df", "-lB1", "--output=source,size,used,target"]
-        stdout: StdioCollector {
-            onStreamFinished: root.readDf(text)
-        }
-    }
-
-    Process {
-        id: lsblk
-
-        command: ["lsblk", "-lnpo", "NAME,KNAME,TYPE,PKNAME"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.blocks = root.parseBlock(text);
-                root.blockSources = root.dfSources(root.lastDf);
-                if (root.lastDf)
-                    root.parseDf(root.lastDf);
-            }
-        }
-    }
-
-    Process {
-        id: gpuProbe
-
-        command: ["sh", Quickshell.shellPath("services/scripts/gpu-status.sh")]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.parseGpus(text);
-                root.probeDrm();
-            }
-        }
-    }
-
-    Process {
-        id: drmProbe
-
-        command: ["sh", Quickshell.shellPath("services/scripts/drm-fdinfo.sh")]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                // Resposta que chega depois de parar não vale (a leitura ficaria velha).
-                if (root.active)
-                    root.applyDrm(text);
-            }
-        }
-    }
+    Component.onCompleted: sync()
 }

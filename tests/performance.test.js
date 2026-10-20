@@ -52,7 +52,7 @@ function run(t) {
         t.eq(P.gpuView(gpu({ vendor: "intel", temp: 50 }), 62).tempText, "50 °C", "com sensor próprio, o dela");
         t.eq(P.gpuView(gpu({ vendor: "amd", temp: NaN }), 62).tempText, "62 °C", "AMD sem hwmon: a da CPU");
         t.eq(P.gpuView(gpu({ vendor: "amd", temp: 71 }), 62).tempText, "71 °C", "AMD com hwmon: o dela");
-        t.eq(P.gpuView(nvidia, 62).tempText, "61 °C", "dedicada: a do nvidia-smi");
+        t.eq(P.gpuView(nvidia, 62).tempText, "61 °C", "dedicada: a da NVML");
         t.eq(P.gpuView(gpu({ usage: 0.1 }), 62).hasTemp, false, "dedicada sem sensor não herda a da CPU");
     });
 

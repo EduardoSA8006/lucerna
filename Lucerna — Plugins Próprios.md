@@ -19,7 +19,7 @@ Regras para um plugin próprio:
 
 | Plugin | Substitui | Hoje, no Lucerna | Ganho com o plugin |
 | --- | --- | --- | --- |
-| `lucerna-sysinfo` | Leituras de CPU, memória, disco, rede, temperatura e GPU | `FileView` em `/proc` e `/sys`, `df` para disco e `nvidia-smi` para NVIDIA | Leitura sem criar processos (`statvfs` no lugar do `df`); NVML carregado sob demanda no lugar do `nvidia-smi`; uso da GPU Intel pelos contadores `fdinfo` do DRM, hoje indisponível |
+| `lucerna-sysinfo` | Leituras de CPU, memória, disco, rede, temperatura e GPU | o módulo `system` do `lucernad` (sem processos externos), lido pelo `SystemStats` | Leitura sem criar processos (`statvfs` no lugar do `df`); NVML carregado sob demanda no lugar do `nvidia-smi`; uso da GPU Intel pelos contadores `fdinfo` do DRM, hoje indisponível |
 | `lucerna-spectrum` | `libcava` + `aubio` (visualizador e batida) | Pulso de volume pelo `PwNodePeakMonitor` do Quickshell | Espectro por frequência (FFT própria sobre um stream do PipeWire) e detecção de batida |
 | `lucerna-shapes` | `qt6-m3shapes` | Formas desenhadas com `QtQuick.Shapes` (curvas polares) | Morfismo entre formas diferentes, com o mesmo número de vértices, em C++ e com antisserrilhamento melhor |
 | `lucerna-ddc` | `ddcutil` | Não há: só o brilho da tela interna, via `brightnessctl` | Brilho de monitores externos por DDC/CI direto no `/dev/i2c-*` |

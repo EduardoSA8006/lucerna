@@ -27,7 +27,7 @@ Com um shell próprio, só roda o que foi escrito, e cada decisão visual e de c
 - **Hyprland 0.56 ou mais novo, com configuração em Lua** (`hyprland.lua`). O formato `.conf` sai na 0.57, e o modo Lua muda o IPC: `dispatch` passa a receber código Lua (`hl.dsp.focus({ workspace = 2 })`) e `keyword` é substituído por `eval`. O Lucerna fala só o dialeto Lua.
 - **Quickshell 0.3.1 ou mais novo**, que detecta o modo Lua do Hyprland (`Hyprland.usingLua`).
 - **Fonte de ícones:** `ttf-material-symbols-variable`, do repositório oficial do Arch. É a única dependência de pacote além do Hyprland e do Quickshell.
-- Serviços do sistema usados quando presentes: PipeWire (áudio), UPower (bateria), NetworkManager (rede), `brightnessctl` (brilho da tela integrada), `ddcutil` (brilho dos monitores externos por DDC/CI) e `nvidia-smi` (uso da GPU NVIDIA, que vem com o driver). Na falta de um deles, o componente correspondente simplesmente não aparece.
+- Serviços do sistema usados quando presentes: PipeWire (áudio), UPower (bateria), NetworkManager (rede), `brightnessctl` (brilho da tela integrada), `ddcutil` (brilho dos monitores externos por DDC/CI) e o `lucernad` (o daemon do Lucerna, obrigatório: CPU, memória, rede, discos, temperatura e GPU). Na falta de um dos outros, o componente correspondente simplesmente não aparece.
 - **Mínimo de dependências de terceiros:** o que o Qt e o Quickshell já oferecem vem primeiro (`/proc`, `/sys`, `XMLHttpRequest`, `QtQuick.Shapes`). Quando algo crescer a ponto de pedir C++, a saída é um plugin próprio, em repositório separado, e não uma biblioteca externa. Os candidatos estão em [`Lucerna — Plugins Próprios.md`](<Lucerna — Plugins Próprios.md>).
 
 ## Identidade visual
@@ -119,7 +119,7 @@ lucerna-shell/
 │   ├── Session.qml             # bloquear, suspender, reiniciar, desligar
 │   ├── Bluetooth.qml           # adaptador e dispositivos (BlueZ)
 │   ├── DevMode.qml             # simula ações que mudariam o sistema do host
-│   ├── SystemStats.qml         # CPU, memória, disco, rede, temperatura, GPU
+│   ├── SystemStats.qml         # adaptador do módulo system do lucernad
 │   ├── Media.qml               # players MPRIS
 │   ├── Lyrics.qml              # letras sincronizadas (LRCLIB)
 │   ├── Weather.qml             # previsão (Open-Meteo)
@@ -131,7 +131,7 @@ lucerna-shell/
 │   ├── VideoWallpapers.qml     # vídeos convertidos por tela, em fila
 │   ├── AppInfo.qml             # versão e desenvolvedor dos apps (pacman, AppStream)
 │   ├── FileSearch.qml          # busca de arquivos do launcher (fd ou find)
-│   └── scripts/                # gpu-status, video-wallpaper, app-info, file-search
+│   └── scripts/                # video-wallpaper, app-info, file-search
 ├── features/
 │   ├── bar/
 │   ├── workspaces/             # visão geral dos workspaces (Super+Tab); IPC overview
@@ -208,7 +208,7 @@ O **modo offline** (Configurações → Painel superior → Privacidade) desliga
 
 ## Consumo
 
-Os dados do painel só são coletados enquanto a aba que os mostra está visível: `SystemStats` a cada 2 s, a posição da mídia a cada 0,5 s, o pico do áudio só na aba Mídia e o clima a cada 30 min. Com o painel fechado, nada disso roda. A GPU NVIDIA em repouso não é acordada: o `nvidia-smi` só roda se o gerenciamento de energia do kernel disser que ela já está ativa.
+Os dados do painel só são coletados enquanto a aba que os mostra está visível: `SystemStats` assina os tópicos do `lucernad` (que mede a cada 2 s, só com assinante), a posição da mídia a cada 0,5 s, o pico do áudio só na aba Mídia e o clima a cada 30 min. Com o painel fechado, nada disso roda. A GPU em repouso não é acordada: o `lucernad` só lê a placa ativa e só chama a NVML com a NVIDIA em uso.
 
 ## Segurança da tela de bloqueio
 
