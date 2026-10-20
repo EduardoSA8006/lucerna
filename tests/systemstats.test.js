@@ -122,9 +122,51 @@ function run(t) {
     });
 
     t.test("systemstats: sincronizar e configurar sem conexão só guardam", () => {
-        S.sync();
-        t.eq(S.client.wanted, S.wantedTopics(S.active, S.gpuEnabled));
-        S.configure();
+        const before = {
+            active: S.active,
+            gpuEnabled: S.gpuEnabled
+        };
+        const gpus = {
+            gpus: [
+                {
+                    card: "card0",
+                    vendor: "intel",
+                    pci: "0000:00:02.0",
+                    state: "active",
+                    name: "Intel (integrada)",
+                    usage: null,
+                    temp: null,
+                    freq: 1450,
+                    maxFreq: 1500
+                }
+            ]
+        };
+        try {
+            S.sync();
+            t.eq(S.client.wanted, S.wantedTopics(S.active, S.gpuEnabled));
+
+            S.gpuEnabled = true;
+            S.active = false;
+            t.eq(S.client.wanted, ["system.info", "system.status"], "aba fechada: só a máquina e o estado");
+            S.active = true;
+            t.eq(S.client.wanted, ["system.info", "system.status", "system.stats", "system.disks", "system.gpus"], "aba à mostra: as medidas e as GPUs");
+
+            S.apply("system.gpus", gpus);
+            t.eq(S.gpus.length, 1);
+            S.gpuEnabled = false;
+            t.eq(S.gpus, [], "GPU desligada: a lista zera");
+            t.eq(S.client.wanted, ["system.info", "system.status", "system.stats", "system.disks"], "GPU desligada: sem system.gpus");
+            S.apply("system.gpus", gpus);
+            t.eq(S.gpus, [], "um system.gpus a caminho não repovoa");
+
+            const ids = [S.client.nextId, Object.keys(S.client.pending).length];
+            S.configure();
+            t.eq([S.client.nextId, Object.keys(S.client.pending).length], ids, "sem conexão, configure() não pede nada");
+        } finally {
+            S.active = before.active;
+            S.gpuEnabled = before.gpuEnabled;
+        }
+        t.eq(S.client.wanted, S.wantedTopics(before.active, before.gpuEnabled), "tópicos de volta");
     });
 
     t.test("systemstats: o texto da máquina sem o daemon", () => {

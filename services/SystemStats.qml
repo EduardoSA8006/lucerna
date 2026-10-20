@@ -137,7 +137,10 @@ Singleton {
 
     // O daemon manda `null` no que não leu (placa suspensa, sem sensor); a
     // interface espera NaN.
+    // Com a GPU desligada, um system.gpus que ainda estava a caminho não repovoa.
     function applyGpus(data: var): void {
+        if (!gpuEnabled)
+            return;
         gpus = data.gpus.map(g => Object.assign({}, g, {
             usage: g.usage ?? NaN,
             temp: g.temp ?? NaN,
