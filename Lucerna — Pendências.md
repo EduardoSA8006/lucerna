@@ -42,6 +42,12 @@ Módulos propostos, em ordem de prioridade:
 - [ ] **Ferramenta à parte:** `lucerna-video`, o conversor de papel de parede em vídeo (hoje `video-wallpaper.sh`, com `ffmpeg`), em lote, fora do daemon.
 - [ ] Depois, se valer: captura de tela e gravação (hoje `grim` e `wf-recorder`).
 
+Sobras do módulo de sistema:
+
+- [ ] **`status` sem a primeira amostra:** o `lucernad status` (o `status` do `lucerna-cli`, no SDK) imprime o retrato inicial dos tópicos amostrados (`data: null`, `seq` 0) e sai, então `system.stats`, `system.disks` e `system.gpus` aparecem vazios. Ele deveria esperar a primeira amostra por um prazo curto.
+- [ ] **Pacote do `lucernad`:** um PKGBUILD no repositório do `lucernad`. Hoje ele é instalado à mão pelos comandos do README e precisa ser recompilado e reinstalado a cada merge.
+- [ ] **Uso da Intel na primeira amostra:** o fdinfo precisa de duas leituras, então ao abrir a aba Desempenho o uso da Intel fica "—" por ~2 s. Dá para tirar uma leitura curta extra no primeiro ciclo.
+
 ## Depois
 
 - [ ] Aba Desempenho: um medidor de bateria em forma de pilha, só no notebook. Rascunhos de três encaixes (ao lado de CPU e GPU, em pé ao lado da Memória, faixa embaixo) em `.superpowers/brainstorm/436361-1792526405/content/bateria-desempenho.html`; o usuário quer planejar melhor antes.
