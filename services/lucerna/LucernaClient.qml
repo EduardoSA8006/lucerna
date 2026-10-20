@@ -156,11 +156,14 @@ Scope {
     }
 
     // A resposta do hello: no sucesso, conectado e reassina (a espera só zera
-    // depois de 1 s conectado, no settled()); no erro, guarda a mensagem (o
-    // serviço fecha a conexão).
+    // depois de 1 s conectado, no settled()); no erro, guarda a mensagem,
+    // fecha o socket e segue para a nova tentativa, com a espera (sem contar
+    // com o serviço fechar a conexão).
     function greeted(response: var): void {
         if (response.error) {
             error = String(response.error.message);
+            socket.connected = false;
+            lost();
             return;
         }
         connected = true;
@@ -250,6 +253,8 @@ Scope {
 
     // A conexão caiu ou não abriu. A mesma queda chega pelo `error` e pelo
     // connectionStateChanged; a segunda volta aqui, com a tentativa já agendada.
+    // A tentativa é agendada antes de falhar os pedidos: o hello falhado chama
+    // o greeted(), que volta aqui e não pode contar a queda de novo.
     function lost(): void {
         if (retry.running)
             return;
@@ -257,9 +262,9 @@ Scope {
         if (connected)
             console.info(`lucerna: sem conexão com o ${app}`);
         connected = false;
-        failPending(`Sem conexão com o ${app}.`);
         retry.interval = backoff(attempt++);
         retry.start();
+        failPending(`Sem conexão com o ${app}.`);
     }
 
     // Responde com erro a todos os pedidos pendentes.

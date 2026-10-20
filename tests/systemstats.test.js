@@ -169,6 +169,22 @@ function run(t) {
         t.eq(S.client.wanted, S.wantedTopics(before.active, before.gpuEnabled), "tópicos de volta");
     });
 
+    t.test("systemstats: a conexão que cai esquece o estado do módulo", () => {
+        S.apply("system.status", {
+            available: false,
+            error: "O módulo de sistema parou por um erro interno."
+        });
+        S.connectionChanged(false);
+        t.eq([S.moduleAvailable, S.moduleError], [false, ""], "o erro era da conexão anterior");
+        S.apply("system.status", {
+            available: true,
+            error: null
+        });
+        S.connectionChanged(false);
+        t.eq(S.moduleAvailable, false, "ao reconectar, só vale o system.status novo");
+        t.eq(S.client.wanted, S.wantedTopics(S.active, S.gpuEnabled), "e os tópicos seguem pedidos");
+    });
+
     t.test("systemstats: o texto da máquina sem o daemon", () => {
         t.eq(S.machineText(true, "maquina"), "maquina");
         t.eq(S.machineText(false, "maquina"), "—");

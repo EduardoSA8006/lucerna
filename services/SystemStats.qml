@@ -16,7 +16,6 @@ Singleton {
     property int interval: 2000
     // A GPU pode ser desligada (o tópico dela nem é assinado).
     property bool gpuEnabled: true
-    readonly property int historyLength: 30
 
     readonly property var client: Lucernad.client
     // O system.status do daemon: o módulo pode estar indisponível com o
@@ -154,6 +153,18 @@ Singleton {
         moduleError = data.error ?? "";
     }
 
+    // A conexão abriu ou caiu: caída, o estado do módulo era da conexão
+    // anterior e não vale mais (ao reconectar, só o system.status novo);
+    // aberta, reassina e manda o intervalo.
+    function connectionChanged(connected: bool): void {
+        if (!connected) {
+            moduleAvailable = false;
+            moduleError = "";
+        }
+        sync();
+        configure();
+    }
+
     // Um dado da máquina para mostrar: "—" sem o daemon ou sem o valor.
     function machineText(connected: bool, value: string): string {
         return connected && value ? value : "—";
@@ -175,8 +186,7 @@ Singleton {
         }
 
         function onConnectedChanged(): void {
-            root.sync();
-            root.configure();
+            root.connectionChanged(root.client.connected);
         }
     }
 

@@ -29,7 +29,7 @@ Com um shell próprio, só roda o que foi escrito, e cada decisão visual e de c
 - **Fonte de ícones:** `ttf-material-symbols-variable`, do repositório oficial do Arch. É a única dependência de pacote além do Hyprland, do Quickshell e do `lucernad`.
 - **Obrigatório: o `lucernad`**, o daemon do Lucerna, de onde vêm CPU, memória, rede, discos, temperatura e GPU (sem ele, a aba Desempenho mostra "indisponível").
 - Serviços do sistema usados quando presentes: PipeWire (áudio), UPower (bateria), NetworkManager (rede), `brightnessctl` (brilho da tela integrada) e `ddcutil` (brilho dos monitores externos por DDC/CI). Na falta de um deles, o componente correspondente simplesmente não aparece.
-- **Mínimo de dependências de terceiros:** o que o Qt e o Quickshell já oferecem vem primeiro (`/proc`, `/sys`, `XMLHttpRequest`, `QtQuick.Shapes`). Quando algo crescer a ponto de pedir C++, a saída é um plugin próprio, em repositório separado, e não uma biblioteca externa. Os candidatos estão em [`Lucerna — Plugins Próprios.md`](<Lucerna — Plugins Próprios.md>).
+- **Mínimo de dependências de terceiros:** o que o Qt e o Quickshell já oferecem vem primeiro (`XMLHttpRequest`, `QtQuick.Shapes`); as leituras do `/proc` e do `/sys` (CPU, memória, rede, discos, temperatura e GPU) vêm do `lucernad`. Quando algo crescer a ponto de pedir C++, a saída é um plugin próprio, em repositório separado, e não uma biblioteca externa. Os candidatos estão em [`Lucerna — Plugins Próprios.md`](<Lucerna — Plugins Próprios.md>).
 
 ## Identidade visual
 
@@ -121,6 +121,8 @@ lucerna-shell/
 │   ├── Bluetooth.qml           # adaptador e dispositivos (BlueZ)
 │   ├── DevMode.qml             # simula ações que mudariam o sistema do host
 │   ├── SystemStats.qml         # adaptador do módulo system do lucernad
+│   ├── Lucernad.qml            # a conexão permanente com o lucernad
+│   ├── lucerna/LucernaClient.qml # cliente do protocolo do Lucerna (JSON-RPC num socket Unix)
 │   ├── Media.qml               # players MPRIS
 │   ├── Lyrics.qml              # letras sincronizadas (LRCLIB)
 │   ├── Weather.qml             # previsão (Open-Meteo)
@@ -166,6 +168,8 @@ lucerna-shell/
     ├── Dockerfile
     ├── hyprland.lua
     ├── run.sh
+    ├── lucernad.sh             # compila o lucernad numa revisão fixa (container e fumaça)
+    ├── lucernad.rev            # a revisão (SHA) do lucernad usada
     ├── ci.sh                   # roda os checks do CI no archlinux:latest, como no GitHub
     ├── test.sh                 # conferência visual: container lucerna-polish com a janela na tela
     ├── themes.py               # gera os temas e os papéis estáticos

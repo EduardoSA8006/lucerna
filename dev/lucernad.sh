@@ -12,6 +12,13 @@ set -euo pipefail
 rev=${1:?uso: dev/lucernad.sh <rev> <prefixo>}
 prefix=${2:?uso: dev/lucernad.sh <rev> <prefixo>}
 
+# Só um SHA completo: um branch ou uma tag mudam sem aviso, e o build deixa de
+# ser reproduzível.
+if ! [[ $rev =~ ^[0-9a-f]{40}$ ]]; then
+    echo "dev/lucernad.sh: a revisão precisa ser um SHA de 40 caracteres hexadecimais, veio '$rev'" >&2
+    exit 64
+fi
+
 if [ -x "$prefix/bin/lucernad" ] && [ "$(cat "$prefix/rev" 2> /dev/null)" = "$rev" ]; then
     echo "lucernad $rev já compilado em $prefix"
     exit 0

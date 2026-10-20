@@ -110,8 +110,17 @@ function run(t) {
         c.opened();
         c.receive(JSON.stringify({ jsonrpc: "2.0", id: ids(c)[0], error: { code: -32010, message: "Versão do protocolo incompatível." } }));
         t.eq([c.connected, c.error], [false, "Versão do protocolo incompatível."]);
+        t.eq([c.attempt, ids(c)], [1, []], "o cliente fecha e agenda a nova tentativa, com a espera");
+        c.open();
         c.opened();
         t.eq(c.error, "", "uma conexão nova limpa o erro velho");
+    });
+
+    withClient("lucernaclient: queda durante o hello conta uma tentativa só", c => {
+        c.opened();
+        c.lost();
+        t.eq([c.connected, c.attempt, ids(c)], [false, 1, []]);
+        t.eq(c.error, "Sem conexão com o teste.");
     });
 
     withClient("lucernaclient: a espera só zera depois de 1 s conectado", c => {
