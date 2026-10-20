@@ -56,6 +56,15 @@ jobs:
           key: pacman-${{ matrix.job }}-${{ hashFiles(format('ci/packages/{0}.txt', matrix.job)) }}-${{ steps.week.outputs.week }}
           restore-keys: pacman-${{ matrix.job }}-
 
+      # O lucernad compilado pelo dev/lucernad.sh, pela revisão fixa: só
+      # recompila quando dev/lucernad.rev ou o script mudam.
+      - name: Cache do lucernad (fumaça)
+        if: matrix.job == 'smoke'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /opt/lucernad
+          key: lucernad-${{ hashFiles('dev/lucernad.rev', 'dev/lucernad.sh') }}
+
       - name: Preparar o container
         run: bash ci/setup.sh "$JOB"
 
