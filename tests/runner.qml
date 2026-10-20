@@ -25,6 +25,7 @@ import qs.features.dashboard.state
 import qs.features.notifications.state
 import qs.features.themeSwitcher.state
 import qs.services
+import qs.services.lucerna
 import qs.services.spectrum
 import "appinfo.test.js" as AppInfoTest
 import "audio.test.js" as AudioTest
@@ -40,6 +41,7 @@ import "clipboard.test.js" as ClipboardTest
 import "format.test.js" as FormatTest
 import "input.test.js" as InputTest
 import "inputactions.test.js" as InputActionsTest
+import "lucernaclient.test.js" as LucernaClientTest
 import "lyrics.test.js" as LyricsTest
 import "media.test.js" as MediaTest
 import "monitors.test.js" as MonitorsTest
@@ -103,7 +105,8 @@ ShellRoot {
         ["media", MediaTest],
         ["session", SessionTest],
         ["weather", WeatherTest],
-        ["themeswitcher", ThemeSwitcherTest]
+        ["themeswitcher", ThemeSwitcherTest],
+        ["lucernaclient", LucernaClientTest]
     ]
 
     function fail(message: string): void {
@@ -164,6 +167,11 @@ ShellRoot {
         return cavaBackend.createObject(root);
     }
 
+    // Um cliente do protocolo solto (app "teste", sem socketPath: nunca conecta).
+    function lucernaClient(): var {
+        return lucernaClientComponent.createObject(root);
+    }
+
     function enums(): var {
         return {
             wifiOpen: QsNet.WifiSecurityType.Open,
@@ -187,6 +195,7 @@ ShellRoot {
             object: root.object,
             card: root.card,
             cava: root.cava,
+            lucernaClient: root.lucernaClient,
             enums: root.enums(),
             get Config() { return Config; },
             get Format() { return Format; },
@@ -238,6 +247,15 @@ ShellRoot {
         id: cavaBackend
 
         Cava {}
+    }
+
+    Component {
+        id: lucernaClientComponent
+
+        LucernaClient {
+            app: "teste"
+            socketPath: ""
+        }
     }
 
     Component {
