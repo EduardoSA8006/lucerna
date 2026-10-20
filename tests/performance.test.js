@@ -90,6 +90,14 @@ function run(t) {
         t.eq(P.diskView(disks[1]).fraction, 0, "tamanho 0 não divide");
     });
 
+    t.test("performance: o texto de indisponível", () => {
+        const error = "O módulo de sistema parou por um erro interno.";
+        t.eq(P.unavailableMessage(false, ""), "Indisponível: sem conexão com o lucernad.");
+        t.eq(P.unavailableMessage(false, error), "Indisponível: sem conexão com o lucernad.", "sem conexão vence o erro");
+        t.eq(P.unavailableMessage(true, error), `Indisponível: ${error}`);
+        t.eq(P.unavailableMessage(true, ""), "Indisponível.");
+    });
+
     t.test("performance: qual disco mostrar e o próximo", () => {
         const list = disks.map(d => P.diskView(d));
         t.eq(P.diskPick(list, ""), 0, "sem escolha, o primeiro (o da raiz)");

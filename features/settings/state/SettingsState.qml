@@ -395,9 +395,9 @@ Singleton {
     readonly property var about: [
         { label: "Hyprland", value: Hypr.version || "—" },
         { label: "Quickshell", value: SystemStats.quickshellVersion || "—" },
-        { label: "Sistema", value: SystemStats.osName || "—" },
-        { label: "Kernel", value: SystemStats.kernel || "—" },
-        { label: "Máquina", value: SystemStats.hostname || "—" }
+        { label: "Sistema", value: SystemStats.machineText(SystemStats.connected, SystemStats.osName) },
+        { label: "Kernel", value: SystemStats.machineText(SystemStats.connected, SystemStats.kernel) },
+        { label: "Máquina", value: SystemStats.machineText(SystemStats.connected, SystemStats.hostname) }
     ]
 
     IpcHandler {
