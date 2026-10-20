@@ -1,5 +1,15 @@
 # Ambiente de teste do Lucerna: Arch + Hyprland + Quickshell.
 # O Hyprland roda aninhado, como uma janela na sessão Wayland do host.
+
+# O lucernad (o daemon do Lucerna), compilado na revisão de dev/lucernad.rev
+# (o dev/run.sh e o dev/test.sh passam LUCERNAD_REV). Num estágio à parte,
+# para a imagem final não levar a toolchain do Rust.
+FROM archlinux:latest AS lucernad
+ARG LUCERNAD_REV
+RUN pacman -Syu --noconfirm --needed rustup git gcc
+COPY lucernad.sh /tmp/
+RUN bash /tmp/lucernad.sh "$LUCERNAD_REV" /opt/lucernad
+
 FROM archlinux:latest
 
 # mpv e mpv-mpris só servem para testar a aba Mídia (um player MPRIS), e o
@@ -16,6 +26,12 @@ RUN pacman -Syu --noconfirm --needed \
         mpv mpv-mpris ffmpeg cava \
         hicolor-icon-theme adwaita-icon-theme \
     && pacman -Scc --noconfirm
+
+# A etiqueta diz de que revisão é o binário: o dev/run.sh e o dev/test.sh
+# reconstroem a imagem quando ela difere de dev/lucernad.rev.
+ARG LUCERNAD_REV
+LABEL lucernad.rev=$LUCERNAD_REV
+COPY --from=lucernad /opt/lucernad/bin/lucernad /usr/bin/lucernad
 
 # Senha do usuário "dev" para testar a tela de bloqueio (PAM): lucerna
 ARG UID=1000

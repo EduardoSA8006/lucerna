@@ -1,6 +1,5 @@
 import QtQuick
 import qs.core.theme
-import qs.core.widgets
 
 // Estado vazio de uma seção: forma orgânica com ícone e uma frase.
 Column {

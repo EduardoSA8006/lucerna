@@ -68,12 +68,12 @@ Column {
 
         SettingRow {
             title: "Obrigatórias"
-            description: "Hyprland 0.56+ (config em Lua), Quickshell 0.3.1+ e a fonte Material Symbols"
+            description: "Hyprland 0.56+ (config em Lua), Quickshell 0.3.1+, a fonte Material Symbols e o lucernad"
         }
 
         SettingRow {
             title: "Opcionais"
-            description: "PipeWire, UPower, NetworkManager, brightnessctl e nvidia-smi"
+            description: "PipeWire, UPower, NetworkManager e brightnessctl"
         }
 
         SettingRow {

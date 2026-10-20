@@ -9,6 +9,9 @@ hl.monitor({
 })
 
 hl.on("hyprland.start", function()
+    -- Sem systemd no container, o lucernad sobe aqui, antes do shell, e não
+    -- encerra por ociosidade (24 h).
+    hl.exec_cmd("env LUCERNA_IDLE_TIMEOUT_MS=86400000 lucernad serve")
     hl.exec_cmd("qs -c lucerna")
 end)
 

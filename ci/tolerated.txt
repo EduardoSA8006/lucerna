@@ -39,3 +39,9 @@
 # Sem PipeWire no container: volume e mídia ficam de fora (o número do errno
 # pode variar conforme o socket que falta).
 ^ERROR quickshell\.service\.pipewire\.loop: Failed to connect pipewire context\. Errno: \d+$
+
+# Sem o lucernad (a fase "lucernad fora" da fumaça), o Socket do Quickshell
+# avisa a cada tentativa de conexão; a espera crescente do LucernaClient espaça
+# as tentativas até uma a cada 30 s. O PeerClosedError é a queda da conexão quando o
+# daemon para. O endereço do objeto muda a cada execução.
+^WARN quickshell\.io\.socket: Socket error for Socket\(0x[0-9a-f]+\) QLocalSocket::(ServerNotFoundError|PeerClosedError)$

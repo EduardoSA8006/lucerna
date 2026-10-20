@@ -15,3 +15,7 @@ grim
 procps-ng
 ttf-material-symbols-variable
 noto-fonts
+# O lucernad (dev/lucernad.sh) é compilado na fumaça.
+rustup
+git
+gcc

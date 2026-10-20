@@ -20,9 +20,14 @@ if [ "${LUCERNA_CI_PULL:-1}" != 0 ]; then
 fi
 
 # opts <job>: as opções do docker run comuns aos jobs, no array `common`.
+# Na fumaça, o volume lucerna-ci-lucernad guarda o lucernad compilado (o
+# dev/lucernad.sh não recompila a mesma revisão).
 opts() {
     common=(--user root -e CI=true -e CI_UID="$(id -u)" -e CI_OUT=/out -e CI_JOB="$1"
         -v "lucerna-ci-pacman-$1:/var/cache/pacman/pkg" -w /src)
+    if [ "$1" = smoke ]; then
+        common+=(-v lucerna-ci-lucernad:/opt/lucernad)
+    fi
 }
 
 # Só os contêineres lucerna-ci-<job> e lucerna-ci-shell: nunca o lucerna-dev nem o

@@ -14,7 +14,7 @@ Item {
     // todas as abas, e o `visible` delas não muda.
     readonly property bool onScreen: DashboardState.isShowing("performance")
 
-    implicitHeight: layout.implicitHeight
+    implicitHeight: PerformanceState.available ? layout.implicitHeight : unavailable.implicitHeight
 
     // Um relógio só para as bolhas da CPU e da GPU: mudam para a mesma figura
     // e giram juntas. Roda com a aba na tela; a bolha parada (GPU sem dados)
@@ -22,8 +22,8 @@ Item {
     BlobMorph {
         id: blobClock
 
-        morphing: root.onScreen
-        spinning: root.onScreen
+        morphing: root.onScreen && PerformanceState.available
+        spinning: root.onScreen && PerformanceState.available
         spinDuration: 30000
     }
 
@@ -40,9 +40,19 @@ Item {
         value: PerformanceState.gpu?.unit === "%" ? PerformanceState.gpu.fraction : 0
     }
 
+    // Sem o lucernad: a forma com o ícone e o motivo, no lugar dos cards.
+    EmptyState {
+        id: unavailable
+
+        visible: !PerformanceState.available
+        icon: Icons.performance
+        text: PerformanceState.unavailableText
+    }
+
     ColumnLayout {
         id: layout
 
+        visible: PerformanceState.available
         width: parent.width
         spacing: ThemeManager.spacing.normal
 

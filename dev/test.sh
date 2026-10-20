@@ -34,6 +34,8 @@
 # a maximização e a borda e a centraliza nesse tamanho; sem monitor assim, ela
 # fica onde está. Em escala fracionária a imagem sai borrada. Fora do KDE, não faz nada.
 # LUCERNA_TEST_SIZE=LARGURAxALTURA: o tamanho da janela (padrão 1920x1080).
+# O lucernad sobe com o Hyprland (dev/hyprland.lua). Para ver o shell sem ele:
+# `dev/test.sh run 'pkill -x lucernad'`; para voltar: `dev/test.sh run 'setsid -f lucernad serve'`.
 #
 # Teclas com modificador pelo wtype: o Hyprland aninhado resolve os binds pelo
 # keycode do keymap real, e o wtype numera as teclas do keymap dele na ordem em
@@ -243,8 +245,12 @@ up() {
     local runtime=${XDG_RUNTIME_DIR:-/run/user/$(id -u)} devices render card
     devices=$(gpu) || fail "nenhuma GPU utilizável em /sys/class/drm (a da NVIDIA não funciona no container); use LUCERNA_TEST_GPU"
     read -r render card <<< "$devices"
-    if ! docker image inspect "$image" &> /dev/null; then
-        docker build --build-arg UID="$(id -u)" --build-arg GID="$(id -g)" -t "$image" "$repo/dev"
+    # A imagem é refeita quando falta ou quando o lucernad dela é de outra revisão.
+    local rev
+    rev=$(cat "$repo/dev/lucernad.rev")
+    if ! docker image inspect "$image" &> /dev/null \
+        || [ "$(docker image inspect -f '{{ index .Config.Labels "lucernad.rev" }}' "$image")" != "$rev" ]; then
+        docker build --build-arg UID="$(id -u)" --build-arg GID="$(id -g)" --build-arg LUCERNAD_REV="$rev" -t "$image" "$repo/dev"
     fi
     local extra=()
     if [ -S "$runtime/pipewire-0" ]; then
@@ -343,7 +349,7 @@ case "${1:-}" in
         ex "$2"
         ;;
     *)
-        sed -n '2,36p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+        sed -n '2,38p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
         exit 2
         ;;
 esac

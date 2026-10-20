@@ -10,6 +10,11 @@ import qs.services
 Singleton {
     id: root
 
+    // Sem o lucernad (ou com o módulo de sistema parado), a aba mostra só o
+    // aviso, com o motivo.
+    readonly property bool available: SystemStats.available
+    readonly property string unavailableText: unavailableMessage(SystemStats.connected, SystemStats.moduleError)
+
     // CPU
     readonly property string cpuModel: shortCpu(SystemStats.cpuModel)
     readonly property real cpuUsage: SystemStats.cpuUsage
@@ -50,6 +55,14 @@ Singleton {
     property string gpuCard: ""
     readonly property int gpuIndex: gpuPick(gpus, gpuCard)
     readonly property var gpu: gpus[gpuIndex] ?? null
+
+    // O aviso da aba sem dados: sem conexão vence o erro do módulo (que seria
+    // de uma conexão anterior).
+    function unavailableMessage(connected: bool, error: string): string {
+        if (!connected)
+            return "Indisponível: sem conexão com o lucernad.";
+        return error ? `Indisponível: ${error}` : "Indisponível.";
+    }
 
     // O nome da CPU sem o que não ajuda no título: (R)/(TM), a geração
     // ("11th Gen"), "N-Core"/"Six-Core", "CPU", "Processor", o sufixo das APUs

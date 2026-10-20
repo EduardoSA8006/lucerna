@@ -65,6 +65,8 @@ dev/ci.sh shell lint   # um bash no container de um check, com o repositório em
 
 A saída de cada check fica em `ci-out/<check>/`: os logs, o `summary.md`, o
 `qmllint.txt` do `lint`, o relatório de cobertura e as capturas da fumaça.
+A fumaça compila o `lucernad` na revisão de `dev/lucernad.rev` (o volume
+`lucerna-ci-lucernad` guarda o binário); para trocar de revisão, mude esse arquivo.
 
 Para conferir uma mudança visual no Hyprland de verdade, use o `dev/test.sh`
 (um container próprio, `lucerna-polish`, com a janela na sua tela):

@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
-# Teste de fumaça: sobe o sway headless (o Hyprland não sobe sem GPU), roda o
-# shell instrumentado numa cópia do repositório (copy_repo, do ci/lib.sh), abre
-# cada painel por IPC, confere o `panels get`, tira uma captura de cada estado e
-# reprova com aviso ou erro fora do ci/tolerated.txt. A unidade roda de novo
+# Teste de fumaça: sobe o sway headless (o Hyprland não sobe sem GPU) e o
+# lucernad (dev/lucernad.sh, compilado no ci/setup.sh), roda o shell
+# instrumentado numa cópia do repositório (copy_repo, do ci/lib.sh), abre cada
+# painel por IPC, confere o `panels get`, tira uma captura de cada estado e
+# reprova com aviso ou erro fora do ci/tolerated.txt. Duas fases do lucernad:
+# com ele, o shell precisa conectar ("lucerna: conectado ao lucernad" no log em
+# 10 s); depois do último passo, ele é parado ("lucernad fora"), o shell precisa
+# notar ("lucerna: sem conexão com o lucernad" em 10 s) e as abas Desempenho e
+# Painel são abertas e capturadas de novo, com o "indisponível". A unidade roda de novo
 # numa cópia separada (unit_suites e unit_run, do ci/lib.sh), e a cobertura de
 # todas as funções (unidade + fumaça) sai junto, sem bloquear.
 #
 # Reprova com: função fora do padrão na instrumentação --all (arquivo:linha),
-# sway ou shell que não sobe (sem "Configuration Loaded" no log), `ipc call`
+# sway, lucernad ou shell que não sobe (sem "Configuration Loaded" no log),
+# shell que não conecta ao lucernad ou não nota a saída dele, `ipc call`
 # com código diferente de 0, `panels get` diferente do esperado, painel que não
 # fecha, shell que cai (inclusive no repouso de 5 s depois do último passo),
 # shell que não encerra limpo com `qs kill` (código 0 em 10 s), aviso ou erro
@@ -16,7 +22,7 @@
 # 10 s (timeout, com o fim do shell.log na saída) ou o dbus-run-session que não
 # sai em 10 s depois do shell.
 #
-# Só encerra os próprios processos (o grupo do sway e o do shell, por PID),
+# Só encerra os próprios processos (os grupos do sway, do lucernad e do shell, por PID),
 # nunca por nome: rodada fora do container, não derruba a sessão do usuário.
 #
 # O que a fumaça não confere por IPC: a aba do painel superior, a página da
@@ -24,7 +30,7 @@
 # central e settings não devolvem o estado atual; uma aba, página ou tópico
 # que não abre só aparece como erro no log (o logcheck) e na captura.
 #
-# Saída em $CI_OUT: shell.log, sway.log, kill.log, unit-smoke.log, shots/NN-<passo>.png,
+# Saída em $CI_OUT: shell.log, sway.log, lucernad.log, kill.log, unit-smoke.log, shots/NN-<passo>.png,
 # coverage.md e summary.md (tabela passo, esperado, veio).
 set -euo pipefail
 
@@ -40,6 +46,7 @@ work=$(mktemp -d)
 # esses grupos são encerrados: nada é morto por nome, para a fumaça rodada fora
 # do container nunca derrubar o shell ou o sway de verdade do usuário.
 sway_pid=""
+lucernad_pid=""
 qs_pid=""
 shell_pid=""
 logs_checked=0
@@ -65,6 +72,7 @@ stop_group() {
 # shellcheck disable=SC2329 # chamada pelo trap
 cleanup() {
     stop_group "$qs_pid"
+    stop_group "$lucernad_pid"
     stop_group "$sway_pid"
     # O que o shell escreveu até o fim (inclusive depois de uma falha) vai para
     # o artefato.
@@ -143,6 +151,22 @@ done
 row "sway headless" "um socket wayland-*" "$socket"
 export WAYLAND_DISPLAY=$socket QT_QPA_PLATFORM=wayland QT_QUICK_BACKEND=software
 
+# O lucernad no próprio grupo, como o sway, com a ociosidade em 10 min (a
+# fumaça inteira cabe nela); o socket dele fica no XDG_RUNTIME_DIR da fumaça.
+lucernad_sock="$XDG_RUNTIME_DIR/lucerna/lucernad.sock"
+LUCERNA_IDLE_TIMEOUT_MS=600000 setsid lucernad serve > "$out/lucernad.log" 2>&1 &
+lucernad_pid=$!
+for _ in $(seq 50); do
+    [ -S "$lucernad_sock" ] && break
+    kill -0 "$lucernad_pid" 2> /dev/null || break
+    sleep 0.2
+done
+if [ ! -S "$lucernad_sock" ]; then
+    row "lucernad" "socket em 10 s" "(não veio)"
+    fail "o lucernad não abriu $lucernad_sock em 10 s (veja lucernad.log)"
+fi
+row "lucernad" "socket em 10 s" "lucerna/lucernad.sock"
+
 # O shell grava o próprio PID (o bash do meio dá lugar ao qs com exec): é por
 # ele que a fumaça confere que o shell continua vivo e o encerra no fim.
 # shellcheck disable=SC2016 # o $$ e o $1 expandem no bash de dentro
@@ -161,6 +185,20 @@ if ! grep -q "Configuration Loaded" "$out/shell.log"; then
     fail "o shell não carregou (sem \"Configuration Loaded\" no log: o qs saiu antes ou passaram 60 s; veja shell.log)"
 fi
 row "shell carregado" "Configuration Loaded" "Configuration Loaded"
+
+# wait_log <texto>: espera até 10 s pela linha no log cru do shell.
+wait_log() {
+    for _ in $(seq 50); do
+        grep -qF "$1" "$work/raw.log" && return 0
+        sleep 0.2
+    done
+    return 1
+}
+if ! wait_log "lucerna: conectado ao lucernad"; then
+    row "shell conectado ao lucernad" "em 10 s" "(não conectou)"
+    fail "o shell não conectou ao lucernad em 10 s"
+fi
+row "shell conectado ao lucernad" "em 10 s" "lucerna: conectado ao lucernad"
 
 [ -n "$shell_pid" ] || fail "não achei o PID do shell ($work/qs.pid vazio)"
 
@@ -226,6 +264,18 @@ step power panels open power
 step clipboard clipboard open
 step capture capture open shot
 step overview overview toggle
+
+# Fase "lucernad fora": o daemon para, o shell nota e as abas que leem dele
+# mostram o "indisponível" (as capturas desses dois passos).
+stop_group "$lucernad_pid"
+lucernad_pid=""
+if ! wait_log "lucerna: sem conexão com o lucernad"; then
+    row "lucernad fora" "o shell nota em 10 s" "(não notou)"
+    fail "o shell não notou a saída do lucernad em 10 s"
+fi
+row "lucernad fora" "o shell nota em 10 s" "lucerna: sem conexão com o lucernad"
+step dashboard dashboard open performance
+step dashboard dashboard open overview
 
 # Repouso: o shell fica parado alguns segundos depois do último passo, para o
 # que chega tarde (um Timer, uma resposta assíncrona, o efeito do último

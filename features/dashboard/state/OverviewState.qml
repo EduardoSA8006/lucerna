@@ -24,7 +24,10 @@ Singleton {
 
     // Usuário e sistema
     readonly property string user: Quickshell.env("USER") || "você"
-    readonly property string hostname: SystemStats.hostname
+    // Sem o lucernad, "—" (e não o nome de uma conexão anterior).
+    readonly property string hostname: SystemStats.machineText(SystemStats.connected, SystemStats.hostname)
+    // Os recursos e o tempo ligado só com o módulo de sistema respondendo.
+    readonly property bool statsAvailable: SystemStats.available
     // Foto do usuário em ~/.face, se existir (o mesmo arquivo que o GDM e o SDDM usam).
     readonly property string facePath: `${Quickshell.env("HOME")}/.face`
     property bool hasFace: false
@@ -38,7 +41,7 @@ Singleton {
         onLoaded: root.hasFace = true
         onLoadFailed: root.hasFace = false
     }
-    readonly property string uptime: SystemStats.uptime > 0 ? `ligado há ${Format.duration(SystemStats.uptime)}` : ""
+    readonly property string uptime: statsAvailable && SystemStats.uptime > 0 ? `ligado há ${Format.duration(SystemStats.uptime)}` : ""
 
     // Relógio
     readonly property string time: Qt.formatTime(clock.date, "HH:mm")

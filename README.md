@@ -138,6 +138,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 
 - **Hyprland 0.56+**, com a configuração em Lua (`hyprland.lua`)
 - **Quickshell 0.3.1+**
+- **lucernad** (o daemon do Lucerna): CPU, memória, rede, discos, temperatura e GPU da aba Desempenho e do card de recursos; sem ele, aparecem como indisponíveis. Instalação no [README do lucernad](https://github.com/lucerna-desktop/lucernad#instalação).
 - **Fonte de ícones**: `ttf-material-symbols-variable` (repositório oficial do Arch)
 - Opcionais, cada um liga uma parte:
   - PipeWire: volume e mídia
@@ -146,7 +147,6 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
   - BlueZ: Bluetooth
   - `brightnessctl`: brilho da tela integrada
   - `ddcutil`: brilho dos monitores externos (DDC/CI). Precisa do módulo `i2c-dev` carregado (`echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf`); o pacote já dá acesso ao usuário da sessão.
-  - `nvidia-smi`: GPU NVIDIA; vem com o driver
   - `hyprsunset`: luz noturna
   - `cava`: o espectro em volta da capa, no card de mídia da aba Painel e na aba Mídia (um processo só para as duas; sem ele, ondas pelo nível do som)
   - `wl-clipboard`: histórico da área de transferência

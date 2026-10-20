@@ -18,8 +18,11 @@ esac
 : "${WAYLAND_DISPLAY:?precisa de uma sessão Wayland no host}"
 runtime="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 
-if [[ "${1:-}" == --build ]] || ! docker image inspect "$image" &>/dev/null; then
-    docker build --build-arg UID="$(id -u)" --build-arg GID="$(id -g)" -t "$image" "$repo/dev"
+# A imagem é refeita quando falta ou quando o lucernad dela é de outra revisão.
+rev=$(cat "$repo/dev/lucernad.rev")
+if [[ "${1:-}" == --build ]] || ! docker image inspect "$image" &>/dev/null \
+    || [[ "$(docker image inspect -f '{{ index .Config.Labels "lucernad.rev" }}' "$image")" != "$rev" ]]; then
+    docker build --build-arg UID="$(id -u)" --build-arg GID="$(id -g)" --build-arg LUCERNAD_REV="$rev" -t "$image" "$repo/dev"
 fi
 
 # Só a GPU Intel é repassada: o container não tem os drivers da NVIDIA.

@@ -52,7 +52,7 @@ function run(t) {
         t.eq(P.gpuView(gpu({ vendor: "intel", temp: 50 }), 62).tempText, "50 °C", "com sensor próprio, o dela");
         t.eq(P.gpuView(gpu({ vendor: "amd", temp: NaN }), 62).tempText, "62 °C", "AMD sem hwmon: a da CPU");
         t.eq(P.gpuView(gpu({ vendor: "amd", temp: 71 }), 62).tempText, "71 °C", "AMD com hwmon: o dela");
-        t.eq(P.gpuView(nvidia, 62).tempText, "61 °C", "dedicada: a do nvidia-smi");
+        t.eq(P.gpuView(nvidia, 62).tempText, "61 °C", "dedicada: a da NVML");
         t.eq(P.gpuView(gpu({ usage: 0.1 }), 62).hasTemp, false, "dedicada sem sensor não herda a da CPU");
     });
 
@@ -88,6 +88,14 @@ function run(t) {
         t.eq([v.name, v.text], ["nvme0n1", "454 / 915 GiB"]);
         t.near(v.fraction, 454 / 915, 1e-9);
         t.eq(P.diskView(disks[1]).fraction, 0, "tamanho 0 não divide");
+    });
+
+    t.test("performance: o texto de indisponível", () => {
+        const error = "O módulo de sistema parou por um erro interno.";
+        t.eq(P.unavailableMessage(false, ""), "Indisponível: sem conexão com o lucernad.");
+        t.eq(P.unavailableMessage(false, error), "Indisponível: sem conexão com o lucernad.", "sem conexão vence o erro");
+        t.eq(P.unavailableMessage(true, error), `Indisponível: ${error}`);
+        t.eq(P.unavailableMessage(true, ""), "Indisponível.");
     });
 
     t.test("performance: qual disco mostrar e o próximo", () => {

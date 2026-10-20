@@ -356,7 +356,28 @@ Item {
                 Layout.fillHeight: !OverviewState.shows("media")
                 visible: OverviewState.shows("resources")
 
+                // Sem o lucernad: o ícone e "Indisponível", no lugar das barras.
+                Row {
+                    anchors.centerIn: parent
+                    visible: !OverviewState.statsAvailable
+                    spacing: ThemeManager.spacing.small
+
+                    Icon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        icon: Icons.performance
+                        size: 18
+                        color: ThemeManager.colors.textFaint
+                    }
+
+                    Txt {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Indisponível"
+                        faint: true
+                    }
+                }
+
                 Column {
+                    visible: OverviewState.statsAvailable
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
