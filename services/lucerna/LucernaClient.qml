@@ -9,8 +9,9 @@ import Quickshell.Io
 // lucerna.state de seq velho) e avisa em `received`; call() chama um método e
 // entrega a resposta a quem pediu. Quando a conexão cai, ou o socket ainda não
 // existe, falha os pedidos pendentes e tenta de novo com espera crescente (a
-// mesma regra do SDK), sem escrever no log a cada tentativa: só uma linha ao
-// conectar e outra ao perder a conexão.
+// mesma regra do SDK, com o teto em `maxBackoff`). O cliente só escreve duas
+// linhas no log, ao conectar e ao perder a conexão; o Socket do Quickshell, à
+// parte, avisa (WARN quickshell.io.socket) a cada tentativa que falha.
 Scope {
     id: root
 
@@ -40,12 +41,17 @@ Scope {
     property int nextId: 1
     // Tentativas falhas seguidas, para a espera crescente.
     property int attempt: 0
+    // O teto da espera entre tentativas, em ms.
+    property int maxBackoff: 5000
+    // Conectado há menos de 1 s: a espera ainda não zerou (uma conexão que cai
+    // logo depois do aperto de mão não recomeça do 100 ms).
+    readonly property alias settling: settle.running
 
     signal received(string topic, var data)
 
-    // A espera antes da próxima tentativa: min(100 ms × 2^tentativa, 5000 ms).
+    // A espera antes da próxima tentativa: min(100 ms × 2^tentativa, maxBackoff).
     function backoff(attempt: int): int {
-        return Math.min(100 * Math.pow(2, attempt), 5000);
+        return Math.min(100 * 2 ** attempt, root.maxBackoff);
     }
 
     // Uma mensagem JSON-RPC numa linha: com `id` null, uma notificação; com
@@ -96,7 +102,7 @@ Scope {
     // Grava um estado ({ topic, seq, data }) aceito e avisa em `received`,
     // também para o retrato da assinatura.
     function store(state: var, snapshot: bool): void {
-        if (!state || typeof state.topic !== "string" || !accept(state.topic, Number(state.seq), snapshot))
+        if (!state || typeof state.topic !== "string" || !Number.isFinite(state.seq) || !accept(state.topic, Number(state.seq), snapshot))
             return;
         const next = Object.assign({}, states);
         next[state.topic] = state.data;
@@ -149,16 +155,17 @@ Scope {
         request("lucerna.hello", helloParams(), response => root.greeted(response));
     }
 
-    // A resposta do hello: no sucesso, conectado e reassina; no erro, guarda
-    // a mensagem (o serviço fecha a conexão).
+    // A resposta do hello: no sucesso, conectado e reassina (a espera só zera
+    // depois de 1 s conectado, no settled()); no erro, guarda a mensagem (o
+    // serviço fecha a conexão).
     function greeted(response: var): void {
         if (response.error) {
             error = String(response.error.message);
             return;
         }
         connected = true;
-        attempt = 0;
         error = "";
+        settle.restart();
         console.info(`lucerna: conectado ao ${app}`);
         resubscribe();
     }
@@ -194,6 +201,11 @@ Scope {
     function subscribed(response: var): void {
         for (const state of response.result?.states ?? [])
             store(state, true);
+    }
+
+    // A conexão durou 1 s: a próxima queda recomeça a espera do 100 ms.
+    function settled(): void {
+        attempt = 0;
     }
 
     function resubscribe(): void {
@@ -232,6 +244,7 @@ Scope {
     // antes de tudo.
     function opened(): void {
         seqs = ({});
+        error = "";
         handshake();
     }
 
@@ -240,6 +253,7 @@ Scope {
     function lost(): void {
         if (retry.running)
             return;
+        settle.stop();
         if (connected)
             console.info(`lucerna: sem conexão com o ${app}`);
         connected = false;
@@ -266,6 +280,14 @@ Scope {
 
         repeat: false
         onTriggered: root.open()
+    }
+
+    Timer {
+        id: settle
+
+        interval: 1000
+        repeat: false
+        onTriggered: root.settled()
     }
 
     Socket {

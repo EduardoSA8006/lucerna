@@ -27,10 +27,11 @@ function run(t) {
         return c;
     }
 
-    // Um caso com um cliente novo, destruído no fim (mesmo com exceção).
-    function withClient(name, body) {
+    // Um caso com um cliente novo, destruído no fim (mesmo com exceção); com
+    // `topics`, o cliente vem do ready(topics), já conectado.
+    function withClient(name, body, topics) {
         t.test(name, () => {
-            const c = t.lucernaClient();
+            const c = topics === undefined ? t.lucernaClient() : ready(topics);
             try {
                 body(c);
             } finally {
@@ -41,6 +42,8 @@ function run(t) {
 
     withClient("lucernaclient: espera crescente até 5 s", c => {
         t.eq([0, 1, 2, 5, 6, 20].map(a => c.backoff(a)), [100, 200, 400, 3200, 5000, 5000]);
+        c.maxBackoff = 30000;
+        t.eq([6, 8, 9, 20].map(a => c.backoff(a)), [6400, 25600, 30000, 30000], "com o teto de 30 s");
     });
 
     withClient("lucernaclient: pedido e notificação numa linha de JSON", c => {
@@ -77,16 +80,23 @@ function run(t) {
         t.eq(ids(c), [], "o subscribe saiu do pending");
     });
 
-    t.test("lucernaclient: lucerna.state atualiza o tópico e descarta o repetido", () => {
-        const c = ready([]);
+    withClient("lucernaclient: lucerna.state atualiza o tópico e descarta o repetido", c => {
         const got = [];
         c.received.connect((topic, data) => got.push([topic, data]));
         for (const [seq, data] of [[1, "a"], [1, "b"], [2, "c"]])
             c.receive(JSON.stringify({ jsonrpc: "2.0", method: "lucerna.state", params: { topic: "x", seq: seq, data: data } }));
         t.eq(got, [["x", "a"], ["x", "c"]]);
         t.eq(c.states.x, "c");
-        c.destroy();
-    });
+    }, []);
+
+    withClient("lucernaclient: estado sem seq numérico é ignorado", c => {
+        const got = [];
+        c.received.connect((topic, data) => got.push([topic, data]));
+        for (const seq of [undefined, null, "1", NaN, Infinity])
+            c.store({ topic: "x", seq: seq, data: "ruim" }, false);
+        c.subscribed({ result: { states: [{ topic: "y", data: "sem seq" }] } });
+        t.eq([got, c.states, c.seqs], [[], {}, {}]);
+    }, []);
 
     withClient("lucernaclient: reconectar zera os seq vistos", c => {
         t.check(c.accept("a", 5, false));
@@ -100,17 +110,31 @@ function run(t) {
         c.opened();
         c.receive(JSON.stringify({ jsonrpc: "2.0", id: ids(c)[0], error: { code: -32010, message: "Versão do protocolo incompatível." } }));
         t.eq([c.connected, c.error], [false, "Versão do protocolo incompatível."]);
+        c.opened();
+        t.eq(c.error, "", "uma conexão nova limpa o erro velho");
     });
 
-    t.test("lucernaclient: trocar os tópicos assina o novo e larga o velho", () => {
-        const c = ready(["a"]);
+    withClient("lucernaclient: a espera só zera depois de 1 s conectado", c => {
+        c.attempt = 3;
+        c.opened();
+        c.receive(ok(ids(c)[0], { protocol: "1.0", app: "teste" }));
+        t.eq([c.connected, c.attempt, c.settling], [true, 3, true], "logo depois do hello, a espera continua");
+        c.lost();
+        t.eq([c.attempt, c.settling], [4, false], "caiu antes de 1 s: a espera cresce");
+        c.open();
+        c.opened();
+        c.receive(ok(ids(c)[0], { protocol: "1.0", app: "teste" }));
+        c.settled();
+        t.eq(c.attempt, 0, "durou 1 s: zera");
+    });
+
+    withClient("lucernaclient: trocar os tópicos assina o novo e larga o velho", c => {
         c.receive(ok(ids(c)[0], { states: [] }));
         t.eq(ids(c), []);
         c.setTopics(["b"]);
         t.eq(methods(c), ["lucerna.subscribe", "lucerna.unsubscribe"]);
         t.eq(c.wanted, ["b"]);
-        c.destroy();
-    });
+    }, ["a"]);
 
     withClient("lucernaclient: chamada sem conexão responde erro na hora", c => {
         let got = null;
@@ -120,8 +144,7 @@ function run(t) {
         t.eq(ids(c), []);
     });
 
-    t.test("lucernaclient: a resposta de uma chamada chega a quem pediu", () => {
-        const c = ready([]);
+    withClient("lucernaclient: a resposta de uma chamada chega a quem pediu", c => {
         let got = null;
         const id = c.call("system.configure", { interval_ms: 1000 }, r => got = r);
         t.check(id > 0, "um id de verdade");
@@ -129,21 +152,17 @@ function run(t) {
         c.receive(ok(id, {}));
         t.eq(got.result, {});
         t.check(!(id in c.pending), "o id saiu do pending");
-        c.destroy();
-    });
+    }, []);
 
-    t.test("lucernaclient: chamada sem callback não quebra", () => {
-        const c = ready([]);
+    withClient("lucernaclient: chamada sem callback não quebra", c => {
         const id = c.call("x.y", {}, null);
         c.receive(ok(id, {}));
         c.call("x.y", {}, null);
         c.lost();
         t.eq(ids(c), []);
-        c.destroy();
-    });
+    }, []);
 
-    t.test("lucernaclient: conexão perdida falha os pedidos e agenda nova tentativa", () => {
-        const c = ready([]);
+    withClient("lucernaclient: conexão perdida falha os pedidos e agenda nova tentativa", c => {
         let got = null;
         c.call("x.y", {}, r => got = r);
         c.lost();
@@ -157,6 +176,5 @@ function run(t) {
         t.eq(c.attempt, 2);
         c.open();
         t.eq([c.connected, ids(c)], [false, []], "sem socketPath, o open() não conecta");
-        c.destroy();
-    });
+    }, []);
 }
