@@ -70,7 +70,7 @@ Singleton {
     }
 
     function sync(): void {
-        client.setTopics(wantedTopics(active, gpuEnabled));
+        client.want("system", wantedTopics(active, gpuEnabled));
     }
 
     // O intervalo da amostragem do daemon, só com a conexão feita (a cada

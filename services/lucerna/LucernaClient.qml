@@ -36,7 +36,9 @@ Scope {
     property var seqs: ({})
     // Os tópicos que quem usa quer assinados; reassinados a cada conexão.
     property var wanted: []
-    // Id → { method, done }: os pedidos sem resposta.
+    // Dono → os tópicos que ele quer (o `wanted` é a união).
+    property var owners: ({})
+    // Id → { method, params, done }: os pedidos sem resposta.
     property var pending: ({})
     property int nextId: 1
     // Tentativas falhas seguidas, para a espera crescente.
@@ -144,6 +146,7 @@ Scope {
         const next = Object.assign({}, pending);
         next[id] = {
             method: method,
+            params: params,
             done: done
         };
         pending = next;
@@ -186,6 +189,24 @@ Scope {
             subscribeNow(added);
         if (removed.length > 0)
             unsubscribeNow(removed);
+    }
+
+    // Os tópicos de todas as listas, sem repetir, na ordem em que aparecem.
+    function union(lists: var): var {
+        const all = [];
+        for (const list of lists)
+            for (const topic of list)
+                if (!all.includes(topic))
+                    all.push(topic);
+        return all;
+    }
+
+    // Cada serviço (dono) diz os tópicos dele; o cliente assina a união.
+    function want(owner: string, topics: var): void {
+        const next = Object.assign({}, owners);
+        next[owner] = Array.from(topics);
+        owners = next;
+        setTopics(union(Object.values(owners)));
     }
 
     function subscribeNow(topics: var): void {

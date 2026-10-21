@@ -145,6 +145,31 @@ function run(t) {
         t.eq(c.wanted, ["b"]);
     }, ["a"]);
 
+    withClient("lucernaclient: a união dos tópicos sem repetir", c => {
+        t.eq(c.union([["a", "b"], ["b", "c"], []]), ["a", "b", "c"]);
+        t.eq(c.union([]), []);
+    });
+
+    withClient("lucernaclient: dois donos somam os tópicos e um não larga o do outro", c => {
+        c.want("x", ["a", "b"]);
+        c.want("y", ["b", "c"]);
+        t.eq(c.wanted, ["a", "b", "c"]);
+        c.want("x", []);
+        t.eq(c.wanted, ["b", "c"]);
+
+        const r = ready([]);
+        try {
+            r.want("y", ["c"]);
+            r.want("x", ["a"]);
+            r.want("x", []);
+            const last = ids(r).map(id => r.pending[id]).pop();
+            t.eq([last.method, last.params], ["lucerna.unsubscribe", { topics: ["a"] }]);
+            t.eq(methods(r).filter(m => m === "lucerna.unsubscribe").length, 1, "o c do outro dono fica");
+        } finally {
+            r.destroy();
+        }
+    });
+
     withClient("lucernaclient: chamada sem conexão responde erro na hora", c => {
         let got = null;
         t.eq(c.call("x.y", {}, r => got = r), -1);
