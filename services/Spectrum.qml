@@ -64,10 +64,12 @@ Singleton {
         }
     }
 
-    // Um quadro só vale pedindo e com as 48 faixas.
+    // Um quadro só vale pedindo e com as 48 faixas. O array que vem do sinal
+    // do cliente é uma lista do QML (Array.isArray dá falso): vira array de JS.
     function applyBands(data: var): void {
-        if (active && Array.isArray(data.bands) && data.bands.length === bars)
-            values = data.bands;
+        const bands = data.bands ? Array.from(data.bands) : [];
+        if (active && bands.length === bars)
+            values = bands;
     }
 
     function applyStatus(data: var): void {

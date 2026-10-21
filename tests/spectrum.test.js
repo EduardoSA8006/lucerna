@@ -41,6 +41,20 @@ function run(t) {
         }
     });
 
+    t.test("spectrum: o quadro pelo sinal do cliente", () => {
+        try {
+            S.active = true;
+            // A mesma passagem dos dados do daemon: o JSON vira lista do QML.
+            S.client.received("spectrum.bands", JSON.parse(JSON.stringify(frame(48, 0.25))));
+            t.eq(S.values.length, 48, "o quadro real entra");
+            t.eq(S.values[47], 0.25);
+            S.client.received("spectrum.bands", { bands: "x" });
+            t.eq(S.values.length, 48, "sem lista não vale");
+        } finally {
+            S.active = original.active;
+        }
+    });
+
     t.test("spectrum: estado do módulo", () => {
         S.applyStatus({ available: false, capturing: false, player: null, error: "x" });
         t.eq(S.moduleAvailable, false);
