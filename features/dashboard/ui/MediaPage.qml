@@ -63,8 +63,6 @@ Item {
                 innerSize: cover.width
                 values: DashboardState.spectrum
                 bands: DashboardState.spectrumBars
-                hasSpectrum: DashboardState.hasSpectrum
-                peak: DashboardState.peak
                 live: MediaState.live
                 mirrored: true
                 barWidth: 4

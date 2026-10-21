@@ -25,7 +25,7 @@ Singleton {
     readonly property bool canSeek: Media.canSeek
 
     // O espectro em volta da capa (lido do DashboardState, o mesmo do card da
-    // aba Painel), ou as ondas sem ele; desligável nas configurações.
+    // aba Painel); desligável nas configurações.
     readonly property bool visualizer: Config.audioPulse
     // A aba à mostra.
     readonly property bool onScreen: DashboardState.isShowing("media")
