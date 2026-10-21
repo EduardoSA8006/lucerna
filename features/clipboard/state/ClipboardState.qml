@@ -32,11 +32,11 @@ Singleton {
 
     readonly property var items: {
         const q = query.trim().toLowerCase();
-        const list = Clipboard.entries.filter(e => (filter === "all" || e.kind === filter) && (!q || (e.kind === "text" && e.text.toLowerCase().includes(q))));
+        const list = Array.from(Clipboard.items).filter(e => (filter === "all" || e.kind === filter) && (!q || (e.kind === "text" && String(e.preview ?? "").toLowerCase().includes(q))));
         return list.filter(e => e.pinned).concat(list.filter(e => !e.pinned));
     }
     readonly property var current: items[Math.min(selected, items.length - 1)] ?? null
-    readonly property int count: Clipboard.entries.length
+    readonly property int count: Clipboard.count
 
     onItemsChanged: selected = Math.max(0, Math.min(selected, items.length - 1))
     onQueryChanged: selected = 0
@@ -62,19 +62,19 @@ Singleton {
     }
 
     function since(entry: var): string {
-        return Format.since(new Date(entry.time), now);
+        return Format.since(new Date(entry.used), now);
     }
 
-    // Texto de uma linha para a lista (espaços em sequência viram um).
+    // Texto de uma linha para a lista (o daemon já junta os espaços).
     function preview(entry: var): string {
-        return entry.kind === "image" ? "Imagem" : entry.text.replace(/\s+/g, " ").trim().slice(0, 400);
+        return entry.kind === "image" ? "Imagem" : String(entry.preview ?? "");
     }
 
     function detail(entry: var): string {
         if (entry.kind === "image")
             return since(entry);
-        const lines = entry.text.split("\n").length;
-        return `${since(entry)} · ${Format.number(entry.text.length, 0)} caracteres${lines > 1 ? ` · ${lines} linhas` : ""}`;
+        const lines = entry.lines ?? 1;
+        return `${since(entry)} · ${Format.number(entry.size ?? 0, 0)} caracteres${lines > 1 ? ` · ${lines} linhas` : ""}`;
     }
 
     function move(step: int): void {
@@ -89,7 +89,7 @@ Singleton {
     function activate(entry: var): void {
         if (!entry)
             return;
-        Clipboard.copy(entry);
+        Clipboard.copy(entry.id);
         Panels.close();
         if (Config.clipboardPaste)
             Clipboard.paste();
@@ -102,7 +102,7 @@ Singleton {
 
     function togglePin(entry: var): void {
         if (entry)
-            Clipboard.togglePin(entry.id);
+            Clipboard.pin(entry.id, !entry.pinned);
     }
 
     // Tira tudo menos os fixados.
@@ -119,12 +119,8 @@ Singleton {
         Panels.open("settings");
     }
 
-    Binding {
-        target: Clipboard
-        property: "watching"
-        value: Config.clipboardEnabled
-    }
-
+    // Nesta ordem: o limite e a persistência chegam ao daemon (configure)
+    // antes da assinatura do histórico.
     Binding {
         target: Clipboard
         property: "limit"
@@ -137,8 +133,11 @@ Singleton {
         value: Config.clipboardPersist
     }
 
-    // Depois das Bindings acima: o serviço já sabe se deve manter o histórico.
-    Component.onCompleted: Clipboard.start()
+    Binding {
+        target: Clipboard
+        property: "watching"
+        value: Config.clipboardEnabled
+    }
 
     IpcHandler {
         target: "clipboard"
