@@ -25,16 +25,16 @@ function run(t) {
     t.test("spectrum: o quadro só vale pedindo", () => {
         try {
             S.active = true;
-            S.apply("spectrum.bands", frame(48, 0.5));
-            t.eq(S.values.length, 48);
+            S.apply("spectrum.bands", frame(S.bars, 0.5));
+            t.eq(S.values.length, S.bars);
             t.eq(S.values[0], 0.5);
             S.apply("spectrum.bands", frame(32, 0.9));
-            t.eq([S.values.length, S.values[0]], [48, 0.5], "quadro de outro tamanho não vale");
+            t.eq([S.values.length, S.values[0]], [S.bars, 0.5], "quadro de outro tamanho não vale");
             S.apply("spectrum.bands", { bands: "x" });
-            t.eq(S.values.length, 48, "sem array não vale");
+            t.eq(S.values.length, S.bars, "sem array não vale");
             S.active = false;
             t.eq(S.values, [], "desligado, zera");
-            S.apply("spectrum.bands", frame(48, 0.5));
+            S.apply("spectrum.bands", frame(S.bars, 0.5));
             t.eq(S.values, [], "desligado, o quadro não entra");
         } finally {
             S.active = original.active;
@@ -45,11 +45,11 @@ function run(t) {
         try {
             S.active = true;
             // A mesma passagem dos dados do daemon: o JSON vira lista do QML.
-            S.client.received("spectrum.bands", JSON.parse(JSON.stringify(frame(48, 0.25))));
-            t.eq(S.values.length, 48, "o quadro real entra");
-            t.eq(S.values[47], 0.25);
+            S.client.received("spectrum.bands", JSON.parse(JSON.stringify(frame(S.bars, 0.25))));
+            t.eq(S.values.length, S.bars, "o quadro real entra");
+            t.eq(S.values[S.bars - 1], 0.25);
             S.client.received("spectrum.bands", { bands: "x" });
-            t.eq(S.values.length, 48, "sem lista não vale");
+            t.eq(S.values.length, S.bars, "sem lista não vale");
         } finally {
             S.active = original.active;
         }
@@ -107,11 +107,11 @@ function run(t) {
     t.test("spectrum: null e tópico desconhecido não mudam nada", () => {
         try {
             S.active = true;
-            S.apply("spectrum.bands", frame(48, 0.5));
+            S.apply("spectrum.bands", frame(S.bars, 0.5));
             S.apply("spectrum.bands", null);
             S.apply("spectrum.status", null);
             S.apply("spectrum.xyz", { available: true });
-            t.eq([S.values.length, S.moduleAvailable], [48, original.moduleAvailable]);
+            t.eq([S.values.length, S.moduleAvailable], [S.bars, original.moduleAvailable]);
         } finally {
             S.active = original.active;
             S.moduleAvailable = original.moduleAvailable;

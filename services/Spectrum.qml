@@ -5,7 +5,7 @@ import Quickshell
 import qs.services
 
 // Espectro do som do player exibido (Media.active), vindo do módulo spectrum
-// do lucernad: `values` traz 48 faixas de 0 a 1, das graves às agudas, já
+// do lucernad: `values` traz 40 faixas de 0 a 1, das graves às agudas, já
 // suavizadas. Só assina com `active` (quem mostra pede); sem o daemon,
 // `values` fica vazio e o anel parado.
 Singleton {
@@ -17,7 +17,7 @@ Singleton {
     // daemon de pé (sem PipeWire, um erro interno).
     property bool moduleAvailable: false
     readonly property bool available: client.connected && moduleAvailable
-    readonly property int bars: 48
+    readonly property int bars: 40
     // [0..1] por barra; vazio parado ou sem quadro.
     property var values: []
     // O nome D-Bus do player exibido; vazio sem player.
@@ -64,7 +64,7 @@ Singleton {
         }
     }
 
-    // Um quadro só vale pedindo e com as 48 faixas. O array que vem do sinal
+    // Um quadro só vale pedindo e com as 40 faixas. O array que vem do sinal
     // do cliente é uma lista do QML (Array.isArray dá falso): vira array de JS.
     function applyBands(data: var): void {
         const bands = data.bands ? Array.from(data.bands) : [];
