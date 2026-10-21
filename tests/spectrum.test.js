@@ -17,6 +17,18 @@ function run(t) {
         t.eq(S.wantedTopics(true), ["spectrum.status", "spectrum.bands"]);
     });
 
+    t.test("spectrum: as faixas de duas em duas, pelo maior", () => {
+        t.eq(S.pairMax([0.1, 0.9, 0.4, 0.2]), [0.9, 0.4]);
+        t.eq(S.pairMax([0.5, 0.1, 0.3]), [0.5, 0.3], "ímpar: a última sozinha");
+        t.eq(S.pairMax([]), []);
+        const bands = [];
+        for (let i = 0; i < S.bars; i++)
+            bands.push(i / S.bars);
+        const paired = S.pairMax(bands);
+        t.eq(paired.length, Math.ceil(S.bars / 2));
+        t.eq(paired[0], bands[1], "o par dos graves");
+    });
+
     t.test("spectrum: o player vai como nome ou null", () => {
         t.eq(S.playerParam("org.mpris.MediaPlayer2.spotify"), "org.mpris.MediaPlayer2.spotify");
         t.eq(S.playerParam(""), null);

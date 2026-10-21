@@ -134,6 +134,10 @@ Singleton {
     // Painel e a aba Mídia): as faixas e quantas são (vêm do lucernad).
     readonly property var spectrum: Spectrum.values
     readonly property int spectrumBars: Spectrum.bars
+    // O card da aba Painel, espelhado com as mesmas barras: as faixas de duas
+    // em duas (graves no topo dos dois lados, agudos embaixo).
+    readonly property var spectrumPaired: Spectrum.pairMax(Spectrum.values)
+    readonly property int spectrumPairedBars: Math.ceil(Spectrum.bars / 2)
 
     // O espectro em volta da capa, tocando: no card da aba Painel e na aba
     // Mídia (se ligado nas configurações). Uma assinatura só atende as duas.

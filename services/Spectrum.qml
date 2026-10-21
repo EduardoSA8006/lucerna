@@ -23,6 +23,17 @@ Singleton {
     // O nome D-Bus do player exibido; vazio sem player.
     readonly property string player: Media.active?.dbusName ?? ""
 
+    // As faixas juntadas de duas em duas, pelo maior de cada par (a média
+    // achataria o soco de uma faixa só): a metade das faixas, para quem
+    // desenha menos barras com as mesmas frequências. Um número ímpar de
+    // faixas deixa a última sozinha.
+    function pairMax(values: var): var {
+        const out = [];
+        for (let i = 0; i < values.length; i += 2)
+            out.push(i + 1 < values.length ? Math.max(values[i], values[i + 1]) : values[i]);
+        return out;
+    }
+
     // Os tópicos a assinar: o estado sempre; os quadros só com `active`.
     function wantedTopics(active: bool): var {
         const topics = ["spectrum.status"];

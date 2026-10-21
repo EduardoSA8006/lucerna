@@ -7,7 +7,8 @@ import qs.core.widgets
 import qs.features.dashboard.state
 
 // Card de mídia da aba Painel: a capa num círculo, com o espectro em volta
-// (barrinhas radiais, uma por faixa de frequência, pelo lucernad); ao lado, o
+// (barrinhas radiais espelhadas, uma por par de faixas do lucernad: graves no
+// topo dos dois lados, agudos embaixo); ao lado, o
 // título, o artista e os controles. Só anima com a aba à mostra e tocando; pausado, o espectro
 // recolhe e a capa para. Sem player: o ícone e "Nada tocando".
 Item {
@@ -33,9 +34,10 @@ Item {
             visible: root.hasMedia
             size: root.visualSize
             innerSize: root.coverSize
-            values: DashboardState.spectrum
-            bands: DashboardState.spectrumBars
+            values: DashboardState.spectrumPaired
+            bands: DashboardState.spectrumPairedBars
             live: root.live
+            mirrored: true
         }
 
         // A capa, girando devagar enquanto toca.
