@@ -10,17 +10,22 @@ import logcheck  # noqa: E402
 
 TOLERATED = Path(__file__).resolve().parents[1] / "tolerated.txt"
 
-# Linhas medidas na sonda (sway headless, sem D-Bus do sistema, sem PipeWire).
+# Linhas medidas na fumaça (sway headless, sem D-Bus do sistema, com o
+# PipeWire isolado e o mpv tocando).
 ENVIRONMENT = [
     "  WARN: $HYPRLAND_INSTANCE_SIGNATURE is unset. Cannot connect to hyprland.",
     "  WARN quickshell.network.networkmanager: Could not connect to DBus. NetworkManager backend will not work.",
     " ERROR quickshell.network: Network will not work. Could not find an available backend.",
     "  WARN quickshell.service.upower: Could not connect to DBus. UPower service will not work.",
     "  WARN quickshell.service.powerprofiles: Could not connect to DBus. PowerProfiles services will not work.",
-    " ERROR quickshell.service.pipewire.loop: Failed to connect pipewire context. Errno: 112",
     "  WARN: The active compositor does not support the hyprland_focus_grab_v1 protocol. HyprlandFocusGrab will not work.",
     "  WARN: ** Learn why $XDG_CURRENT_DESKTOP sucks and download a better compositor today at https://hyprland.org",
     '  WARN quickshell.hyprland.ipc: Error making request: QLocalSocket::ServerNotFoundError request: "j/clients"',
+    (
+        "  WARN quickshell.hyprland.ipc: Error making request: QLocalSocket::ServerNotFoundError "
+        'request: "dispatch hl.dsp.dpms({ action = \\"on\\" })"'
+    ),
+    '  WARN quickshell.hyprland.ipc: Failed to request dispatch of "hl.dsp.dpms({ action = \\"on\\" })"',
     '  WARN: Process failed to start, likely because the binary could not be found. Command: QList("hyprctl", "version", "-j")',
     '  WARN: Process failed to start, likely because the binary could not be found. Command: QList("hyprctl", "monitors", "all", "-j")',
     '  WARN: Process failed to start, likely because the binary could not be found. Command: QList("hyprctl", "devices", "-j")',

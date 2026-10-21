@@ -138,7 +138,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 
 - **Hyprland 0.56+**, com a configuração em Lua (`hyprland.lua`)
 - **Quickshell 0.3.1+**
-- **lucernad** (o daemon do Lucerna): CPU, memória, rede, discos, temperatura e GPU da aba Desempenho e do card de recursos; sem ele, aparecem como indisponíveis. Instalação no [README do lucernad](https://github.com/lucerna-desktop/lucernad#instalação).
+- **lucernad** (o daemon do Lucerna): CPU, memória, rede, discos, temperatura e GPU da aba Desempenho e do card de recursos, e o espectro do som do player em volta da capa (pelo PipeWire); sem ele, aparecem como indisponíveis e o anel fica parado. Instalação no [README do lucernad](https://github.com/lucerna-desktop/lucernad#instalação).
 - **Fonte de ícones**: `ttf-material-symbols-variable` (repositório oficial do Arch)
 - Opcionais, cada um liga uma parte:
   - PipeWire: volume e mídia

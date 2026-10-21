@@ -13,7 +13,7 @@ Regras para um plugin próprio:
 - Repositório e pacote próprios (por exemplo, `lucerna-spectrum`), com versão e changelog.
 - Módulo QML com nome `Lucerna.<Nome>` e API pequena, documentada.
 - Depende só do Qt e de interfaces do kernel ou do sistema (`/proc`, `/sys`, D-Bus, PipeWire).
-- O shell continua funcionando sem ele: o `services/` correspondente detecta o plugin e, na falta dele, usa a implementação em QML.
+- O shell continua funcionando sem ele: o `services/` correspondente detecta o plugin e, na falta dele, usa a implementação em QML. Exceção: o espectro não tem reserva em QML (o `cava` saiu); sem o módulo `spectrum` do `lucernad`, o shell continua funcionando, mas o anel fica parado no tamanho de repouso.
 
 ## Candidatos
 
