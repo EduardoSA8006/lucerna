@@ -21,7 +21,7 @@ RUN pacman -Syu --noconfirm --needed \
         qt6-svg qt6-imageformats qt6-5compat \
         mesa vulkan-intel \
         qt6-multimedia qt6-multimedia-ffmpeg intel-media-driver libva-utils \
-        dbus kitty foot htop grim wl-clipboard libnotify wtype \
+        dbus kitty foot htop grim libnotify wtype \
         libpipewire wireplumber brightnessctl ddcutil hyprsunset wf-recorder \
         ttf-material-symbols-variable ttf-jetbrains-mono-nerd ttf-cascadia-code-nerd noto-fonts noto-fonts-emoji \
         mpv mpv-mpris ffmpeg \
@@ -32,7 +32,7 @@ RUN pacman -Syu --noconfirm --needed \
 # reconstroem a imagem quando ela difere de dev/lucernad.rev.
 ARG LUCERNAD_REV
 LABEL lucernad.rev=$LUCERNAD_REV
-COPY --from=lucernad /opt/lucernad/bin/lucernad /usr/bin/lucernad
+COPY --from=lucernad /opt/lucernad/bin/lucernad /opt/lucernad/bin/lucernad-selecao /usr/bin/
 
 # Senha do usuário "dev" para testar a tela de bloqueio (PAM): lucerna
 ARG UID=1000
