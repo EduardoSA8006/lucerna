@@ -35,7 +35,8 @@
 # fica onde está. Em escala fracionária a imagem sai borrada. Fora do KDE, não faz nada.
 # LUCERNA_TEST_SIZE=LARGURAxALTURA: o tamanho da janela (padrão 1920x1080).
 # O lucernad sobe com o Hyprland (dev/hyprland.lua). Para ver o shell sem ele:
-# `dev/test.sh run 'pkill -x lucernad'`; para voltar: `dev/test.sh run 'setsid -f lucernad serve'`.
+# `dev/test.sh run 'pkill -x lucernad'`; para voltar: `dev/test.sh run 'setsid -f lucernad serve'`
+# (sempre pelo `run`, que põe o WAYLAND_DISPLAY do Hyprland aninhado).
 #
 # Teclas com modificador pelo wtype: o Hyprland aninhado resolve os binds pelo
 # keycode do keymap real, e o wtype numera as teclas do keymap dele na ordem em
@@ -86,7 +87,13 @@
 #   # `dict()` só deixava uma chave vazia ({}) no config, com o mesmo efeito.
 #   dev/test.sh setc 'dict(transparencyOverride=dict(enabled=True))'; dev/test.sh see $p-vidro settings open glass; dev/test.sh setc 'dict(transparencyOverride=None)'
 #   dev/test.sh setc "dict(launcherStyle='full')"; dev/test.sh see $p-full-busca launcher open apps kitty; dev/test.sh setc "dict(launcherStyle='compact')"
-#   dev/test.sh run 'printf "texto de teste" | wl-copy'; dev/test.sh see $p-clipboard clipboard open
+#   # Copiar sem o wl-clipboard: o lucernad-selecao, só pelo `run` (o WAYLAND_DISPLAY
+#   # do Hyprland aninhado). O container também tem o socket do host como
+#   # wayland-host: antes de copiar, confira que o lucernad está no aninhado
+#   # (wayland-<número>; se vier wayland-host, pare).
+#   dev/test.sh run 'tr "\0" "\n" < /proc/$(pgrep -xo lucernad)/environ | grep ^WAYLAND_DISPLAY='
+#   dev/test.sh run 'printf "texto de teste" | setsid -f lucernad-selecao oferecer "text/plain;charset=utf-8" text/plain > /dev/null'
+#   dev/test.sh see $p-clipboard clipboard open
 set -euo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
@@ -349,7 +356,7 @@ case "${1:-}" in
         ex "$2"
         ;;
     *)
-        sed -n '2,38p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+        sed -n '2,39p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
         exit 2
         ;;
 esac

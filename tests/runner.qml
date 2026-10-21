@@ -21,6 +21,7 @@ import qs.core.theme
 import qs.core.time
 import qs.core.widgets
 import qs.features.central.state
+import qs.features.clipboard.state
 import qs.features.dashboard.state
 import qs.features.notifications.state
 import qs.features.themeSwitcher.state
@@ -37,6 +38,7 @@ import "capture.test.js" as CaptureTest
 import "carousel.test.js" as CarouselTest
 import "central.test.js" as CentralTest
 import "clipboard.test.js" as ClipboardTest
+import "clipboardstate.test.js" as ClipboardStateTest
 import "format.test.js" as FormatTest
 import "input.test.js" as InputTest
 import "inputactions.test.js" as InputActionsTest
@@ -87,6 +89,7 @@ ShellRoot {
         ["performance", PerformanceTest],
         ["searchengines", SearchEnginesTest],
         ["clipboard", ClipboardTest],
+        ["clipboardstate", ClipboardStateTest],
         ["capture", CaptureTest],
         ["brightness", BrightnessTest],
         ["monitors", MonitorsTest],
@@ -200,6 +203,7 @@ ShellRoot {
             get NightSchedule() { return NightSchedule; },
             get Panels() { return Panels; },
             get CentralState() { return CentralState; },
+            get ClipboardState() { return ClipboardState; },
             get ControlsState() { return ControlsState; },
             get NotificationsState() { return NotificationsState; },
             get PowerState() { return PowerState; },

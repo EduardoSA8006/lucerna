@@ -3,131 +3,318 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.services
 
-// Histórico da área de transferência, pelo wl-clipboard: o `wl-paste --watch`
-// avisa cada mudança (texto ou imagem PNG; senhas marcadas pelos
-// gerenciadores ficam de fora) e o histórico guarda os últimos `limit`, com os
-// fixados à parte. Com `persist`, sobrevive a reinícios (em statePath).
-// Entrada: { id, kind: "text" | "image", text?, path?, md5?, time (ms), pinned }.
+// O histórico da área de transferência, vindo do módulo clipboard do lucernad:
+// o daemon observa, guarda e copia de volta; aqui só os tópicos, a página que o
+// painel mostra e o colar sozinho (que depende do Hyprland). Sem o daemon,
+// `available` fica falso.
 Singleton {
     id: root
 
-    // Quem usa decide.
+    // Não é readonly: os testes trocam por um cliente da fábrica e restauram.
+    property var client: Lucernad.client
+
+    // Quem usa decide (as Bindings do ClipboardState, nesta ordem: limit,
+    // persist, watching; o persist já certo quando a assinatura sai).
     property bool watching: false
     property int limit: 100
     property bool persist: true
 
-    property var entries: []
-    property bool available: false
+    // O clipboard.status do daemon: o módulo pode estar indisponível com o
+    // daemon de pé (sem Wayland, o compositor sem o protocolo).
+    property bool moduleAvailable: false
+    property string error: ""
+    // Disponível é conectado e sem `error`: com o histórico desligado (sem
+    // assinante), o daemon fica com `available` falso e `error` nulo enquanto
+    // não tenta a sessão, e o painel, as configurações e a cópia funcionam.
+    readonly property bool available: client.connected && error === ""
 
-    readonly property string imageDir: Quickshell.statePath("clipboard")
-    readonly property string historyFile: Quickshell.statePath("clipboard.json")
-    readonly property string script: Quickshell.shellPath("services/scripts/clipboard-watch.sh")
+    // O clipboard.history: a revisão muda a cada mudança do histórico.
+    property int revision: -1
+    property int count: 0
+    property int pinned: 0
 
-    // Base64 → texto UTF-8 (o Qt.atob de texto é obsoleto e não decodifica UTF-8).
-    function decode(b64: string): string {
-        const table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        const bytes = [];
-        let buffer = 0;
-        let bits = 0;
-        for (const ch of b64) {
-            const v = table.indexOf(ch);
-            if (v < 0)
-                continue;
-            buffer = (buffer << 6) | v;
-            bits += 6;
-            if (bits >= 8) {
-                bits -= 8;
-                bytes.push((buffer >> bits) & 0xff);
-            }
-        }
-        let out = "";
-        for (let i = 0; i < bytes.length;) {
-            const b = bytes[i];
-            const n = b >= 0xf0 ? 3 : b >= 0xe0 ? 2 : b >= 0xc0 ? 1 : 0;
-            let code = n ? b & (0x3f >> n) : b;
-            for (let k = 1; k <= n; k++)
-                code = (code << 6) | ((bytes[i + k] ?? 0) & 0x3f);
-            out += String.fromCodePoint(code);
-            i += n + 1;
-        }
-        return out;
+    // A página mostrada: os itens do clipboard.list, já na ordem do daemon
+    // (fixados primeiro), com o filtro e a busca que a pediram.
+    property var items: []
+    property int total: 0
+    property string kind: "all"
+    property string query: ""
+    readonly property int pageSize: 50
+    // O clipboard.list aceita no máximo 200 por pedido.
+    readonly property int maxPage: 200
+    // Cada troca da página (append falso) ganha um token: a resposta de uma
+    // troca anterior chega com o token velho e é ignorada.
+    property int token: 0
+    // Uma troca em voo; as páginas dela juntam em `buffer` até a última.
+    property bool loading: false
+    property var buffer: []
+    // Uma página de somar (more) em voo: a rolagem não pede outra até ela chegar.
+    property bool paging: false
+
+    // A sessão Wayland que o shell vê: o daemon usa a dele, se tiver.
+    readonly property string display: Quickshell.env("WAYLAND_DISPLAY") ?? ""
+
+    // Os tópicos a assinar: o estado sempre; o histórico só com `watching`.
+    function wantedTopics(watching: bool): var {
+        const topics = ["clipboard.status"];
+        if (watching)
+            topics.push("clipboard.history");
+        return topics;
     }
 
-    function makeId(): string {
-        return `${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`;
+    function sync(): void {
+        client.want("clipboard", wantedTopics(watching));
     }
 
-    function add(entry: var): void {
-        const same = entries.find(e => e.kind === entry.kind && (entry.kind === "text" ? e.text === entry.text : e.md5 === entry.md5));
-        if (same) {
-            // Já estava: sobe para o topo, e a imagem repetida sai do disco.
-            if (entry.kind === "image" && entry.path !== same.path)
-                Quickshell.execDetached(["rm", "-f", entry.path]);
-            entries = [Object.assign({}, same, { time: Date.now() })].concat(entries.filter(e => e.id !== same.id));
-        } else {
-            entries = [Object.assign({ id: makeId(), time: Date.now(), pinned: false }, entry)].concat(entries);
-        }
-        trim();
-        modified();
+    function configureParams(limit: int, persist: bool, display: string): var {
+        const params = {
+            limit: limit,
+            persist: persist
+        };
+        if (display !== "")
+            params.waylandDisplay = display;
+        return params;
     }
 
-    // Passou do limite: saem os mais antigos que não estão fixados.
-    function trim(): void {
-        let loose = entries.filter(e => !e.pinned).length;
-        if (loose <= limit)
+    // Diz ao daemon o limite, a persistência e a sessão, só com a conexão
+    // feita; vem antes do sync(), para o daemon ter o configure antes do
+    // assinante.
+    function configure(): void {
+        if (client.connected)
+            client.call("clipboard.configure", configureParams(limit, persist, display), null);
+    }
+
+    // Sem `kind` para "all"; sem `query` vazia ou só de espaços.
+    function listParams(kind: string, query: string, offset: int, limit: int): var {
+        const params = {};
+        if (kind !== "all")
+            params.kind = kind;
+        if (query.trim() !== "")
+            params.query = query;
+        params.offset = offset;
+        params.limit = limit;
+        return params;
+    }
+
+    // Uma página nova do começo, com esse filtro e essa busca.
+    function load(kind: string, query: string): void {
+        root.kind = kind;
+        root.query = query;
+        fetch(0, pageSize, false);
+    }
+
+    // Mais uma página no fim da lista; nada com uma troca ou outra página em
+    // voo (a troca vence) ou com a lista toda.
+    function more(): void {
+        if (loading || paging || items.length >= total)
             return;
-        const out = [];
-        for (let i = entries.length - 1; i >= 0; i--) {
-            const e = entries[i];
-            if (!e.pinned && loose > limit) {
-                loose--;
-                forget(e);
-            } else {
-                out.unshift(e);
-            }
+        paging = true;
+        fetch(items.length, pageSize, true);
+    }
+
+    // Uma troca (append falso) ganha token novo e põe a lista em espera; somar
+    // usa o token de agora, sem trocá-lo (uma troca que vier depois vence).
+    function fetch(offset: int, limit: int, append: bool): void {
+        if (!append) {
+            token++;
+            loading = true;
+            paging = false;
+            buffer = [];
         }
-        entries = out;
+        request(token, offset, limit, append);
     }
 
-    function forget(entry: var): void {
-        if (entry.kind === "image" && entry.path)
-            Quickshell.execDetached(["rm", "-f", entry.path]);
+    // Pede até `limit` itens a partir de `offset`, de 200 em 200.
+    function request(t: int, offset: int, limit: int, append: bool): void {
+        const n = Math.min(limit, maxPage);
+        client.call("clipboard.list", listParams(kind, query, offset, n), response => root.applyPage(t, append, response, offset, limit));
     }
 
-    function remove(id: string): void {
-        const entry = entries.find(e => e.id === id);
-        if (!entry)
+    // Os itens de `page` cujo id não está em `list`, somados ao fim dela.
+    function merge(list: var, page: var): var {
+        const seen = new Set(list.map(item => item.id));
+        return list.concat(page.filter(item => !seen.has(item.id)));
+    }
+
+    // A resposta de um clipboard.list pedido com o token `t`, a partir de
+    // `offset`, de um total de `limit`. Token velho não muda nada; erro só
+    // acaba a espera. Somar junta a página à lista, pulando os ids que já estão;
+    // a troca junta as páginas e só troca a lista na última.
+    function applyPage(t: int, append: bool, response: var, offset: int, limit: int): void {
+        if (t !== token)
             return;
-        forget(entry);
-        entries = entries.filter(e => e.id !== id);
-        modified();
+        const result = response?.result;
+        if (append)
+            paging = false;
+        if (!result || response.error) {
+            if (!append) {
+                loading = false;
+                buffer = [];
+            }
+            return;
+        }
+        const page = result.items ? Array.from(result.items) : [];
+        const n = Math.min(limit, maxPage);
+        if (append) {
+            items = merge(Array.from(items), page);
+            total = Number(result.total ?? 0);
+            return;
+        }
+        buffer = merge(Array.from(buffer), page);
+        if (limit > n && page.length === n) {
+            request(t, offset + n, limit - n, false);
+            return;
+        }
+        items = buffer;
+        total = Number(result.total ?? 0);
+        buffer = [];
+        loading = false;
     }
 
-    function togglePin(id: string): void {
-        entries = entries.map(e => e.id === id ? Object.assign({}, e, { pinned: !e.pinned }) : e);
-        modified();
+    // Um estado recebido do daemon; `null` (o tópico ainda sem estado) e
+    // tópico desconhecido não mudam nada.
+    function apply(topic: string, data: var): void {
+        if (data === null || data === undefined)
+            return;
+        switch (topic) {
+        case "clipboard.history":
+            applyHistory(data);
+            break;
+        case "clipboard.status":
+            applyStatus(data);
+            break;
+        }
+    }
+
+    // Uma revisão nova repede do começo o tanto que já estava na tela.
+    function applyHistory(data: var): void {
+        count = Number(data.count ?? 0);
+        pinned = Number(data.pinned ?? 0);
+        const next = Number(data.revision ?? -1);
+        if (next === revision)
+            return;
+        revision = next;
+        fetch(0, Math.max(pageSize, items.length), false);
+    }
+
+    function applyStatus(data: var): void {
+        moduleAvailable = data.available === true;
+        error = data.error ? String(data.error) : "";
+    }
+
+    // A conexão com o daemon mudou: ao cair, o módulo e a página somem (a
+    // revisão volta a −1, para a próxima repaginar); nos dois casos, a
+    // configuração e a assinatura vão de novo, nessa ordem.
+    function connectionChanged(connected: bool): void {
+        if (!connected) {
+            moduleAvailable = false;
+            items = [];
+            total = 0;
+            revision = -1;
+            token++;
+            loading = false;
+            paging = false;
+            buffer = [];
+        }
+        configure();
+        sync();
+    }
+
+    // Os métodos, sem esperar resposta (o histórico novo chega pelo tópico).
+    function copy(id: int): void {
+        client.call("clipboard.copy", {
+            id: id
+        }, null);
+    }
+
+    function remove(id: int): void {
+        client.call("clipboard.remove", {
+            id: id
+        }, null);
+    }
+
+    function pin(id: int, pinned: bool): void {
+        client.call("clipboard.pin", {
+            id: id,
+            pinned: pinned
+        }, null);
     }
 
     // Limpa o histórico; `all` leva junto os fixados.
     function clear(all: bool): void {
-        for (const e of entries) {
-            if (all || !e.pinned)
-                forget(e);
-        }
-        entries = all ? [] : entries.filter(e => e.pinned);
-        modified();
+        client.call("clipboard.clear", {
+            all: all
+        }, null);
     }
 
-    // Põe uma entrada na área de transferência (o watcher a sobe para o topo).
-    function copy(entry: var): void {
-        if (entry.kind === "image") {
-            Quickshell.execDetached(["sh", "-c", 'wl-copy --type image/png < "$1"', "sh", entry.path]);
-        } else {
-            copier.pending = entry.text;
-            copier.running = false;
-            copier.running = true;
+    // A resposta do copyImage chega aqui: `error` vazio se a imagem foi para a
+    // área de transferência; senão, o motivo.
+    signal imageCopied(string path, string error)
+    // Sem resposta nesse prazo, o copyImage é dado como falho.
+    property int copyTimeout: 3000
+
+    // O motivo de um copyImage não ter ido, pela resposta (vazio se foi).
+    function copyResult(response: var): string {
+        if (!response)
+            return "o lucernad não respondeu.";
+        if (response.error)
+            return String(response.error.message ?? "erro desconhecido.");
+        return "";
+    }
+
+    // Uma imagem do disco na área de transferência (a captura de tela); com o
+    // histórico desligado, ela não entra nele. O resultado sai uma vez só, em
+    // `imageCopied`: pela resposta ou pelo prazo, o que vier primeiro.
+    function copyImage(path: string): void {
+        let settled = false;
+        const deadline = deadlineTimer.createObject(root, {
+            interval: copyTimeout
+        }) as Timer;
+        const finish = text => {
+            if (settled)
+                return;
+            settled = true;
+            deadline.stop();
+            deadline.destroy();
+            root.imageCopied(path, text);
+        };
+        deadline.triggered.connect(() => finish(`o lucernad não respondeu em ${Math.round(copyTimeout / 1000)} s.`));
+        deadline.start();
+        client.call("clipboard.copyImage", {
+            path: path,
+            store: watching
+        }, response => finish(copyResult(response)));
+    }
+
+    Component {
+        id: deadlineTimer
+
+        Timer {
+            repeat: false
         }
+    }
+
+    onWatchingChanged: sync()
+    onLimitChanged: configure()
+    onPersistChanged: configure()
+
+    Connections {
+        target: root.client
+
+        function onReceived(topic: string, data: var): void {
+            root.apply(topic, data);
+        }
+
+        function onConnectedChanged(): void {
+            root.connectionChanged(root.client.connected);
+        }
+    }
+
+    Component.onCompleted: {
+        configure();
+        sync();
     }
 
     // Cola na janela em foco: Ctrl+V, ou Ctrl+Shift+V num terminal. Com um
@@ -157,101 +344,6 @@ Singleton {
                 } catch (e) {}
                 const mods = root.terminals.includes(cls) ? "CTRL SHIFT" : "CTRL";
                 Hypr.dispatch(`hl.dsp.send_shortcut({ mods = "${mods}", key = "V" })`);
-            }
-        }
-    }
-
-    // O texto vai pela entrada padrão (um argumento tem limite de tamanho).
-    Process {
-        id: copier
-
-        property string pending: ""
-
-        command: ["wl-copy"]
-        stdinEnabled: true
-        onStarted: {
-            write(pending);
-            stdinEnabled = false;
-        }
-        onExited: stdinEnabled = true
-    }
-
-    // Persistência. Quem usa chama `start()` depois de definir `persist`: com
-    // ele, o histórico salvo volta; sem ele, o salvo (e as imagens) é apagado.
-    signal modified()
-
-    property bool started: false
-
-    function start(): void {
-        if (started)
-            return;
-        started = true;
-        if (persist)
-            store.path = historyFile;
-        else
-            Quickshell.execDetached(["sh", "-c", 'rm -f "$1"; rm -rf "$2"', "sh", historyFile, imageDir]);
-    }
-
-    onModified: saveDelay.restart()
-
-    Timer {
-        id: saveDelay
-
-        interval: 800
-        onTriggered: {
-            if (root.persist && store.path)
-                store.setText(JSON.stringify(root.entries));
-        }
-    }
-
-    // Deixar de manter apaga o arquivo (o que está na memória fica até sair).
-    onPersistChanged: {
-        if (!started)
-            return;
-        if (persist) {
-            store.path = historyFile;
-            saveDelay.restart();
-        } else {
-            store.path = "";
-            Quickshell.execDetached(["rm", "-f", historyFile]);
-        }
-    }
-
-    FileView {
-        id: store
-
-        blockLoading: true
-        printErrors: false
-        onLoaded: {
-            try {
-                const list = JSON.parse(text());
-                if (Array.isArray(list) && !root.entries.length)
-                    root.entries = list.filter(e => e && (e.kind === "text" ? typeof e.text === "string" : !!e.path));
-            } catch (e) {}
-        }
-    }
-
-    // Tem o wl-clipboard?
-    Process {
-        running: true
-        command: ["sh", "-c", "command -v wl-paste && command -v wl-copy"]
-        onExited: code => root.available = code === 0
-    }
-
-    Process {
-        id: watcher
-
-        running: root.watching && root.available
-        // O pdeathsig faz o wl-paste sair junto com o shell (senão ele fica
-        // órfão num reinício e continua gravando imagens).
-        command: ["setpriv", "--pdeathsig", "TERM", "wl-paste", "--watch", root.script, root.imageDir]
-        stdout: SplitParser {
-            onRead: line => {
-                const parts = line.split("\t");
-                if (parts[0] === "text" && parts[1])
-                    root.add({ kind: "text", text: root.decode(parts[1]) });
-                else if (parts[0] === "image" && parts[1])
-                    root.add({ kind: "image", path: parts[1], md5: parts[2] ?? "" });
             }
         }
     }

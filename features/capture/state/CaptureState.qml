@@ -168,6 +168,22 @@ Singleton {
         Capture.refreshWindows();
     }
 
+    // O aviso da foto salva, com as ações de abrir e mostrar na pasta.
+    function shotSaved(path: string, body: string): void {
+        Capture.notify(path, "Captura de tela salva", body, path, [
+            { id: "open", label: "Abrir" },
+            { id: "folder", label: "Mostrar na pasta" }
+        ]);
+    }
+
+    Connections {
+        target: Clipboard
+
+        function onImageCopied(path: string, error: string) {
+            root.shotSaved(path, error ? `Não foi para a área de transferência: ${error}` : "Também está na área de transferência");
+        }
+    }
+
     Connections {
         target: Capture
 
@@ -185,12 +201,12 @@ Singleton {
                 Capture.notify("", "A captura falhou", "O grim não conseguiu capturar a tela", "", []);
                 return;
             }
+            // Com a cópia, o aviso espera a resposta do lucernad (o
+            // onImageCopied abaixo): só promete a área de transferência se ela foi.
             if (Config.captureCopy)
                 Capture.copyImage(path);
-            Capture.notify(path, "Captura de tela salva", Config.captureCopy ? "Também está na área de transferência" : path.split("/").pop(), path, [
-                { id: "open", label: "Abrir" },
-                { id: "folder", label: "Mostrar na pasta" }
-            ]);
+            else
+                root.shotSaved(path, path.split("/").pop());
         }
 
         function onRecorded(path: string, ok: bool) {

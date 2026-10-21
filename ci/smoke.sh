@@ -12,6 +12,14 @@
 # Painel são abertas e capturadas de novo, com o "indisponível". Antes disso, a
 # fase "espectro": com a aba Mídia aberta, o lucernad precisa capturar o mpv,
 # as bandas precisam mexer, e com o painel fechado o fluxo de captura some.
+# E a fase "área de transferência", antes do painel dela: o lucernad sobe sem
+# WAYLAND_DISPLAY (a sessão chega pelo clipboard.configure do shell), e o
+# lucernad-selecao (o exemplo do lucernad, no lugar do wl-clipboard) copia um
+# texto, a primeira captura (image/png) e uma senha marcada; o histórico
+# precisa trazer o texto (5 s) e a imagem com miniatura, e não a senha (1 s);
+# a busca "fumaca" acha o texto com o trecho marcado, e o `lucernad copiar`
+# põe o texto de volta na seleção (lido pelo lucernad-selecao). O painel da
+# área de transferência é capturado com os dois itens.
 # O som nunca alcança um alto-falante: o PipeWire da fumaça é próprio, sem os
 # monitores de hardware, e o mpv toca só no sink nulo. A unidade roda de novo
 # numa cópia separada (unit_suites e unit_run, do ci/lib.sh), e a cobertura de
@@ -23,7 +31,9 @@
 # shell que não conecta ao lucernad ou não nota a saída dele, o lucernad que não
 # captura o mpv com a aba Mídia aberta (10 s), bandas paradas (nenhum quadro
 # com valor acima de 0,05 em 5 s), fluxo de captura que sobra com o painel
-# fechado (5 s), `ipc call`
+# fechado (5 s), a área de transferência (texto que não entra em 5 s, imagem
+# sem miniatura, senha que entra, busca sem o texto ou sem o trecho, colar de
+# volta que não devolve o texto), `ipc call`
 # com código diferente de 0, `panels get` diferente do esperado, painel que não
 # fecha, shell que cai (inclusive no repouso de 5 s depois do último passo),
 # shell que não encerra limpo com `qs kill` (código 0 em 10 s), aviso ou erro
@@ -31,8 +41,8 @@
 # unidade da cópia separada que falha e todo `ipc call` ou grim que passa de
 # 10 s (timeout, com o fim do shell.log na saída).
 #
-# Só encerra os próprios processos (os grupos do shell, do mpv, do lucernad, do
-# WirePlumber, do PipeWire, do D-Bus e do sway, por PID), nunca por nome:
+# Só encerra os próprios processos (os grupos do shell, dos lucernad-selecao,
+# do mpv, do lucernad, do WirePlumber, do PipeWire, do D-Bus e do sway, por PID), nunca por nome:
 # rodada fora do container, não derruba a sessão do usuário.
 #
 # O que a fumaça não confere por IPC: a aba do painel superior, a página da
@@ -63,6 +73,7 @@ pipewire_pid=""
 wireplumber_pid=""
 mpv_pid=""
 lucernad_pid=""
+selecao_pids=()
 qs_pid=""
 shell_pid=""
 logs_checked=0
@@ -88,6 +99,10 @@ stop_group() {
 # shellcheck disable=SC2329 # chamada pelo trap
 cleanup() {
     stop_group "$qs_pid"
+    local pid
+    for pid in "${selecao_pids[@]}"; do
+        stop_group "$pid"
+    done
     stop_group "$mpv_pid"
     stop_group "$lucernad_pid"
     stop_group "$wireplumber_pid"
@@ -234,8 +249,10 @@ row "player de teste" "org.mpris.MediaPlayer2.mpv* em 10 s" "$mpris"
 
 # O lucernad no próprio grupo, como o sway, com a ociosidade em 10 min (a
 # fumaça inteira cabe nela); o socket dele fica no XDG_RUNTIME_DIR da fumaça.
+# Sem WAYLAND_DISPLAY: a área de transferência observa a sessão que o shell
+# manda no clipboard.configure (o caminho do daemon sem sessão no ambiente).
 lucernad_sock="$XDG_RUNTIME_DIR/lucerna/lucernad.sock"
-LUCERNA_IDLE_TIMEOUT_MS=600000 setsid lucernad serve > "$out/lucernad.log" 2>&1 &
+LUCERNA_IDLE_TIMEOUT_MS=600000 setsid env -u WAYLAND_DISPLAY lucernad serve > "$out/lucernad.log" 2>&1 &
 lucernad_pid=$!
 for _ in $(seq 50); do
     [ -S "$lucernad_sock" ] && break
@@ -410,6 +427,82 @@ for topic in appearance wallpaper displays idle nightlight launcher clipboard ca
 done
 step themes panels open themes
 step power panels open power
+
+# Fase "área de transferência". clip_list [BUSCA]: os itens do `lucernad --json
+# historico`, um por linha (id, tipo, 1 se a miniatura existe no disco, os
+# trechos marcados em JSON), de uma leitura só (vazio se o daemon não
+# responder).
+clip_list() {
+    timeout "$CMD_TIMEOUT" lucernad --json historico "$@" 2> /dev/null | python3 -c '
+import json, os, sys
+for line in sys.stdin:
+    try:
+        page = json.loads(line)
+    except ValueError:
+        continue
+    items = page.get("items") if isinstance(page, dict) else None
+    if isinstance(items, list):
+        for item in items:
+            thumb = item.get("thumb")
+            found = int(isinstance(thumb, str) and os.path.isfile(thumb))
+            print(item.get("id"), item.get("kind"), found, json.dumps(item.get("matches"), separators=(",", ":")), sep="\t")
+        break
+' || true
+}
+# clip_count: quantos itens o histórico tem.
+clip_count() { clip_list | grep -c . || true; }
+# offer <arquivo> <mime>...: o lucernad-selecao vira dono da seleção com o
+# conteúdo do arquivo, no próprio grupo (encerrado no cleanup; ele sai sozinho
+# quando outra cópia toma a seleção).
+offer() {
+    local file=$1
+    shift
+    setsid lucernad-selecao oferecer "$@" < "$file" >> "$out/selecao.log" 2>&1 &
+    selecao_pids+=("$!")
+}
+# wait_count <n> <tentativas>: espera o histórico chegar a n itens (0,2 s por
+# tentativa); o último valor fica em $count.
+wait_count() {
+    for _ in $(seq "$2"); do
+        count=$(clip_count)
+        [ "$count" = "$1" ] && return 0
+        sleep 0.2
+    done
+    return 1
+}
+printf 'olá da fumaça' > "$work/texto"
+offer "$work/texto" 'text/plain;charset=utf-8' text/plain
+wait_count 1 25 || true
+row "área de transferência" "texto observado em 5 s" "$count item(ns)"
+[ "$count" = 1 ] || fail "o texto copiado pelo lucernad-selecao não entrou no histórico em 5 s ($count itens; veja lucernad.log e selecao.log)"
+text_id=$(clip_list | awk -F '\t' '$2 == "text" { print $1 }')
+offer "$out/shots/00-inicio.png" image/png
+wait_count 2 25 || true
+thumbs=$(clip_list | awk -F '\t' '$2 == "image" && $3 == 1' | grep -c . || true)
+row "área de transferência" "a captura (image/png) com miniatura em 5 s" "$count itens, $thumbs com miniatura"
+[ "$count" = 2 ] && [ "$thumbs" = 1 ] \
+    || fail "a captura copiada não entrou no histórico com a miniatura em 5 s ($count itens, $thumbs imagem(ns) com o thumb no disco)"
+printf 'segredo' > "$work/senha"
+offer "$work/senha" text/plain x-kde-passwordManagerHint
+sleep 1
+count=$(clip_count)
+row "área de transferência" "senha de fora (ainda 2 itens em 1 s)" "$count itens"
+[ "$count" = 2 ] || fail "a cópia marcada com x-kde-passwordManagerHint mexeu no histórico ($count itens; o esperado eram 2)"
+found=$(clip_list fumaca)
+shown=${found//$'\t'/ }
+row "área de transferência" "a busca \"fumaca\" acha o texto com o trecho" "${shown:-(nada)}"
+[ "$(grep -c . <<< "$found")" = 1 ] && [ "$(cut -f1 <<< "$found")" = "$text_id" ] && [[ $(cut -f4 <<< "$found") == "[["* ]] \
+    || fail "a busca \"fumaca\" não trouxe só o texto ($text_id) com matches (veio \"$found\")"
+timeout "$CMD_TIMEOUT" lucernad copiar "$text_id" > /dev/null || fail "lucernad copiar $text_id falhou"
+pasted=""
+for _ in $(seq 25); do
+    pasted=$(timeout "$CMD_TIMEOUT" lucernad-selecao ler text/plain 2> /dev/null || true)
+    [ "$pasted" = "olá da fumaça" ] && break
+    sleep 0.2
+done
+row "área de transferência" "colar de volta (lucernad copiar)" "${pasted:-(nada)}"
+[ "$pasted" = "olá da fumaça" ] || fail "depois do lucernad copiar $text_id, a seleção não trouxe o texto em 5 s (veio \"$pasted\")"
+alive || fail "o shell caiu na fase da área de transferência"
 step clipboard clipboard open
 step capture capture open shot
 step overview overview toggle

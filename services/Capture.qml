@@ -117,8 +117,10 @@ Singleton {
         onExited: code => root.shot(path, code === 0)
     }
 
+    // Pela área de transferência do lucernad (o Clipboard decide se entra no
+    // histórico).
     function copyImage(path: string): void {
-        Quickshell.execDetached(["sh", "-c", 'wl-copy --type image/png < "$1"', "sh", path]);
+        Clipboard.copyImage(path);
     }
 
     // Gravação: `audio` é "none", "system" (o que toca) ou "mic". Emite `recorded`.

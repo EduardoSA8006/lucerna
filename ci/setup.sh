@@ -34,6 +34,7 @@ if [ "$job" = smoke ]; then
     # script não recompila a mesma revisão.
     bash "$here/../dev/lucernad.sh" "$(cat "$here/../dev/lucernad.rev")" /opt/lucernad
     ln -sf /opt/lucernad/bin/lucernad /usr/local/bin/lucernad
+    ln -sf /opt/lucernad/bin/lucernad-selecao /usr/local/bin/lucernad-selecao
 fi
 
 # O checkout do GitHub é do root; o usuário comum só precisa ler.

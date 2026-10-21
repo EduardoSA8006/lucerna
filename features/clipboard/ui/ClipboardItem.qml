@@ -11,11 +11,12 @@ Clickable {
     required property var entry
     required property bool current
     readonly property bool isImage: entry.kind === "image"
+    readonly property bool hasThumb: isImage && !!entry.thumb
 
     signal chosen
     signal hoveredIn
 
-    height: isImage ? 104 : 64
+    height: isImage ? 104 : entry.kind === "files" ? 56 : 64
     radius: ThemeManager.radius.normal
     color: current ? ThemeManager.alpha(ThemeManager.colors.accent, 0.14) : "transparent"
     onClicked: root.chosen()
@@ -38,8 +39,8 @@ Clickable {
 
         Image {
             anchors.fill: parent
-            visible: root.isImage
-            source: root.isImage ? `file://${root.entry.path}` : ""
+            visible: root.hasThumb
+            source: root.hasThumb ? `file://${root.entry.thumb}` : ""
             sourceSize: Qt.size(272, 168)
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
@@ -47,8 +48,8 @@ Clickable {
 
         Icon {
             anchors.centerIn: parent
-            visible: !root.isImage
-            icon: "notes"
+            visible: !root.hasThumb
+            icon: root.isImage ? "image" : root.entry.kind === "files" ? "folder" : "notes"
             size: 20
             color: ThemeManager.colors.accent
         }
@@ -64,9 +65,10 @@ Clickable {
 
         Txt {
             width: parent.width
-            text: ClipboardState.preview(root.entry)
+            textFormat: Text.StyledText
+            text: ClipboardState.marked(ClipboardState.preview(root.entry), root.entry.matches)
             wrapMode: Text.Wrap
-            maximumLineCount: root.isImage ? 1 : 2
+            maximumLineCount: root.isImage || root.entry.kind === "files" ? 1 : 2
             elide: Text.ElideRight
             font.weight: root.current ? Font.DemiBold : Font.Normal
         }

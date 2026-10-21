@@ -134,6 +134,10 @@ OverlayPanel {
             model: ClipboardState.items
             currentIndex: ClipboardState.selected
             onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
+            onAtYEndChanged: {
+                if (atYEnd)
+                    ClipboardState.more();
+            }
 
             delegate: ClipboardItem {
                 required property var modelData
@@ -146,10 +150,18 @@ OverlayPanel {
                 onHoveredIn: ClipboardState.select(index)
             }
 
+            EmptyState {
+                anchors.centerIn: parent
+                width: parent.width - 60
+                visible: ClipboardState.items.length === 0 && ClipboardState.emptyKind === "unavailable"
+                icon: "content_paste_off"
+                text: ClipboardState.unavailableText
+            }
+
             Column {
                 anchors.centerIn: parent
                 width: parent.width - 60
-                visible: ClipboardState.items.length === 0
+                visible: ClipboardState.items.length === 0 && ClipboardState.emptyKind !== "unavailable"
                 spacing: ThemeManager.spacing.small
 
                 Icon {
@@ -164,8 +176,7 @@ OverlayPanel {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
                     faint: true
-                    text: !ClipboardState.available ? "Precisa do wl-clipboard (wl-paste e wl-copy)"
-                        : !ClipboardState.enabled ? "O histórico está desligado nas configurações"
+                    text: !ClipboardState.enabled ? "O histórico está desligado nas configurações"
                         : ClipboardState.query || ClipboardState.filter !== "all" ? "Nada encontrado"
                         : "Nada copiado ainda. O que você copiar aparece aqui"
                 }
@@ -195,7 +206,7 @@ OverlayPanel {
 
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                enabled: ClipboardState.items.some(e => !e.pinned)
+                enabled: ClipboardState.clearable
                 icon: "delete_sweep"
                 text: "Limpar"
                 onClicked: {
