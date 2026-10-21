@@ -325,12 +325,12 @@ done
 
 # Fase "espectro": com a aba Mídia aberta, o shell assina as bandas e diz ao
 # lucernad qual player seguir; o daemon liga um fluxo de captura ao nó do mpv.
-# status_field <campo>: o campo do spectrum.status, pelo `lucernad --json
-# status` (vazio se o daemon não responder).
-status_field() {
+# capture_state: o `capturing` e o `player` do spectrum.status numa linha
+# ("true \"<nome>\""), de uma leitura só do `lucernad --json status` (vazio
+# se o daemon não responder).
+capture_state() {
     timeout "$CMD_TIMEOUT" lucernad --json status 2> /dev/null | python3 -c '
 import json, sys
-field = sys.argv[1]
 for line in sys.stdin:
     try:
         state = json.loads(line)
@@ -338,13 +338,9 @@ for line in sys.stdin:
         continue
     status = state.get("spectrum.status") if isinstance(state, dict) else None
     if isinstance(status, dict):
-        print(json.dumps(status.get(field)))
+        print(json.dumps(status.get("capturing")), json.dumps(status.get("player")))
         break
-' "$1" || true
-}
-# capture_state: "capturing player" do spectrum.status numa linha.
-capture_state() {
-    printf '%s %s' "$(status_field capturing)" "$(status_field player)"
+' || true
 }
 n=$((n + 1))
 ipc dashboard open media > /dev/null || fail "ipc call dashboard open media falhou: $(why $?)"
@@ -377,10 +373,16 @@ python3 -c 'import sys; sys.exit(0 if float(sys.argv[1] or 0) > 0.05 else 1)' "$
 alive || fail "o shell caiu na fase do espectro"
 shot "$out/shots/$(printf '%02d' "$n")-espectro-media.png" || fail "o grim não capturou o espectro: $(why $?)"
 ipc panels close > /dev/null || fail "ipc call panels close falhou: $(why $?)"
+# O pw-cli precisa responder (código 0): um PipeWire caído não passa por
+# "sem fluxo".
 nodes=""
 for _ in $(seq 10); do
     state=$(capture_state)
-    nodes=$(pw-cli ls Node 2> /dev/null | grep -c lucernad-espectro || true)
+    if graph=$(timeout "$CMD_TIMEOUT" pw-cli ls Node 2> /dev/null); then
+        nodes=$(grep -c lucernad-espectro <<< "$graph" || true)
+    else
+        nodes="(pw-cli falhou)"
+    fi
     [ "${state%% *}" = false ] && [ "$nodes" = 0 ] && break
     sleep 0.5
 done

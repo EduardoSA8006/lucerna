@@ -8,8 +8,8 @@ import qs.features.dashboard.state
 
 // Card de mídia da aba Painel: a capa num círculo, com o espectro em volta
 // (barrinhas radiais espelhadas, uma por par de faixas do lucernad: graves no
-// topo dos dois lados, agudos embaixo); ao lado, o
-// título, o artista e os controles. Só anima com a aba à mostra e tocando; pausado, o espectro
+// topo dos dois lados, agudos embaixo); ao lado, o título, o artista e os
+// controles. Só anima com a aba à mostra e tocando; pausado, o espectro
 // recolhe e a capa para. Sem player: o ícone e "Nada tocando".
 Item {
     id: root

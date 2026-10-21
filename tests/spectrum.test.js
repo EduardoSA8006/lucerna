@@ -95,7 +95,7 @@ function run(t) {
 
     t.test("spectrum: conectado, configure manda o player", () => {
         const c = S.client;
-        const saved = { pending: c.pending, nextId: c.nextId };
+        const saved = { pending: c.pending, nextId: c.nextId, connected: c.connected };
         const last = () => {
             const ids = Object.keys(c.pending).map(Number);
             return c.pending[ids[ids.length - 1]];
@@ -110,7 +110,7 @@ function run(t) {
             const again = last();
             t.eq([again.method, again.params], ["spectrum.configure", { player: S.playerParam(S.player) }]);
         } finally {
-            c.connected = false;
+            c.connected = saved.connected;
             c.pending = saved.pending;
             c.nextId = saved.nextId;
         }
