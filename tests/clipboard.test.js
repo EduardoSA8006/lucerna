@@ -10,7 +10,7 @@ function run(t) {
 
     // O estado de antes, restaurado e conferido no fim de cada caso (a suíte
     // roda no mesmo processo que as seguintes).
-    const fields = ["client", "watching", "limit", "persist", "items", "total", "moduleAvailable", "error", "revision", "count", "pinned", "kind", "query", "loading"];
+    const fields = ["client", "watching", "limit", "persist", "items", "total", "moduleAvailable", "error", "revision", "count", "pinned", "kind", "query", "loading", "paging"];
     const original = {};
     for (const f of fields)
         original[f] = C[f];
@@ -172,6 +172,31 @@ function run(t) {
         C.load("all", "");
         c.receive(JSON.stringify({ jsonrpc: "2.0", id: last(c, "clipboard.list").id, error: { code: -32602, message: "x" } }));
         t.eq([shown(), C.loading], [[9, 8], false]);
+    });
+
+    withClient("clipboard: a rolagem não repete o pedido de mais", c => {
+        C.items = texts([9, 8, 7]);
+        C.total = 10;
+        c.pending = {};
+        C.more();
+        C.more();
+        C.more();
+        t.eq(idsOf(c, "clipboard.list").length, 1, "um pedido só enquanto a página não chega");
+        const page = last(c, "clipboard.list");
+        c.receive(ok(page.id, { items: texts([6, 5]), total: 10 }));
+        C.more();
+        t.eq(last(c, "clipboard.list").params, { offset: 5, limit: C.pageSize }, "chegou: pode pedir a seguinte");
+        // Erro também libera.
+        const failing = last(c, "clipboard.list");
+        c.receive(JSON.stringify({ jsonrpc: "2.0", id: failing.id, error: { code: -32602, message: "x" } }));
+        C.more();
+        t.check(last(c, "clipboard.list").id > failing.id, "o erro libera o pedido");
+        // Uma troca de página e a queda da conexão também.
+        C.load("all", "");
+        t.check(!C.paging, "a troca zera");
+        C.more();
+        C.connectionChanged(false);
+        t.check(!C.paging, "a queda zera");
     });
 
     withClient("clipboard: a revisão pelo sinal real repagina", c => {

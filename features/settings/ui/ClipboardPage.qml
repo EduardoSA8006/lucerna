@@ -15,7 +15,7 @@ Column {
         SettingRow {
             icon: "content_paste"
             title: "Guardar o que for copiado"
-            description: ClipboardSettings.available ? "Textos e imagens, num painel próprio (Super+V). Senhas marcadas pelos gerenciadores ficam de fora" : "Precisa do wl-clipboard (wl-paste e wl-copy)"
+            description: ClipboardSettings.available ? "Textos, imagens e arquivos, num painel próprio (Super+V). Senhas marcadas pelos gerenciadores ficam de fora" : ClipboardSettings.unavailableText
             dimmed: !ClipboardSettings.available
 
             Switch {

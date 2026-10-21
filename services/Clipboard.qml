@@ -47,6 +47,8 @@ Singleton {
     // Uma troca em voo; as páginas dela juntam em `buffer` até a última.
     property bool loading: false
     property var buffer: []
+    // Uma página de somar (more) em voo: a rolagem não pede outra até ela chegar.
+    property bool paging: false
 
     // A sessão Wayland que o shell vê: o daemon usa a dele, se tiver.
     readonly property string display: Quickshell.env("WAYLAND_DISPLAY") ?? ""
@@ -100,11 +102,13 @@ Singleton {
         fetch(0, pageSize, false);
     }
 
-    // Mais uma página no fim da lista; nada com uma troca em voo (ela vence)
-    // ou com a lista toda.
+    // Mais uma página no fim da lista; nada com uma troca ou outra página em
+    // voo (a troca vence) ou com a lista toda.
     function more(): void {
-        if (!loading && items.length < total)
-            fetch(items.length, pageSize, true);
+        if (loading || paging || items.length >= total)
+            return;
+        paging = true;
+        fetch(items.length, pageSize, true);
     }
 
     // Uma troca (append falso) ganha token novo e põe a lista em espera; somar
@@ -113,6 +117,7 @@ Singleton {
         if (!append) {
             token++;
             loading = true;
+            paging = false;
             buffer = [];
         }
         request(token, offset, limit, append);
@@ -138,6 +143,8 @@ Singleton {
         if (t !== token)
             return;
         const result = response?.result;
+        if (append)
+            paging = false;
         if (!result || response.error) {
             if (!append) {
                 loading = false;
@@ -205,6 +212,7 @@ Singleton {
             revision = -1;
             token++;
             loading = false;
+            paging = false;
             buffer = [];
         }
         configure();

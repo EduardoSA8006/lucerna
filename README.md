@@ -101,7 +101,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | **Central** | Dois painéis flutuantes na direita, independentes (`Super+A`, `Super+N`, os dois com `Super+C`, ou pelos ícones da barra): ações e notificações. As ações são tiles em duas colunas (Wi-Fi, Bluetooth, saída de áudio, bateria, microfone, luz noturna, não perturbe e não apagar a tela; cheios quando ligados), com uma página por recurso: a lista de redes, com senha; os dispositivos Bluetooth, para parear; as saídas e o volume de cada app com áudio aberto; o microfone e as entradas; a bateria (um card em forma de bateria, cheio até a carga), o perfil de energia (Economia, Equilibrado e Turbo), o consumo da última hora num gráfico e a bateria dos dispositivos Bluetooth. Embaixo, os sliders largos de volume e de brilho da tela em foco, com a porcentagem; a engrenagem abre as configurações. |
 | **Notificações** | Popups com ações, pausa no mouse e prazo ajustável, não perturbe e a lista na central. |
 | **Launcher** | Três estilos: compacto (busca e lista), completo (categorias de aplicativos, arquivos, documentos, imagens, músicas, vídeos e web, com favoritos, grade e detalhes: ações do app, descrição, versão e desenvolvedor) e tela cheia (gaveta de apps por categoria). Os apps mais abertos vêm primeiro, com os favoritos na frente. Em todos os estilos: clique direito num item para as opções, `Ctrl+F` fixa ou tira dos favoritos e `Ctrl+H` oculta; no compacto e na tela cheia, `/texto` busca arquivos e `?texto` pesquisa na web. A busca de arquivos usa o `fd` quando há, e, sem busca, mostra os recentes. |
-| **Área de transferência** | Histórico num painel próprio (`Super+V`): textos e imagens, busca, filtro, fixar e apagar. Escolher copia e cola na janela em foco (Ctrl+Shift+V nos terminais). Senhas marcadas pelos gerenciadores ficam de fora. |
+| **Área de transferência** | Histórico num painel próprio (`Super+V`), pelo `lucernad`: textos, imagens (com miniatura) e arquivos, busca com o trecho em negrito, filtro, fixar e apagar. Escolher copia e cola na janela em foco (Ctrl+Shift+V nos terminais). Senhas marcadas pelos gerenciadores ficam de fora. |
 | **Visão geral** | Os workspaces em miniatura (`Super+Tab`), com as janelas no lugar e a imagem de cada uma (também dos workspaces escondidos). Clicar vai para o workspace ou a janela, arrastar uma janela a leva para outro workspace e o botão do meio a fecha. Setas e Enter, ou 1–9. |
 | **Captura de tela** | Painel próprio (`Print`): foto ou vídeo, de uma área (arrastando, com alças), de uma janela (clicando) ou da tela, com espera, cursor e som. A foto vai para a pasta e para a área de transferência, com um aviso que abre o arquivo ou a pasta; a gravação (pela GPU quando dá) mostra o tempo na barra e para ao clicar. Também tela inteira (`Shift+Print`) e janela ativa (`Ctrl+Print`) direto. |
 | **Tela de bloqueio** | Relógio e senha (PAM). |
@@ -138,7 +138,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 
 - **Hyprland 0.56+**, com a configuração em Lua (`hyprland.lua`)
 - **Quickshell 0.3.1+**
-- **lucernad** (o daemon do Lucerna): CPU, memória, rede, discos, temperatura e GPU da aba Desempenho e do card de recursos, e o espectro do som do player em volta da capa (pelo PipeWire); sem ele, aparecem como indisponíveis e o anel fica parado. Instalação no [README do lucernad](https://github.com/lucerna-desktop/lucernad#instalação).
+- **lucernad** (o daemon do Lucerna): CPU, memória, rede, discos, temperatura e GPU da aba Desempenho e do card de recursos, o espectro do som do player em volta da capa (pelo PipeWire) e o histórico da área de transferência (pelo protocolo de controle de dados do Wayland); sem ele, aparecem como indisponíveis, o anel fica parado e o histórico fica desligado. Instalação no [README do lucernad](https://github.com/lucerna-desktop/lucernad#instalação).
 - **Fonte de ícones**: `ttf-material-symbols-variable` (repositório oficial do Arch)
 - Opcionais, cada um liga uma parte:
   - PipeWire: volume e mídia
@@ -148,7 +148,6 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
   - `brightnessctl`: brilho da tela integrada
   - `ddcutil`: brilho dos monitores externos (DDC/CI). Precisa do módulo `i2c-dev` carregado (`echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf`); o pacote já dá acesso ao usuário da sessão.
   - `hyprsunset`: luz noturna
-  - `wl-clipboard`: histórico da área de transferência
   - `grim` e `wf-recorder`: captura de tela e gravação
   - `fd`: busca de arquivos do launcher mais rápida (sem ele, usa o `find`)
   - `ffmpeg` e `qt6-multimedia-ffmpeg`: papel de parede em vídeo ou GIF. Para a GPU decodificar o vídeo, também o driver VA-API (`intel-media-driver` na Intel, `libva-mesa-driver` na AMD) e o `libva-utils`, que o shell usa para detectar o suporte.
