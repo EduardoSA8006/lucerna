@@ -255,6 +255,18 @@ function run(t) {
         t.eq(shown(), [], "cair de novo não muda nada");
     });
 
+    withClient("clipboard: o motivo de a cópia não ir olha o error, não o available", c => {
+        t.eq(C.problem(false, ""), "sem conexão com o lucernad");
+        t.eq(C.problem(true, "O compositor não respondeu em 2 s."), "O compositor não respondeu em 2 s.");
+        // Sem assinante: available falso, error nulo, e a cópia vai.
+        c.received("clipboard.status", JSON.parse(JSON.stringify({ available: false, error: null })));
+        t.eq([C.available, C.copyProblem], [false, ""]);
+        c.received("clipboard.status", JSON.parse(JSON.stringify({ available: false, error: "Sem WAYLAND_DISPLAY: o lucernad não sabe qual sessão observar." })));
+        t.eq(C.copyProblem, "Sem WAYLAND_DISPLAY: o lucernad não sabe qual sessão observar.");
+        c.lost();
+        t.eq(C.copyProblem, "sem conexão com o lucernad");
+    });
+
     withClient("clipboard: os métodos saem com os parâmetros", c => {
         c.pending = {};
         C.copy(7);

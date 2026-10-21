@@ -26,6 +26,10 @@ Singleton {
     property bool moduleAvailable: false
     property string error: ""
     readonly property bool available: client.connected && moduleAvailable
+    // Por que uma cópia (o copyImage da captura) não iria agora; vazio se iria.
+    // Olha o `error`, não o `available`: sem assinante, o daemon fica com
+    // `available` falso e `error` nulo, e a cópia funciona.
+    readonly property string copyProblem: problem(client.connected, error)
 
     // O clipboard.history: a revisão muda a cada mudança do histórico.
     property int revision: -1
@@ -194,6 +198,12 @@ Singleton {
             return;
         revision = next;
         fetch(0, Math.max(pageSize, items.length), false);
+    }
+
+    function problem(connected: bool, error: string): string {
+        if (!connected)
+            return "sem conexão com o lucernad";
+        return error;
     }
 
     function applyStatus(data: var): void {

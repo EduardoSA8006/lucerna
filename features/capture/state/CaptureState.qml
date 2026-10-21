@@ -185,9 +185,17 @@ Singleton {
                 Capture.notify("", "A captura falhou", "O grim não conseguiu capturar a tela", "", []);
                 return;
             }
-            if (Config.captureCopy)
+            // Sem o lucernad (ou com o módulo dele com erro), a cópia não
+            // vai: o aviso diz por quê em vez de prometer a área de transferência.
+            const problem = Clipboard.copyProblem;
+            let body = path.split("/").pop();
+            if (Config.captureCopy && !problem) {
                 Capture.copyImage(path);
-            Capture.notify(path, "Captura de tela salva", Config.captureCopy ? "Também está na área de transferência" : path.split("/").pop(), path, [
+                body = "Também está na área de transferência";
+            } else if (Config.captureCopy) {
+                body = `Não foi para a área de transferência: ${problem}`;
+            }
+            Capture.notify(path, "Captura de tela salva", body, path, [
                 { id: "open", label: "Abrir" },
                 { id: "folder", label: "Mostrar na pasta" }
             ]);
