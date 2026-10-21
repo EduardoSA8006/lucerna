@@ -25,11 +25,10 @@ Singleton {
     // daemon de pé (sem Wayland, o compositor sem o protocolo).
     property bool moduleAvailable: false
     property string error: ""
-    readonly property bool available: client.connected && moduleAvailable
-    // Por que uma cópia (o copyImage da captura) não iria agora; vazio se iria.
-    // Olha o `error`, não o `available`: sem assinante, o daemon fica com
-    // `available` falso e `error` nulo, e a cópia funciona.
-    readonly property string copyProblem: problem(client.connected, error)
+    // Disponível é conectado e sem `error`: com o histórico desligado (sem
+    // assinante), o daemon fica com `available` falso e `error` nulo enquanto
+    // não tenta a sessão, e o painel, as configurações e a cópia funcionam.
+    readonly property bool available: client.connected && error === ""
 
     // O clipboard.history: a revisão muda a cada mudança do histórico.
     property int revision: -1
@@ -200,12 +199,6 @@ Singleton {
         fetch(0, Math.max(pageSize, items.length), false);
     }
 
-    function problem(connected: bool, error: string): string {
-        if (!connected)
-            return "sem conexão com o lucernad";
-        return error;
-    }
-
     function applyStatus(data: var): void {
         moduleAvailable = data.available === true;
         error = data.error ? String(data.error) : "";
@@ -256,13 +249,51 @@ Singleton {
         }, null);
     }
 
+    // A resposta do copyImage chega aqui: `error` vazio se a imagem foi para a
+    // área de transferência; senão, o motivo.
+    signal imageCopied(string path, string error)
+    // Sem resposta nesse prazo, o copyImage é dado como falho.
+    property int copyTimeout: 3000
+
+    // O motivo de um copyImage não ter ido, pela resposta (vazio se foi).
+    function copyResult(response: var): string {
+        if (!response)
+            return "o lucernad não respondeu.";
+        if (response.error)
+            return String(response.error.message ?? "erro desconhecido.");
+        return "";
+    }
+
     // Uma imagem do disco na área de transferência (a captura de tela); com o
-    // histórico desligado, ela não entra nele.
+    // histórico desligado, ela não entra nele. O resultado sai uma vez só, em
+    // `imageCopied`: pela resposta ou pelo prazo, o que vier primeiro.
     function copyImage(path: string): void {
+        let settled = false;
+        const deadline = deadlineTimer.createObject(root, {
+            interval: copyTimeout
+        }) as Timer;
+        const finish = text => {
+            if (settled)
+                return;
+            settled = true;
+            deadline.stop();
+            deadline.destroy();
+            root.imageCopied(path, text);
+        };
+        deadline.triggered.connect(() => finish(`o lucernad não respondeu em ${Math.round(copyTimeout / 1000)} s.`));
+        deadline.start();
         client.call("clipboard.copyImage", {
             path: path,
             store: watching
-        }, null);
+        }, response => finish(copyResult(response)));
+    }
+
+    Component {
+        id: deadlineTimer
+
+        Timer {
+            repeat: false
+        }
     }
 
     onWatchingChanged: sync()

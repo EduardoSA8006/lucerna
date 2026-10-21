@@ -78,6 +78,7 @@ function run(t) {
         t.eq(S.marked("a<b>c", [[1, 4]]), "a<b>&lt;b&gt;</b>c", "o escape vale dentro do marcado");
         t.eq(S.marked("abcd", [[2, 3], [0, 1]]), "<b>a</b>b<b>c</b>d", "fora de ordem");
         t.eq(S.marked("abcd", undefined), "abcd", "sem matches");
+        t.eq(S.marked("abcd", [[-2, 1]]), "<b>a</b>bcd", "início negativo vira 0, sem repetir texto");
     });
 
     scenario("clipboardstate: o trecho marcado pelo modelData", c => {
@@ -107,6 +108,7 @@ function run(t) {
         t.check(S.detail(Object.assign({ kind: "text", size: 12, lines: 2 }, base)).endsWith("12 caracteres · 2 linhas"));
         t.check(S.detail(Object.assign({ kind: "text", size: 12, lines: 1 }, base)).endsWith("12 caracteres"));
         t.check(S.detail(Object.assign({ kind: "image", width: 10, height: 5 }, base)).endsWith("10×5"));
+        t.check(!S.detail(Object.assign({ kind: "image" }, base)).includes("×"), "sem dimensões, sem o 10×5");
         t.check(S.detail(Object.assign({ kind: "files", uris: ["a", "b"] }, base)).endsWith("2 arquivos"));
         t.check(S.detail(Object.assign({ kind: "files", uris: ["a"] }, base)).endsWith("1 arquivo"));
         t.check(S.detail(Object.assign({ kind: "files", uris: ["a"], urisTotal: 80 }, base)).endsWith("80 arquivos"), "o total do daemon");
@@ -175,6 +177,28 @@ function run(t) {
         t.eq([S.query, S.filter, S.selected], ["", "all", 0]);
         t.check(!S.reload.running, "a abertura não deixa o timer da busca");
         t.eq(lastList(c).params, { offset: 0, limit: C.pageSize });
+    });
+
+    scenario("clipboardstate: com o histórico desligado, abrir não pede página", c => {
+        const before = t.Config.clipboardEnabled;
+        try {
+            t.Config.clipboardEnabled = false;
+            c.pending = {};
+            S.opened();
+            t.eq(lastList(c), null);
+        } finally {
+            t.Config.clipboardEnabled = before;
+        }
+    });
+
+    scenario("clipboardstate: desligado vem antes de indisponível", c => {
+        t.eq([S.emptyState(false, false), S.emptyState(false, true), S.emptyState(true, false), S.emptyState(true, true)], ["off", "off", "unavailable", "empty"]);
+        // O daemon com o histórico desligado (sem assinante): available falso,
+        // error nulo. O shell trata como disponível.
+        c.received("clipboard.status", JSON.parse(JSON.stringify({ available: false, error: null })));
+        t.eq([C.available, S.available, S.emptyState(false, S.available)], [true, true, "off"]);
+        c.received("clipboard.status", JSON.parse(JSON.stringify({ available: false, error: "O compositor não respondeu em 2 s." })));
+        t.eq([S.available, S.emptyState(true, S.available), S.emptyState(false, S.available)], [false, "unavailable", "off"]);
     });
 
     scenario("clipboardstate: os contadores e as ações vão ao Clipboard", c => {

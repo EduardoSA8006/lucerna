@@ -47,6 +47,16 @@ Singleton {
             return "Indisponível: sem conexão com o lucernad.";
         return Clipboard.error ? `Indisponível: ${Clipboard.error}` : "Indisponível.";
     }
+    // O que a lista vazia mostra: "off" (o histórico desligado; vem antes,
+    // para o motivo não esconder o caminho de religar), "unavailable" ou
+    // "empty".
+    readonly property string emptyKind: emptyState(enabled, available)
+
+    function emptyState(enabled: bool, available: bool): string {
+        if (!enabled)
+            return "off";
+        return available ? "empty" : "unavailable";
+    }
 
     onItemsChanged: selected = Math.max(0, Math.min(selected, items.length - 1))
     onQueryChanged: {
@@ -70,7 +80,8 @@ Singleton {
         selected = 0;
         now = new Date();
         reloadTimer.stop();
-        Clipboard.load("all", "");
+        if (enabled)
+            Clipboard.load("all", "");
     }
 
     // Digitar ou trocar o filtro espera um instante antes de pedir.
@@ -102,7 +113,7 @@ Singleton {
 
     function detail(entry: var): string {
         if (entry.kind === "image")
-            return `${since(entry)} · ${entry.width}×${entry.height}`;
+            return entry.width && entry.height ? `${since(entry)} · ${entry.width}×${entry.height}` : since(entry);
         if (entry.kind === "files") {
             const n = Number(entry.urisTotal ?? entry.uris?.length ?? 0);
             return `${since(entry)} · ${n} ${n === 1 ? "arquivo" : "arquivos"}`;
@@ -116,7 +127,7 @@ Singleton {
     // que cai fora do texto é ignorado.
     function marked(text: string, matches: var): string {
         const escape = piece => piece.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const ranges = Array.from(matches ?? []).map(pair => Array.from(pair)).map(([from, to]) => [from, Math.min(to, text.length)]).filter(([from, to]) => from < to).sort((a, b) => a[0] - b[0]);
+        const ranges = Array.from(matches ?? []).map(pair => Array.from(pair)).map(([from, to]) => [Math.max(0, from), Math.min(to, text.length)]).filter(([from, to]) => from < to).sort((a, b) => a[0] - b[0]);
         let out = "";
         let at = 0;
         for (const [from, to] of ranges) {

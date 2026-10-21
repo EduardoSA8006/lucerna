@@ -153,7 +153,7 @@ OverlayPanel {
             EmptyState {
                 anchors.centerIn: parent
                 width: parent.width - 60
-                visible: ClipboardState.items.length === 0 && !ClipboardState.available
+                visible: ClipboardState.items.length === 0 && ClipboardState.emptyKind === "unavailable"
                 icon: "content_paste_off"
                 text: ClipboardState.unavailableText
             }
@@ -161,7 +161,7 @@ OverlayPanel {
             Column {
                 anchors.centerIn: parent
                 width: parent.width - 60
-                visible: ClipboardState.items.length === 0 && ClipboardState.available
+                visible: ClipboardState.items.length === 0 && ClipboardState.emptyKind !== "unavailable"
                 spacing: ThemeManager.spacing.small
 
                 Icon {

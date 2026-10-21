@@ -255,16 +255,41 @@ function run(t) {
         t.eq(shown(), [], "cair de novo não muda nada");
     });
 
-    withClient("clipboard: o motivo de a cópia não ir olha o error, não o available", c => {
-        t.eq(C.problem(false, ""), "sem conexão com o lucernad");
-        t.eq(C.problem(true, "O compositor não respondeu em 2 s."), "O compositor não respondeu em 2 s.");
-        // Sem assinante: available falso, error nulo, e a cópia vai.
+    withClient("clipboard: disponível é conectado e sem error", c => {
+        // Sem assinante: available falso e error nulo no daemon; o shell usa.
         c.received("clipboard.status", JSON.parse(JSON.stringify({ available: false, error: null })));
-        t.eq([C.available, C.copyProblem], [false, ""]);
+        t.eq([C.moduleAvailable, C.available], [false, true]);
         c.received("clipboard.status", JSON.parse(JSON.stringify({ available: false, error: "Sem WAYLAND_DISPLAY: o lucernad não sabe qual sessão observar." })));
-        t.eq(C.copyProblem, "Sem WAYLAND_DISPLAY: o lucernad não sabe qual sessão observar.");
+        t.check(!C.available, "com error, indisponível");
+        c.received("clipboard.status", JSON.parse(JSON.stringify({ available: true, error: null })));
         c.lost();
-        t.eq(C.copyProblem, "sem conexão com o lucernad");
+        t.check(!C.available, "sem conexão, indisponível");
+    });
+
+    withClient("clipboard: o resultado do copyImage sai pela resposta", c => {
+        const got = [];
+        const record = (path, error) => got.push([path, error]);
+        C.imageCopied.connect(record);
+        try {
+            c.pending = {};
+            C.copyImage("/tmp/a.png");
+            C.copyImage("/tmp/b.png");
+            t.eq(got, [], "nada antes da resposta");
+            const [a, b] = ids(c);
+            c.receive(ok(a, { id: 0 }));
+            c.receive(JSON.stringify({ jsonrpc: "2.0", id: b, error: { code: 1002, message: "Não consegui ler a imagem: /tmp/b.png não é uma imagem." } }));
+            t.eq(got, [["/tmp/a.png", ""], ["/tmp/b.png", "Não consegui ler a imagem: /tmp/b.png não é uma imagem."]]);
+            c.receive(ok(a, { id: 0 }));
+            t.eq(got.length, 2, "uma resposta repetida não avisa de novo");
+            C.copyImage("/tmp/c.png");
+            c.lost();
+            t.eq(got[2], ["/tmp/c.png", "Sem conexão com o teste."], "a queda falha o pedido em voo");
+            C.copyImage("/tmp/d.png");
+            t.eq(got[3], ["/tmp/d.png", "Sem conexão com o teste."], "sem conexão, falha na hora");
+            t.eq([C.copyResult(null), C.copyResult({ result: { id: 3 } }), C.copyResult({ error: {} })], ["o lucernad não respondeu.", "", "erro desconhecido."]);
+        } finally {
+            C.imageCopied.disconnect(record);
+        }
     });
 
     withClient("clipboard: os métodos saem com os parâmetros", c => {
@@ -285,6 +310,9 @@ function run(t) {
             ["clipboard.copyImage", { path: "/tmp/a.png", store: false }],
             ["clipboard.copyImage", { path: "/tmp/b.png", store: true }]
         ], "com o histórico desligado, a imagem não é guardada");
+        // Respondidos, os copyImage não deixam o prazo correndo depois do caso.
+        for (const id of ids(c).filter(id => c.pending[id].method === "clipboard.copyImage"))
+            c.receive(ok(id, { id: 0 }));
     });
 
     withClient("clipboard: null e tópico desconhecido não mudam nada", c => {

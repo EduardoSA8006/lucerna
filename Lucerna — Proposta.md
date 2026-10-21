@@ -64,7 +64,7 @@ O Lucerna cresce por módulos, começando pelo essencial.
 | Luz noturna | Temperatura de cor por horário: do pôr ao nascer do sol (calculado localmente, pela cidade do clima), fixo ou sempre, com rampa de 30 min e "até a próxima virada" pelos tiles da central. Aplicada pelo `hyprsunset` (CTM do Hyprland) |
 | Papel de parede | Por tema: o próprio (imagem e efeito animado em shader), só a imagem, qualquer um dos dez efeitos (nas cores do tema), uma imagem ou um vídeo/GIF do usuário. Vídeos convertidos uma vez por tela para tocar pela GPU. 30 ou 60 fps, no ritmo da tela; pausa com tela cheia, bloqueio e tela apagada |
 | Notificações | Servidor de notificações próprio; popups e a lista na central |
-| Área de transferência | Histórico próprio (texto e imagem, pelo `wl-paste --watch`), num painel à parte: busca, filtro, fixar, apagar, colar direto; persistente e limitado. Ignora senhas marcadas pelos gerenciadores |
+| Área de transferência | Histórico próprio (texto, imagem e arquivos, pelo módulo `clipboard` do `lucernad`), num painel à parte: busca, filtro, fixar, apagar, colar direto; persistente e limitado. Ignora senhas marcadas pelos gerenciadores |
 | Visão geral | Workspaces em miniatura com as janelas no lugar (`ScreencopyView`, capturadas ao abrir, não ao vivo), ir, mover arrastando e fechar |
 | Captura de tela | Seleção própria (área com alças, janela, tela), sem `slurp`; foto pelo `grim` e vídeo pelo `wf-recorder` (VA-API quando há), com espera, cursor e som. Aviso com abrir e mostrar na pasta; tempo de gravação na barra |
 | Tela de bloqueio | Bloqueio próprio, no visual do tema ativo |
@@ -126,7 +126,7 @@ lucerna-shell/
 │   ├── Media.qml               # players MPRIS
 │   ├── Lyrics.qml              # letras sincronizadas (LRCLIB)
 │   ├── Weather.qml             # previsão (Open-Meteo)
-│   ├── Clipboard.qml           # histórico da área de transferência (wl-clipboard)
+│   ├── Clipboard.qml           # adaptador do módulo clipboard do lucernad
 │   ├── Capture.qml             # captura (grim), gravação (wf-recorder) e janelas visíveis
 │   ├── NightLight.qml          # temperatura de cor pelo hyprsunset
 │   ├── Monitors.qml            # monitores e arranjos (hl.monitor)

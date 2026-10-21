@@ -71,6 +71,21 @@ Sobras do módulo de espectro (baixo risco, adiadas na revisão final):
   - o `Spectrum.available` não tem consumidor fora dos testes;
   - o `applyBands` não confere se as bandas são números.
 
+Sobras do módulo da área de transferência (baixo risco, adiadas na revisão final):
+
+- [ ] **Apagar de verdade (`lucernad-clipboard/src/store.rs`):**
+  - o `secure_delete` (e o `secure-delete` do FTS) só protege dali em diante: o que foi apagado antes de ligá-lo fica nas páginas livres do banco até um `VACUUM`;
+  - o corte pelo limite (`evict`) não passa pelo `forget`, então as páginas apagadas ficam no `-wal` até o checkpoint automático;
+  - um `forget` que falha depois do `delete` devolve erro sem publicar a revisão nova.
+- [ ] **Item que some entre o `locate` e a leitura** (apagado no meio de um `copy`/`get`): sai como erro interno, não como o `1001` "O item <id> não existe mais.".
+- [ ] **`lucernad copiar` como primeiro cliente** (sem o shell nem outro assinante) cria um `history.db` vazio antes de achar o item.
+- [ ] **`O_NONBLOCK` no fd de quem cola:** a escrita da seleção põe o fd em não bloqueante, e isso fica na descrição de arquivo do outro app; o caminho `WouldBlock`/`POLLOUT` do envio não tem teste.
+- [ ] **Miniatura reduzida e girada** (EXIF com rotação numa imagem grande): sem teste.
+- [x] **Marcas de direção no `historico`** (U+202E, U+2066–2069): trocadas por U+FFFD na saída, como os caracteres de controle (resolvido na revisão final).
+- [ ] **Shell:**
+  - falta um teste da ordem do `Component.onCompleted` do `Clipboard` (configurar antes de assinar) com o cliente já conectado;
+  - o `onAtYEndChanged` do painel não dispara de novo quando a página somada cabe inteira na tela (a lista não chega a rolar): o "mais" seguinte só vem pelas setas.
+
 ## Depois
 
 - [ ] Aba Desempenho: um medidor de bateria em forma de pilha, só no notebook. Rascunhos de três encaixes (ao lado de CPU e GPU, em pé ao lado da Memória, faixa embaixo) em `.superpowers/brainstorm/436361-1792526405/content/bateria-desempenho.html`; o usuário quer planejar melhor antes.

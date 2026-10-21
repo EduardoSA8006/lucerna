@@ -14,7 +14,7 @@ hl.on("hyprland.start", function()
     -- aninhado (wayland-<número>): o container recebe o socket do compositor do
     -- host como wayland-host, e um lucernad nele observaria (e tomaria) a área
     -- de transferência de verdade do usuário.
-    hl.exec_cmd([[sh -c 'case "$WAYLAND_DISPLAY" in wayland-[0-9]*) exec env LUCERNA_IDLE_TIMEOUT_MS=86400000 lucernad serve ;; esac']])
+    hl.exec_cmd([[sh -c 'case "$WAYLAND_DISPLAY" in wayland-[0-9]*) exec env LUCERNA_IDLE_TIMEOUT_MS=86400000 lucernad serve ;; *) echo "hyprland.lua: o lucernad não sobe: WAYLAND_DISPLAY=$WAYLAND_DISPLAY não é o do Hyprland aninhado (wayland-<número>)" >&2 ;; esac']])
     hl.exec_cmd("qs -c lucerna")
 end)
 
