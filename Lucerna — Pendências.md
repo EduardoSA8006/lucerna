@@ -48,6 +48,29 @@ Sobras do módulo de sistema:
 - [ ] **Pacote do `lucernad`:** um PKGBUILD no repositório do `lucernad`. Hoje ele é instalado à mão pelos comandos do README e precisa ser recompilado e reinstalado a cada merge.
 - [ ] **Uso da Intel na primeira amostra:** o fdinfo precisa de duas leituras, então ao abrir a aba Desempenho o uso da Intel fica "—" por ~2 s. Dá para tirar uma leitura curta extra no primeiro ciclo.
 
+Sobras do módulo de espectro (baixo risco, adiadas na revisão final):
+
+- [ ] **Captura, por dentro (`lucernad-spectrum/src/pipewire.rs`):**
+  - quando um client sai, o grafo não é reenviado;
+  - um nó novo só é ligado no próximo tique (até 100 ms);
+  - um alvo que o WirePlumber recusa sempre é recriado a cada ~600 ms, sem log nem teto;
+  - a sessão não espera a thread do PipeWire terminar;
+  - a sonda que liga a captura logo que o nó aparece não confere o link player → sink.
+- [ ] **Threads presas por sessão:** com o `/proc` travado para sempre, cada ciclo de assinatura deixa uma thread de casamento presa. O limite de um casamento em voo vale por sessão, não para o processo todo.
+- [ ] **Casamento:**
+  - o `/proc` é lido em duas vezes (`stat` e `exe`), então um PID reciclado no meio pode misturar processos;
+  - um prazo do D-Bus estourado não refaz a conexão;
+  - com `LUCERNA_TEST_HOST_BUS`, o PID do host é procurado no `/proc` do container.
+- [ ] **Análise:**
+  - se dois nós do mesmo player vierem com taxas diferentes, o analisador é recriado a cada amostra e o anel quase para;
+  - com o player pausado e os nós ainda casados, as FFTs seguem rodando sem publicar;
+  - a `magnitudes_db` cria o planejador da FFT a cada chamada.
+- [ ] **"Capturando" depois de recarregar o shell:** o `spectrum.status` fica `capturing: true` por alguns segundos depois de um reload do Quickshell. A causa provável é o socket da geração antiga do shell ainda aberto; conferir com `ss -x` logo após um reload.
+- [ ] **Shell:**
+  - falta um teste do `spectrum.configure` com um player de verdade (os testes só cobrem `null`) e do `onPlayerChanged`;
+  - o `Spectrum.available` não tem consumidor fora dos testes;
+  - o `applyBands` não confere se as bandas são números.
+
 ## Depois
 
 - [ ] Aba Desempenho: um medidor de bateria em forma de pilha, só no notebook. Rascunhos de três encaixes (ao lado de CPU e GPU, em pé ao lado da Memória, faixa embaixo) em `.superpowers/brainstorm/436361-1792526405/content/bateria-desempenho.html`; o usuário quer planejar melhor antes.
