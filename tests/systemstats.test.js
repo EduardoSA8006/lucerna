@@ -143,19 +143,19 @@ function run(t) {
         };
         try {
             S.sync();
-            t.eq(S.client.wanted, S.wantedTopics(S.active, S.gpuEnabled));
+            t.eq(S.client.owners.system, S.wantedTopics(S.active, S.gpuEnabled));
 
             S.gpuEnabled = true;
             S.active = false;
-            t.eq(S.client.wanted, ["system.info", "system.status"], "aba fechada: só a máquina e o estado");
+            t.eq(S.client.owners.system, ["system.info", "system.status"], "aba fechada: só a máquina e o estado");
             S.active = true;
-            t.eq(S.client.wanted, ["system.info", "system.status", "system.stats", "system.disks", "system.gpus"], "aba à mostra: as medidas e as GPUs");
+            t.eq(S.client.owners.system, ["system.info", "system.status", "system.stats", "system.disks", "system.gpus"], "aba à mostra: as medidas e as GPUs");
 
             S.apply("system.gpus", gpus);
             t.eq(S.gpus.length, 1);
             S.gpuEnabled = false;
             t.eq(S.gpus, [], "GPU desligada: a lista zera");
-            t.eq(S.client.wanted, ["system.info", "system.status", "system.stats", "system.disks"], "GPU desligada: sem system.gpus");
+            t.eq(S.client.owners.system, ["system.info", "system.status", "system.stats", "system.disks"], "GPU desligada: sem system.gpus");
             S.apply("system.gpus", gpus);
             t.eq(S.gpus, [], "um system.gpus a caminho não repovoa");
 
@@ -166,7 +166,7 @@ function run(t) {
             S.active = before.active;
             S.gpuEnabled = before.gpuEnabled;
         }
-        t.eq(S.client.wanted, S.wantedTopics(before.active, before.gpuEnabled), "tópicos de volta");
+        t.eq(S.client.owners.system, S.wantedTopics(before.active, before.gpuEnabled), "tópicos de volta");
     });
 
     t.test("systemstats: a conexão que cai esquece o estado do módulo", () => {
@@ -182,7 +182,7 @@ function run(t) {
         });
         S.connectionChanged(false);
         t.eq(S.moduleAvailable, false, "ao reconectar, só vale o system.status novo");
-        t.eq(S.client.wanted, S.wantedTopics(S.active, S.gpuEnabled), "e os tópicos seguem pedidos");
+        t.eq(S.client.owners.system, S.wantedTopics(S.active, S.gpuEnabled), "e os tópicos seguem pedidos");
     });
 
     t.test("systemstats: o texto da máquina sem o daemon", () => {

@@ -97,7 +97,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 | Parte | O que faz |
 | --- | --- |
 | **Barra** | Workspaces, hora e data, rede, som, bateria e notificações. Tem quatro estilos e pode ficar fixa ou esconder sozinha. Na área de trabalho vazia fica sempre à mostra, e aparece por um instante ao trocar de workspace. |
-| **Painel superior** | Visão geral (perfil, relógio, calendário, clima, recursos e mídia, com a capa num círculo e o espectro do som em volta, pelo `cava`, ou ondas sem ele), mídia com letra sincronizada (LRCLIB) e o espectro em volta da capa, desempenho (CPU, GPU, memória, disco e rede) e clima (Open-Meteo). Abas reordenáveis e opção de abrir ao parar o mouse na hora. |
+| **Painel superior** | Visão geral (perfil, relógio, calendário, clima, recursos e mídia, com a capa num círculo e o espectro do som em volta, pelo `lucernad`), mídia com letra sincronizada (LRCLIB) e o espectro em volta da capa, desempenho (CPU, GPU, memória, disco e rede) e clima (Open-Meteo). Abas reordenáveis e opção de abrir ao parar o mouse na hora. |
 | **Central** | Dois painéis flutuantes na direita, independentes (`Super+A`, `Super+N`, os dois com `Super+C`, ou pelos ícones da barra): ações e notificações. As ações são tiles em duas colunas (Wi-Fi, Bluetooth, saída de áudio, bateria, microfone, luz noturna, não perturbe e não apagar a tela; cheios quando ligados), com uma página por recurso: a lista de redes, com senha; os dispositivos Bluetooth, para parear; as saídas e o volume de cada app com áudio aberto; o microfone e as entradas; a bateria (um card em forma de bateria, cheio até a carga), o perfil de energia (Economia, Equilibrado e Turbo), o consumo da última hora num gráfico e a bateria dos dispositivos Bluetooth. Embaixo, os sliders largos de volume e de brilho da tela em foco, com a porcentagem; a engrenagem abre as configurações. |
 | **Notificações** | Popups com ações, pausa no mouse e prazo ajustável, não perturbe e a lista na central. |
 | **Launcher** | Três estilos: compacto (busca e lista), completo (categorias de aplicativos, arquivos, documentos, imagens, músicas, vídeos e web, com favoritos, grade e detalhes: ações do app, descrição, versão e desenvolvedor) e tela cheia (gaveta de apps por categoria). Os apps mais abertos vêm primeiro, com os favoritos na frente. Em todos os estilos: clique direito num item para as opções, `Ctrl+F` fixa ou tira dos favoritos e `Ctrl+H` oculta; no compacto e na tela cheia, `/texto` busca arquivos e `?texto` pesquisa na web. A busca de arquivos usa o `fd` quando há, e, sem busca, mostra os recentes. |
@@ -138,7 +138,7 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 
 - **Hyprland 0.56+**, com a configuração em Lua (`hyprland.lua`)
 - **Quickshell 0.3.1+**
-- **lucernad** (o daemon do Lucerna): CPU, memória, rede, discos, temperatura e GPU da aba Desempenho e do card de recursos; sem ele, aparecem como indisponíveis. Instalação no [README do lucernad](https://github.com/lucerna-desktop/lucernad#instalação).
+- **lucernad** (o daemon do Lucerna): CPU, memória, rede, discos, temperatura e GPU da aba Desempenho e do card de recursos, e o espectro do som do player em volta da capa (pelo PipeWire); sem ele, aparecem como indisponíveis e o anel fica parado. Instalação no [README do lucernad](https://github.com/lucerna-desktop/lucernad#instalação).
 - **Fonte de ícones**: `ttf-material-symbols-variable` (repositório oficial do Arch)
 - Opcionais, cada um liga uma parte:
   - PipeWire: volume e mídia
@@ -148,7 +148,6 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
   - `brightnessctl`: brilho da tela integrada
   - `ddcutil`: brilho dos monitores externos (DDC/CI). Precisa do módulo `i2c-dev` carregado (`echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf`); o pacote já dá acesso ao usuário da sessão.
   - `hyprsunset`: luz noturna
-  - `cava`: o espectro em volta da capa, no card de mídia da aba Painel e na aba Mídia (um processo só para as duas; sem ele, ondas pelo nível do som)
   - `wl-clipboard`: histórico da área de transferência
   - `grim` e `wf-recorder`: captura de tela e gravação
   - `fd`: busca de arquivos do launcher mais rápida (sem ele, usa o `find`)

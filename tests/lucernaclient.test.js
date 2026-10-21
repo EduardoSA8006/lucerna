@@ -18,13 +18,24 @@ function run(t) {
         return ids(c).map(id => c.pending[id].method);
     }
 
-    // Um cliente com os tópicos pedidos, o socket "aberto" e o hello respondido.
+    // A resposta do hello de um app que oferece esses tópicos e fluxos.
+    function hello(topics, streams) {
+        return { protocol: "1.0", app: "teste", version: "0.1.0", topics: topics, streams: streams, methods: [] };
+    }
+
+    // Um cliente com os tópicos pedidos, o socket "aberto" e o hello respondido
+    // (o app oferece os tópicos a, b e c e o fluxo x).
     function ready(topics) {
         const c = t.lucernaClient();
         c.setTopics(topics);
         c.opened();
-        c.receive(ok(ids(c)[0], { protocol: "1.0", app: "teste", version: "0.1.0", topics: [], streams: [], methods: [] }));
+        c.receive(ok(ids(c)[0], hello(["a", "b", "c"], ["x"])));
         return c;
+    }
+
+    // Os tópicos de cada subscribe pendente, na ordem dos ids.
+    function subscribes(c) {
+        return ids(c).filter(id => c.pending[id].method === "lucerna.subscribe").map(id => c.pending[id].params.topics);
     }
 
     // Um caso com um cliente novo, destruído no fim (mesmo com exceção); com
@@ -94,7 +105,7 @@ function run(t) {
         c.received.connect((topic, data) => got.push([topic, data]));
         for (const seq of [undefined, null, "1", NaN, Infinity])
             c.store({ topic: "x", seq: seq, data: "ruim" }, false);
-        c.subscribed({ result: { states: [{ topic: "y", data: "sem seq" }] } });
+        c.subscribed({ result: { states: [{ topic: "y", data: "sem seq" }] } }, ["y"]);
         t.eq([got, c.states, c.seqs], [[], {}, {}]);
     }, []);
 
@@ -144,6 +155,61 @@ function run(t) {
         t.eq(methods(c), ["lucerna.subscribe", "lucerna.unsubscribe"]);
         t.eq(c.wanted, ["b"]);
     }, ["a"]);
+
+    withClient("lucernaclient: a união dos tópicos sem repetir", c => {
+        t.eq(c.union([["a", "b"], ["b", "c"], []]), ["a", "b", "c"]);
+        t.eq(c.union([]), []);
+    });
+
+    withClient("lucernaclient: dois donos somam os tópicos e um não larga o do outro", c => {
+        c.want("x", ["a", "b"]);
+        c.want("y", ["b", "c"]);
+        t.eq(c.wanted, ["a", "b", "c"]);
+        c.want("x", []);
+        t.eq(c.wanted, ["b", "c"]);
+
+        const r = ready([]);
+        try {
+            r.want("y", ["c"]);
+            r.want("x", ["a"]);
+            r.want("x", []);
+            const last = ids(r).map(id => r.pending[id]).pop();
+            t.eq([last.method, last.params], ["lucerna.unsubscribe", { topics: ["a"] }]);
+            t.eq(methods(r).filter(m => m === "lucerna.unsubscribe").length, 1, "o c do outro dono fica");
+        } finally {
+            r.destroy();
+        }
+    });
+
+    withClient("lucernaclient: só assina o que o hello oferece", c => {
+        t.eq(c.offeredTopics(hello(["s.a"], ["s.b"])), ["s.a", "s.b"]);
+        t.eq(c.offeredTopics({ protocol: "1.0" }), null, "hello sem as listas: nada filtrado");
+        c.want("system", ["system.info", "system.stats"]);
+        c.want("spectrum", ["spectrum.status", "spectrum.bands"]);
+        c.opened();
+        c.receive(ok(ids(c)[0], hello(["system.info", "system.status"], ["system.stats"])));
+        t.eq(subscribes(c), [["system.info", "system.stats"]], "sem o módulo spectrum, só os system.*");
+        c.want("spectrum", ["spectrum.status"]);
+        t.eq(subscribes(c).length, 1, "tópico que o app não tem não vira pedido");
+        t.eq(c.subscribable(["system.status", "x"]), ["system.status"]);
+    });
+
+    withClient("lucernaclient: reconectar assina a união dos donos, filtrada", c => {
+        c.want("system", ["a", "nao.existe"]);
+        c.want("spectrum", ["x", "b"]);
+        c.lost();
+        c.open();
+        c.opened();
+        t.eq(c.offered, null, "o hello novo é que diz o que o app oferece");
+        c.receive(ok(ids(c)[0], hello(["a", "b", "c"], ["x"])));
+        t.eq(subscribes(c), [["a", "x", "b"]]);
+    }, []);
+
+    withClient("lucernaclient: assinatura recusada não grava nada", c => {
+        c.subscribed({ error: { code: -32012, message: "tópico desconhecido" } }, ["a"]);
+        c.subscribed({ error: { code: -1, message: "Sem conexão com o teste." } }, ["a"]);
+        t.eq([c.states, c.seqs], [{}, {}]);
+    }, []);
 
     withClient("lucernaclient: chamada sem conexão responde erro na hora", c => {
         let got = null;

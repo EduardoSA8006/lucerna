@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Teste de fumaça: sobe o sway headless (o Hyprland não sobe sem GPU) e o
+# Teste de fumaça: sobe o sway headless (o Hyprland não sobe sem GPU), um
+# D-Bus de sessão, um PipeWire e um WirePlumber próprios (o som isolado, com o
+# sink nulo de ci/audio/), um mpv tocando ruído nele (o player MPRIS) e o
 # lucernad (dev/lucernad.sh, compilado no ci/setup.sh), roda o shell
 # instrumentado numa cópia do repositório (copy_repo, do ci/lib.sh), abre cada
 # painel por IPC, confere o `panels get`, tira uma captura de cada estado e
@@ -7,30 +9,39 @@
 # com ele, o shell precisa conectar ("lucerna: conectado ao lucernad" no log em
 # 10 s); depois do último passo, ele é parado ("lucernad fora"), o shell precisa
 # notar ("lucerna: sem conexão com o lucernad" em 10 s) e as abas Desempenho e
-# Painel são abertas e capturadas de novo, com o "indisponível". A unidade roda de novo
+# Painel são abertas e capturadas de novo, com o "indisponível". Antes disso, a
+# fase "espectro": com a aba Mídia aberta, o lucernad precisa capturar o mpv,
+# as bandas precisam mexer, e com o painel fechado o fluxo de captura some.
+# O som nunca alcança um alto-falante: o PipeWire da fumaça é próprio, sem os
+# monitores de hardware, e o mpv toca só no sink nulo. A unidade roda de novo
 # numa cópia separada (unit_suites e unit_run, do ci/lib.sh), e a cobertura de
 # todas as funções (unidade + fumaça) sai junto, sem bloquear.
 #
 # Reprova com: função fora do padrão na instrumentação --all (arquivo:linha),
-# sway, lucernad ou shell que não sobe (sem "Configuration Loaded" no log),
-# shell que não conecta ao lucernad ou não nota a saída dele, `ipc call`
+# sway, D-Bus, som isolado (sem o sink nulo em 10 s), mpv (sem o nome MPRIS em
+# 10 s), lucernad ou shell que não sobe (sem "Configuration Loaded" no log),
+# shell que não conecta ao lucernad ou não nota a saída dele, o lucernad que não
+# captura o mpv com a aba Mídia aberta (10 s), bandas paradas (nenhum quadro
+# com valor acima de 0,05 em 5 s), fluxo de captura que sobra com o painel
+# fechado (5 s), `ipc call`
 # com código diferente de 0, `panels get` diferente do esperado, painel que não
 # fecha, shell que cai (inclusive no repouso de 5 s depois do último passo),
 # shell que não encerra limpo com `qs kill` (código 0 em 10 s), aviso ou erro
 # fora do ci/tolerated.txt no log final (conferido depois do encerramento), a
 # unidade da cópia separada que falha e todo `ipc call` ou grim que passa de
-# 10 s (timeout, com o fim do shell.log na saída) ou o dbus-run-session que não
-# sai em 10 s depois do shell.
+# 10 s (timeout, com o fim do shell.log na saída).
 #
-# Só encerra os próprios processos (os grupos do sway, do lucernad e do shell, por PID),
-# nunca por nome: rodada fora do container, não derruba a sessão do usuário.
+# Só encerra os próprios processos (os grupos do shell, do mpv, do lucernad, do
+# WirePlumber, do PipeWire, do D-Bus e do sway, por PID), nunca por nome:
+# rodada fora do container, não derruba a sessão do usuário.
 #
 # O que a fumaça não confere por IPC: a aba do painel superior, a página da
 # central e o tópico das configurações que ficaram abertos. Os IPCs dashboard,
 # central e settings não devolvem o estado atual; uma aba, página ou tópico
 # que não abre só aparece como erro no log (o logcheck) e na captura.
 #
-# Saída em $CI_OUT: shell.log, sway.log, lucernad.log, kill.log, unit-smoke.log, shots/NN-<passo>.png,
+# Saída em $CI_OUT: shell.log, sway.log, dbus.log, pipewire.log,
+# wireplumber.log, mpv.log, lucernad.log, kill.log, unit-smoke.log, shots/NN-<passo>.png,
 # coverage.md e summary.md (tabela passo, esperado, veio).
 set -euo pipefail
 
@@ -42,10 +53,15 @@ out=${CI_OUT:-$repo/ci-out}
 mkdir -p "$out/shots"
 out=$(cd "$out" && pwd)
 work=$(mktemp -d)
-# O sway e o shell rodam cada um no próprio grupo de processos (setsid), e só
-# esses grupos são encerrados: nada é morto por nome, para a fumaça rodada fora
-# do container nunca derrubar o shell ou o sway de verdade do usuário.
+# O sway, o D-Bus, o PipeWire, o WirePlumber, o mpv, o lucernad e o shell
+# rodam cada um no próprio grupo de processos (setsid), e só esses grupos são
+# encerrados: nada é morto por nome, para a fumaça rodada fora do container
+# nunca derrubar o shell, o sway ou o som de verdade do usuário.
 sway_pid=""
+dbus_pid=""
+pipewire_pid=""
+wireplumber_pid=""
+mpv_pid=""
 lucernad_pid=""
 qs_pid=""
 shell_pid=""
@@ -72,7 +88,11 @@ stop_group() {
 # shellcheck disable=SC2329 # chamada pelo trap
 cleanup() {
     stop_group "$qs_pid"
+    stop_group "$mpv_pid"
     stop_group "$lucernad_pid"
+    stop_group "$wireplumber_pid"
+    stop_group "$pipewire_pid"
+    stop_group "$dbus_pid"
     stop_group "$sway_pid"
     # O que o shell escreveu até o fim (inclusive depois de uma falha) vai para
     # o artefato.
@@ -151,6 +171,67 @@ done
 row "sway headless" "um socket wayland-*" "$socket"
 export WAYLAND_DISPLAY=$socket QT_QPA_PLATFORM=wayland QT_QUICK_BACKEND=software
 
+# O D-Bus de sessão, o PipeWire e o WirePlumber da fumaça, todos no
+# XDG_RUNTIME_DIR dela: o lucernad, o mpv e o shell usam o mesmo barramento
+# (o daemon acha o player pelo nome MPRIS) e o mesmo PipeWire. Nunca os do
+# host: o PIPEWIRE_REMOTE herdado sai, e o PipeWire próprio não tem os
+# monitores de hardware (o wireplumber.conf de ci/audio/), só o sink nulo.
+unset PIPEWIRE_REMOTE
+export PIPEWIRE_RUNTIME_DIR=$XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS=unix:path=$XDG_RUNTIME_DIR/bus
+setsid dbus-daemon --session --nofork --nopidfile --address="$DBUS_SESSION_BUS_ADDRESS" > "$out/dbus.log" 2>&1 &
+dbus_pid=$!
+for _ in $(seq 50); do
+    [ -S "$XDG_RUNTIME_DIR/bus" ] && break
+    kill -0 "$dbus_pid" 2> /dev/null || break
+    sleep 0.2
+done
+if [ ! -S "$XDG_RUNTIME_DIR/bus" ]; then
+    row "D-Bus de sessão" "socket em 10 s" "(não veio)"
+    fail "o dbus-daemon não abriu $XDG_RUNTIME_DIR/bus em 10 s (veja dbus.log)"
+fi
+row "D-Bus de sessão" "socket em 10 s" "bus"
+
+install -D -m 644 "$repo/ci/audio/pipewire.conf" "$XDG_CONFIG_HOME/pipewire/pipewire.conf.d/pipewire.conf"
+install -D -m 644 "$repo/ci/audio/wireplumber.conf" "$XDG_CONFIG_HOME/wireplumber/wireplumber.conf.d/wireplumber.conf"
+setsid pipewire > "$out/pipewire.log" 2>&1 &
+pipewire_pid=$!
+setsid wireplumber > "$out/wireplumber.log" 2>&1 &
+wireplumber_pid=$!
+sink=0
+for _ in $(seq 50); do
+    if wpctl status 2> /dev/null | grep -q lucerna-nulo; then
+        sink=1
+        break
+    fi
+    sleep 0.2
+done
+if [ "$sink" = 0 ]; then
+    row "som isolado" "sink nulo em 10 s" "(não veio)"
+    fail "o sink lucerna-nulo não apareceu no wpctl status em 10 s (veja pipewire.log e wireplumber.log)"
+fi
+row "som isolado" "sink nulo em 10 s" "lucerna-nulo"
+
+# O player: o mpv tocando ruído rosa sem fim, só no sink nulo, com o MPRIS do
+# mpv-mpris no barramento da fumaça. O nome leva o sufixo da instância
+# (org.mpris.MediaPlayer2.mpv.instance-<id>, do mpv-mpris novo): a fumaça
+# guarda o nome que veio.
+setsid mpv --no-video --vo=null --no-terminal --ao=pipewire --audio-device=pipewire/lucerna-nulo \
+    --loop-file=inf "av://lavfi:anoisesrc=color=pink:amplitude=0.5" > "$out/mpv.log" 2>&1 &
+mpv_pid=$!
+mpris=""
+for _ in $(seq 50); do
+    mpris=$(dbus-send --session --print-reply --dest=org.freedesktop.DBus / org.freedesktop.DBus.ListNames 2> /dev/null \
+        | grep -oE '"org\.mpris\.MediaPlayer2\.mpv(\.[^"]*)?"' | tr -d '"' | head -n 1 || true)
+    [ -n "$mpris" ] && break
+    kill -0 "$mpv_pid" 2> /dev/null || break
+    sleep 0.2
+done
+if [ -z "$mpris" ]; then
+    row "player de teste" "org.mpris.MediaPlayer2.mpv* em 10 s" "(não veio)"
+    fail "o mpv não registrou um nome org.mpris.MediaPlayer2.mpv* em 10 s (veja mpv.log)"
+fi
+row "player de teste" "org.mpris.MediaPlayer2.mpv* em 10 s" "$mpris"
+
 # O lucernad no próprio grupo, como o sway, com a ociosidade em 10 min (a
 # fumaça inteira cabe nela); o socket dele fica no XDG_RUNTIME_DIR da fumaça.
 lucernad_sock="$XDG_RUNTIME_DIR/lucerna/lucernad.sock"
@@ -167,10 +248,11 @@ if [ ! -S "$lucernad_sock" ]; then
 fi
 row "lucernad" "socket em 10 s" "lucerna/lucernad.sock"
 
-# O shell grava o próprio PID (o bash do meio dá lugar ao qs com exec): é por
-# ele que a fumaça confere que o shell continua vivo e o encerra no fim.
+# O shell grava o próprio PID (o bash do meio dá lugar ao qs com exec, e o
+# grupo é o dele): é por ele que a fumaça confere que o shell continua vivo e o
+# encerra no fim.
 # shellcheck disable=SC2016 # o $$ e o $1 expandem no bash de dentro
-setsid dbus-run-session -- bash -c 'echo "$$" > "$1" && exec qs -c lucerna' _ "$work/qs.pid" > "$work/raw.log" 2>&1 &
+setsid bash -c 'echo "$$" > "$1" && exec qs -c lucerna' _ "$work/qs.pid" > "$work/raw.log" 2>&1 &
 qs_pid=$!
 for _ in $(seq 120); do
     [ -z "$shell_pid" ] && [ -s "$work/qs.pid" ] && shell_pid=$(cat "$work/qs.pid")
@@ -202,7 +284,7 @@ row "shell conectado ao lucernad" "em 10 s" "lucerna: conectado ao lucernad"
 
 [ -n "$shell_pid" ] || fail "não achei o PID do shell ($work/qs.pid vazio)"
 
-# alive: o shell (o próprio qs, não o dbus-run-session em volta) está rodando.
+# alive: o shell (o próprio qs) está rodando.
 alive() { kill -0 "$shell_pid" 2> /dev/null; }
 # Todo `ipc call` e todo grim têm timeout: sem ele, um shell travado deixaria o
 # job parado até o limite do workflow, sem diagnóstico.
@@ -240,6 +322,73 @@ step launcher launcher open files ""
 for tab in overview media performance weather; do
     step dashboard dashboard open "$tab"
 done
+
+# Fase "espectro": com a aba Mídia aberta, o shell assina as bandas e diz ao
+# lucernad qual player seguir; o daemon liga um fluxo de captura ao nó do mpv.
+# capture_state: o `capturing` e o `player` do spectrum.status numa linha
+# ("true \"<nome>\""), de uma leitura só do `lucernad --json status` (vazio
+# se o daemon não responder).
+capture_state() {
+    timeout "$CMD_TIMEOUT" lucernad --json status 2> /dev/null | python3 -c '
+import json, sys
+for line in sys.stdin:
+    try:
+        state = json.loads(line)
+    except ValueError:
+        continue
+    status = state.get("spectrum.status") if isinstance(state, dict) else None
+    if isinstance(status, dict):
+        print(json.dumps(status.get("capturing")), json.dumps(status.get("player")))
+        break
+' || true
+}
+n=$((n + 1))
+ipc dashboard open media > /dev/null || fail "ipc call dashboard open media falhou: $(why $?)"
+state=""
+for _ in $(seq 20); do
+    state=$(capture_state)
+    [ "$state" = "true \"$mpris\"" ] && break
+    sleep 0.5
+done
+row "espectro" "capturando o mpv em 10 s" "${state:-(sem resposta)}"
+[ "$state" = "true \"$mpris\"" ] \
+    || fail "com a aba Mídia aberta, o spectrum.status não chegou a capturing true e player \"$mpris\" em 10 s (veio \"$state\"; veja lucernad.log)"
+peak=$(timeout 5 lucernad --json watch spectrum.bands 2> /dev/null | python3 -c '
+import json, sys
+peak = 0.0
+for line in sys.stdin:
+    try:
+        state = json.loads(line)
+    except ValueError:
+        continue
+    data = state.get("data") if isinstance(state, dict) else None
+    bands = data.get("bands") if isinstance(data, dict) else None
+    if isinstance(bands, list) and bands:
+        peak = max(peak, max(bands))
+print(f"{peak:.3f}")
+') || true
+row "espectro" "bandas mexendo (máximo > 0,05 em 5 s)" "${peak:-(sem quadro)}"
+python3 -c 'import sys; sys.exit(0 if float(sys.argv[1] or 0) > 0.05 else 1)' "${peak:-0}" \
+    || fail "as bandas do spectrum.bands não passaram de 0,05 em 5 s (máximo ${peak:-nenhum}; veja lucernad.log e mpv.log)"
+alive || fail "o shell caiu na fase do espectro"
+shot "$out/shots/$(printf '%02d' "$n")-espectro-media.png" || fail "o grim não capturou o espectro: $(why $?)"
+ipc panels close > /dev/null || fail "ipc call panels close falhou: $(why $?)"
+# O pw-cli precisa responder (código 0): um PipeWire caído não passa por
+# "sem fluxo".
+nodes=""
+for _ in $(seq 10); do
+    state=$(capture_state)
+    if graph=$(timeout "$CMD_TIMEOUT" pw-cli ls Node 2> /dev/null); then
+        nodes=$(grep -c lucernad-espectro <<< "$graph" || true)
+    else
+        nodes="(pw-cli falhou)"
+    fi
+    [ "${state%% *}" = false ] && [ "$nodes" = 0 ] && break
+    sleep 0.5
+done
+row "espectro" "sem fluxo com o anel fechado (5 s)" "capturing ${state%% *}, nós $nodes"
+[ "${state%% *}" = false ] && [ "$nodes" = 0 ] \
+    || fail "com o painel fechado, o espectro não parou em 5 s (capturing ${state%% *}, $nodes nó(s) lucernad-espectro no pw-cli)"
 # Cada entrada abre a página do recurso (Wi-Fi, Bluetooth, saída de áudio,
 # bateria, microfone); sem o recurso, como no CI, o estado inicial.
 for entry in "" rede bluetooth som energia microfone notificacoes; do
@@ -297,18 +446,6 @@ done
 if alive; then
     row "shell encerrado (qs kill)" "em 10 s, código 0" "(não encerrou)"
     fail "o shell não encerrou em 10 s depois do qs kill --pid $shell_pid"
-fi
-# O dbus-run-session sai logo depois do shell; o laço limitado (10 s) evita que
-# o wait prenda o job se ele não sair. Um zumbi (filho já terminado, ainda não
-# recolhido) conta como terminado.
-running() { [ -r "/proc/$1/stat" ] && [ "$(sed 's/.*) //' "/proc/$1/stat" | cut -c1)" != Z ]; }
-for _ in $(seq 40); do
-    running "$qs_pid" || break
-    sleep 0.25
-done
-if running "$qs_pid"; then
-    row "dbus-run-session encerrado" "em 10 s" "(não saiu)"
-    fail "o dbus-run-session não terminou em 10 s depois do shell encerrar (veja shell.log)"
 fi
 code=0
 wait "$qs_pid" || code=$?

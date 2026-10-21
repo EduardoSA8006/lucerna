@@ -131,16 +131,16 @@ Singleton {
     }
 
     // O ponto único de leitura do espectro para a feature (o card da aba
-    // Painel e a aba Mídia): as faixas, se há espectro e o pico do som para as
-    // ondas de quando ele falta.
-    readonly property bool hasSpectrum: Spectrum.available
+    // Painel e a aba Mídia): as faixas e quantas são (vêm do lucernad).
     readonly property var spectrum: Spectrum.values
     readonly property int spectrumBars: Spectrum.bars
-    readonly property real peak: Math.min(1, Audio.peak * 1.6)
+    // O card da aba Painel, espelhado com as mesmas barras: as faixas de duas
+    // em duas (graves no topo dos dois lados, agudos embaixo).
+    readonly property var spectrumPaired: Spectrum.pairMax(Spectrum.values)
+    readonly property int spectrumPairedBars: Math.ceil(Spectrum.bars / 2)
 
     // O espectro em volta da capa, tocando: no card da aba Painel e na aba
-    // Mídia (se ligado nas configurações). Um processo só atende as duas; sem
-    // o espectro, as ondas usam o pico do som.
+    // Mídia (se ligado nas configurações). Uma assinatura só atende as duas.
     readonly property bool overviewMediaLive: root.isShowing("overview") && OverviewState.shows("media") && Media.playing
     readonly property bool mediaTabLive: root.isShowing("media") && Config.audioPulse && Media.playing
 
@@ -148,12 +148,6 @@ Singleton {
         target: Spectrum
         property: "active"
         value: root.overviewMediaLive || root.mediaTabLive
-    }
-
-    Binding {
-        target: Audio
-        property: "monitorPeak"
-        value: (root.overviewMediaLive || root.mediaTabLive) && !Spectrum.available
     }
 
     Binding {

@@ -12,6 +12,12 @@
 ^WARN: \$HYPRLAND_INSTANCE_SIGNATURE is unset\. Cannot connect to hyprland\.$
 ^WARN quickshell\.hyprland\.ipc: Error making request: QLocalSocket::ServerNotFoundError request: "j/clients"$
 
+# Com o mpv da fumaça tocando, a ociosidade para de contar (mídia tocando) e o
+# shell pede ao Hyprland para ligar a tela (o dpms "on" do IdleState); sem o
+# Hyprland, o pedido não acha o socket. O aviso vem em duas linhas.
+^WARN quickshell\.hyprland\.ipc: Error making request: QLocalSocket::ServerNotFoundError request: "dispatch hl\.dsp\.dpms\(\{ action = \\"on\\" \}\)"$
+^WARN quickshell\.hyprland\.ipc: Failed to request dispatch of "hl\.dsp\.dpms\(\{ action = \\"on\\" \}\)"$
+
 # Programas que o container não tem: o hyprctl vem com o Hyprland (fora do CI)
 # e o brightnessctl só serve com uma tela de brilho ajustável (a saída do sway
 # headless não tem). O Quickshell avisa ao não achar o binário; cada linha é o
@@ -27,7 +33,7 @@
 ^WARN: \*\* Learn why \$XDG_CURRENT_DESKTOP sucks and download a better compositor today at https://hyprland\.org$
 
 # Sem D-Bus do sistema no container: rede, bateria, perfis de energia e
-# Bluetooth ficam de fora (o D-Bus de sessão do dbus-run-session não tem esses
+# Bluetooth ficam de fora (o D-Bus de sessão da fumaça não tem esses
 # serviços).
 ^WARN quickshell\.network\.networkmanager: Could not connect to DBus\. NetworkManager backend will not work\.$
 ^WARN quickshell\.service\.upower: Could not connect to DBus\. UPower service will not work\.$
@@ -35,10 +41,6 @@
 ^WARN quickshell\.bluetooth: Could not connect to DBus\. Bluetooth integration is not available\.$
 # Consequência do aviso do NetworkManager: nenhum backend de rede.
 ^ERROR quickshell\.network: Network will not work\. Could not find an available backend\.$
-
-# Sem PipeWire no container: volume e mídia ficam de fora (o número do errno
-# pode variar conforme o socket que falta).
-^ERROR quickshell\.service\.pipewire\.loop: Failed to connect pipewire context\. Errno: \d+$
 
 # Sem o lucernad (a fase "lucernad fora" da fumaça), o Socket do Quickshell
 # avisa a cada tentativa de conexão; a espera crescente do LucernaClient espaça

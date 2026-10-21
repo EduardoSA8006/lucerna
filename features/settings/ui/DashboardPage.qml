@@ -157,7 +157,7 @@ Column {
         SettingRow {
             icon: Icons.sound
             title: "Espectro em volta da capa"
-            description: "Na aba Mídia, barras que seguem as frequências do que está tocando (pelo cava; sem ele, ondas pelo volume)"
+            description: "Na aba Mídia, barras que seguem as frequências do que está tocando (pelo lucernad)"
 
             Switch {
                 checked: SettingsState.audioPulse

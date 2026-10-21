@@ -3,27 +3,28 @@
 
 # O lucernad (o daemon do Lucerna), compilado na revisão de dev/lucernad.rev
 # (o dev/run.sh e o dev/test.sh passam LUCERNAD_REV). Num estágio à parte,
-# para a imagem final não levar a toolchain do Rust.
+# para a imagem final não levar a toolchain do Rust. O módulo de espectro liga
+# na libpipewire (o bindgen dela precisa do clang e do pkgconf).
 FROM archlinux:latest AS lucernad
 ARG LUCERNAD_REV
-RUN pacman -Syu --noconfirm --needed rustup git gcc
+RUN pacman -Syu --noconfirm --needed rustup git gcc libpipewire clang pkgconf
 COPY lucernad.sh /tmp/
 RUN bash /tmp/lucernad.sh "$LUCERNAD_REV" /opt/lucernad
 
 FROM archlinux:latest
 
-# mpv e mpv-mpris só servem para testar a aba Mídia (um player MPRIS), e o
-# cava, o espectro do card de mídia (opcional no shell). O ffmpeg
-# e o Qt Multimedia (com o driver VA-API da Intel) são dos wallpapers em vídeo.
+# mpv e mpv-mpris só servem para testar a aba Mídia (um player MPRIS). A
+# libpipewire é do lucernad (o módulo de espectro). O ffmpeg e o Qt Multimedia
+# (com o driver VA-API da Intel) são dos wallpapers em vídeo.
 RUN pacman -Syu --noconfirm --needed \
         hyprland quickshell \
         qt6-svg qt6-imageformats qt6-5compat \
         mesa vulkan-intel \
         qt6-multimedia qt6-multimedia-ffmpeg intel-media-driver libva-utils \
         dbus kitty foot htop grim wl-clipboard libnotify wtype \
-        wireplumber brightnessctl ddcutil hyprsunset wf-recorder \
+        libpipewire wireplumber brightnessctl ddcutil hyprsunset wf-recorder \
         ttf-material-symbols-variable ttf-jetbrains-mono-nerd ttf-cascadia-code-nerd noto-fonts noto-fonts-emoji \
-        mpv mpv-mpris ffmpeg cava \
+        mpv mpv-mpris ffmpeg \
         hicolor-icon-theme adwaita-icon-theme \
     && pacman -Scc --noconfirm
 

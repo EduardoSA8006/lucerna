@@ -26,7 +26,6 @@ import qs.features.notifications.state
 import qs.features.themeSwitcher.state
 import qs.services
 import qs.services.lucerna
-import qs.services.spectrum
 import "appinfo.test.js" as AppInfoTest
 import "audio.test.js" as AudioTest
 import "audiostreams.test.js" as AudioStreamsTest
@@ -162,11 +161,6 @@ ShellRoot {
         return notificationCard.createObject(root, props);
     }
 
-    // Um backend do cava solto, sem pedido (o processo não roda).
-    function cava(): var {
-        return cavaBackend.createObject(root);
-    }
-
     // Um cliente do protocolo solto (app "teste", sem socketPath: nunca conecta).
     function lucernaClient(): var {
         return lucernaClientComponent.createObject(root);
@@ -194,7 +188,6 @@ ShellRoot {
             near: root.near,
             object: root.object,
             card: root.card,
-            cava: root.cava,
             lucernaClient: root.lucernaClient,
             enums: root.enums(),
             get Config() { return Config; },
@@ -241,12 +234,6 @@ ShellRoot {
         id: dummy
 
         QtObject {}
-    }
-
-    Component {
-        id: cavaBackend
-
-        Cava {}
     }
 
     Component {

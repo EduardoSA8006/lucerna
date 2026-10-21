@@ -5,7 +5,7 @@
 # A toolchain vem do rust-toolchain.toml do lucernad e as dependências, do
 # Cargo.lock dele: o build é reproduzível. Se <prefixo>/rev já é <rev> e o
 # binário existe, sai sem compilar (o cache do CI e do volume do dev/ci.sh).
-# Precisa de rustup, git e gcc.
+# Precisa de rustup, git, gcc, clang, pkgconf e libpipewire.
 #   dev/lucernad.sh <rev> <prefixo>
 set -euo pipefail
 

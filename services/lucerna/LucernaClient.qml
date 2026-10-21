@@ -4,14 +4,17 @@ import Quickshell.Io
 
 // Cliente do protocolo do Lucerna (JSON-RPC 2.0, uma mensagem por linha, num
 // socket Unix), genérico: serve ao lucernad e, depois, aos apps. Conecta ao
-// socket do `app`, faz o aperto de mão (lucerna.hello), assina os tópicos de
-// setTopics(), guarda o último estado de cada um em `states` (descartando o
-// lucerna.state de seq velho) e avisa em `received`; call() chama um método e
-// entrega a resposta a quem pediu. Quando a conexão cai, ou o socket ainda não
-// existe, falha os pedidos pendentes e tenta de novo com espera crescente (a
-// mesma regra do SDK, com o teto em `maxBackoff`). O cliente só escreve duas
-// linhas no log, ao conectar e ao perder a conexão; o Socket do Quickshell, à
-// parte, avisa (WARN quickshell.io.socket) a cada tentativa que falha.
+// socket do `app`, faz o aperto de mão (lucerna.hello), assina a união dos
+// tópicos que cada serviço pede por want(dono, tópicos) (só os que o hello diz
+// que o app oferece: um tópico desconhecido falharia a assinatura inteira),
+// guarda o último estado de cada um em `states` (descartando o lucerna.state
+// de seq velho) e avisa em `received`; call() chama um método e entrega a
+// resposta a quem pediu. Quando a conexão cai, ou o socket ainda não existe,
+// falha os pedidos pendentes e tenta de novo com espera crescente (a mesma
+// regra do SDK, com o teto em `maxBackoff`). O cliente escreve no log ao
+// conectar, ao perder a conexão e quando o app recusa uma assinatura; o Socket
+// do Quickshell, à parte, avisa (WARN quickshell.io.socket) a cada tentativa
+// que falha.
 Scope {
     id: root
 
@@ -36,7 +39,13 @@ Scope {
     property var seqs: ({})
     // Os tópicos que quem usa quer assinados; reassinados a cada conexão.
     property var wanted: []
-    // Id → { method, done }: os pedidos sem resposta.
+    // Dono → os tópicos que ele quer (o `wanted` é a união).
+    property var owners: ({})
+    // Os tópicos e fluxos que o app oferece (o `topics` e o `streams` da
+    // resposta do hello); null antes do hello ou se ele não os listar (aí
+    // nada é filtrado).
+    property var offered: null
+    // Id → { method, params, done }: os pedidos sem resposta.
     property var pending: ({})
     property int nextId: 1
     // Tentativas falhas seguidas, para a espera crescente.
@@ -144,6 +153,7 @@ Scope {
         const next = Object.assign({}, pending);
         next[id] = {
             method: method,
+            params: params,
             done: done
         };
         pending = next;
@@ -166,11 +176,33 @@ Scope {
             lost();
             return;
         }
+        offered = offeredTopics(response.result);
         connected = true;
         error = "";
         settle.restart();
         console.info(`lucerna: conectado ao ${app}`);
         resubscribe();
+    }
+
+    // Os tópicos e fluxos do resultado do hello, numa lista; null se ele não
+    // trouxer nenhuma das duas listas.
+    function offeredTopics(result: var): var {
+        const topics = Array.isArray(result?.topics) ? result.topics : null;
+        const streams = Array.isArray(result?.streams) ? result.streams : null;
+        if (topics === null && streams === null)
+            return null;
+        return union([topics ?? [], streams ?? []]);
+    }
+
+    // Só os tópicos que o app oferece (todos, sem a lista do hello): o SDK
+    // recusa a assinatura inteira por um tópico desconhecido (-32012), e um
+    // app sem um módulo derrubaria os tópicos dos outros.
+    function subscribable(topics: var): var {
+        const list = Array.from(topics);
+        if (offered === null)
+            return list;
+        const known = Array.from(offered);
+        return list.filter(topic => known.includes(topic));
     }
 
     // Os tópicos que quem usa quer: assina os novos e larga os que saíram
@@ -188,20 +220,50 @@ Scope {
             unsubscribeNow(removed);
     }
 
+    // Os tópicos de todas as listas, sem repetir, na ordem em que aparecem.
+    function union(lists: var): var {
+        const all = [];
+        for (const list of lists)
+            for (const topic of list)
+                if (!all.includes(topic))
+                    all.push(topic);
+        return all;
+    }
+
+    // Cada serviço (dono) diz os tópicos dele; o cliente assina a união.
+    function want(owner: string, topics: var): void {
+        const next = Object.assign({}, owners);
+        next[owner] = Array.from(topics);
+        owners = next;
+        setTopics(union(Object.values(owners)));
+    }
+
+    // Assina os tópicos que o app oferece; nada a mandar sem nenhum.
     function subscribeNow(topics: var): void {
+        const list = subscribable(topics);
+        if (list.length === 0)
+            return;
         request("lucerna.subscribe", {
-            topics: topics
-        }, response => root.subscribed(response));
+            topics: list
+        }, response => root.subscribed(response, list));
     }
 
     function unsubscribeNow(topics: var): void {
+        const list = subscribable(topics);
+        if (list.length === 0)
+            return;
         request("lucerna.unsubscribe", {
-            topics: topics
+            topics: list
         }, null);
     }
 
-    // A resposta do subscribe: o retrato de cada tópico.
-    function subscribed(response: var): void {
+    // A resposta do subscribe: o retrato de cada tópico. Um erro do app vai
+    // para o log; o da conexão que caiu (código -1, do failPending) não, que
+    // a queda já foi contada.
+    function subscribed(response: var, topics: var): void {
+        const failure = response.error;
+        if (failure && failure.code !== -1)
+            console.warn(`lucerna: o ${app} recusou a assinatura de ${Array.from(topics ?? []).join(", ")}: ${failure.code} ${failure.message}`);
         for (const state of response.result?.states ?? [])
             store(state, true);
     }
@@ -211,9 +273,9 @@ Scope {
         attempt = 0;
     }
 
+    // Reassina tudo o que os donos querem (e o app oferece) numa conexão nova.
     function resubscribe(): void {
-        if (wanted.length > 0)
-            subscribeNow(wanted);
+        subscribeNow(wanted);
     }
 
     // Chama um método do app. O `done` (opcional) recebe a resposta inteira
@@ -247,6 +309,7 @@ Scope {
     // antes de tudo.
     function opened(): void {
         seqs = ({});
+        offered = null;
         error = "";
         handshake();
     }

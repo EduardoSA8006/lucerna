@@ -65,18 +65,6 @@ Singleton {
             sink.audio.muted = !sink.audio.muted;
     }
 
-    // Pico do que está tocando (0 a 1), para visualizadores. Só é medido
-    // enquanto `monitorPeak` for verdadeiro.
-    property bool monitorPeak: false
-    readonly property real peak: peakMonitor.peak
-
-    PwNodePeakMonitor {
-        id: peakMonitor
-
-        node: root.sink
-        enabled: root.monitorPeak
-    }
-
     // Sem rastrear o nó, volume e mudo não são atualizados.
     PwObjectTracker {
         objects: [root.sink, root.source, ...root.sinks, ...root.sources]

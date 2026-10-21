@@ -15,7 +15,17 @@ grim
 procps-ng
 ttf-material-symbols-variable
 noto-fonts
-# O lucernad (dev/lucernad.sh) é compilado na fumaça.
+# O lucernad (dev/lucernad.sh) é compilado na fumaça; o módulo de espectro
+# liga na libpipewire (o bindgen dela precisa do clang e do pkgconf).
 rustup
 git
 gcc
+libpipewire
+clang
+pkgconf
+# O player de teste da fumaça: PipeWire e WirePlumber isolados, com um sink
+# nulo, e o mpv com o MPRIS.
+pipewire
+wireplumber
+mpv
+mpv-mpris

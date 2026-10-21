@@ -13,13 +13,13 @@ Regras para um plugin próprio:
 - Repositório e pacote próprios (por exemplo, `lucerna-spectrum`), com versão e changelog.
 - Módulo QML com nome `Lucerna.<Nome>` e API pequena, documentada.
 - Depende só do Qt e de interfaces do kernel ou do sistema (`/proc`, `/sys`, D-Bus, PipeWire).
-- O shell continua funcionando sem ele: o `services/` correspondente detecta o plugin e, na falta dele, usa a implementação em QML.
+- O shell continua funcionando sem ele: o `services/` correspondente detecta o plugin e, na falta dele, usa a implementação em QML. Exceção: o espectro não tem reserva em QML (o `cava` saiu); sem o módulo `spectrum` do `lucernad`, o shell continua funcionando, mas o anel fica parado no tamanho de repouso.
 
 ## Candidatos
 
 | Plugin | Substitui | Hoje, no Lucerna | Ganho com o plugin |
 | --- | --- | --- | --- |
-| `lucerna-spectrum` | `libcava` + `aubio` (visualizador e batida) | Pulso de volume pelo `PwNodePeakMonitor` do Quickshell | Espectro por frequência (FFT própria sobre um stream do PipeWire) e detecção de batida |
+| `lucerna-spectrum` | `libcava` + `aubio` (visualizador e batida) | o módulo `spectrum` do `lucernad` (PipeWire e FFT próprias), lido pelo `Spectrum` | Espectro por frequência (FFT própria sobre um stream do PipeWire) e detecção de batida |
 | `lucerna-shapes` | `qt6-m3shapes` | Formas desenhadas com `QtQuick.Shapes` (curvas polares) | Morfismo entre formas diferentes, com o mesmo número de vértices, em C++ e com antisserrilhamento melhor |
 | `lucerna-ddc` | `ddcutil` | Não há: só o brilho da tela interna, via `brightnessctl` | Brilho de monitores externos por DDC/CI direto no `/dev/i2c-*` |
 | `lucerna-palette` | `python-materialyoucolor` (usado pelo `caelestia-cli`) | Não há: os temas são fixos | Gerar um tema a partir das cores do wallpaper |

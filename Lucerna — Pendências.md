@@ -25,13 +25,13 @@ O que falta fazer, na ordem em que vamos seguir. Cada item vira um PR; ao termin
 
 Decisão (2026-10-18): o shell é só a interface; a lógica vai para código separado, em Rust, num **repositório próprio e público**, com as mesmas configurações do `lucerna-shell` (licença GPL-3.0, CI com checks obrigatórios, ruleset da branch principal, revisão, padrão de commits em português). Ainda falta definir: a forma (um daemon com módulos, como `lucernad`, ou vários binários), o protocolo com o shell (proposta: socket Unix em `$XDG_RUNTIME_DIR` com mensagens JSON e atualizações enviadas pelo daemon, lido pelo `Socket` do `Quickshell.Io`), o empacotamento e a versão do protocolo entre os dois repositórios.
 
-Princípio da migração: cada `services/` do shell mantém as mesmas propriedades e vira um adaptador; com o daemon rodando, lê dele; sem ele, usa a implementação atual. Um módulo por vez, como já está feito com o espectro (`services/spectrum/Cava.qml` isolado atrás do `Spectrum`).
+Princípio da migração: cada `services/` do shell mantém as mesmas propriedades e vira um adaptador; com o daemon rodando, lê dele; sem ele, usa a implementação atual. Um módulo por vez, como já está feito com o espectro (o `Spectrum` lê do `lucernad`).
 
 Fica no shell: as APIs nativas do Quickshell (PipeWire, MPRIS, Bluetooth, rede, notificações, PAM, Hyprland), a coordenação dos painéis, os temas, a geometria dos monitores nas configurações, a formatação e as animações.
 
 Módulos propostos, em ordem de prioridade:
 
-1. [ ] **Espectro:** captura do PipeWire e FFT próprias no lugar do `cava` (hoje `services/spectrum/Cava.qml`); detecção de batida depois.
+1. [x] **Espectro:** captura do PipeWire e FFT próprias no lugar do `cava` (feito em 2026-10-20: módulo `spectrum` do `lucernad`; a batida fica para depois).
 2. [x] **Sistema:** CPU, memória, rede, discos, temperaturas e GPU no lugar do parse em `services/SystemStats.qml`, do `gpu-status.sh`, do `drm-fdinfo.sh`, do `df` e do `lsblk`; NVIDIA pela NVML, sem `nvidia-smi` (feito em 2026-10-20: módulo `system` do `lucernad`).
 3. [ ] **Área de transferência:** observador do Wayland, histórico com deduplicação e imagens (SQLite), no lugar do `wl-paste --watch`, do base64 decodificado em JS e do `clipboard.json`.
 4. [ ] **Energia e brilho:** histórico do UPower e perfis de energia por D-Bus (hoje `busctl`), brilho interno e DDC/CI por biblioteca (hoje `brightnessctl` e `ddcutil`).
@@ -65,7 +65,6 @@ Sobras do módulo de sistema:
 - [ ] Central, saída de áudio (aceito; conferir com o mouse): ao trocar para um sink Bluetooth recém-conectado, a página da Saída pode voltar ao estado inicial se o sink demorar a ficar pronto (o recurso "some" por um instante).
 - [ ] Central, popups (alternativa adiada): com só as ações abertas, os popups ficam escondidos e esperam. Poderiam descer para baixo das ações e continuar aparecendo.
 - [ ] Notificações: histórico persistente (hoje só sobrevive ao reload) e modo avião (o shell não tem rfkill), ambos fora do escopo da central.
-- [ ] Espectro: o `cava` escuta a saída padrão inteira, então qualquer som da máquina mexe nas barras, não só o player escolhido. Resolver no módulo de espectro em Rust (capturar o stream do player).
 - [ ] README: a captura `docs/screenshots/hero.jpg` (cena montada com terminais e música) ainda mostra o visual antigo do painel superior. Refazer a cena.
 - [ ] Lint: quando o CI deixar de testar o Qt 6.11, tirar o `unqualified` das quatro linhas de supressão das margens e do `QMLLINT_ALLOWED_COMMENT` em `ci/rules.py`.
 - [ ] Crédito ao Caelestia também na página Sobre das configurações (hoje só no README).
@@ -85,7 +84,7 @@ No ambiente de teste não dá para simular cliques, e o Hyprland ignora teclado 
 - [ ] Visão geral: arrastar uma janela para outro workspace (no container não dá para simular o arrasto) e vários monitores.
 - [ ] Brilho: as teclas ajustando o monitor em foco (no container o foco é a janela aninhada, não o HDMI).
 - [ ] Launcher: navegação pelo teclado nos três estilos, `Ctrl+1…9` nas ações do app e o "Mais opções".
-- [ ] Painel superior: as setas do calendário (a bolha some em outro mês e volta no atual), o clique nos cards de GPU e de Disco trocando de GPU e de disco (com o esmaecimento), o "4,8 / 224 GiB" do `sda`, o clique numa linha da letra pulando para o trecho, a troca de player pelo ícone e as ondas do card de mídia reagindo ao som (sem o `cava`).
+- [ ] Painel superior: as setas do calendário (a bolha some em outro mês e volta no atual), o clique nos cards de GPU e de Disco trocando de GPU e de disco (com o esmaecimento), o "4,8 / 224 GiB" do `sda`, o clique numa linha da letra pulando para o trecho, a troca de player pelo ícone.
 - [ ] Aba Desempenho: a temperatura da RTX (lida pela NVML do `lucernad`, só com a placa em uso; o container de teste não tem a NVIDIA) e o uso da Intel pelo fdinfo do `lucernad` na máquina real.
 - [ ] Central: os ícones da barra abrindo as ações na página certa e fechando no mesmo ícone (sem fechar as notificações), o sino abrindo e fechando só as notificações, e o foco voltando ao painel (o `Esc` fecha) depois de fechar as ações com a senha do Wi-Fi sendo digitada; os tiles (o corpo liga e desliga, a setinha abre a página), os sliders de volume e brilho e os volumes do microfone e de cada app; a troca de dispositivo, conectar a uma rede com senha, parear, os perfis de energia, a engrenagem e o "Limpar".
 

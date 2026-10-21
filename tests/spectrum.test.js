@@ -1,49 +1,139 @@
-// Testes de services/Spectrum (a escala, as falhas e o recuo do reinício) e
-// do backend services/spectrum/Cava (a config gerada e a leitura de um quadro).
+// Testes de services/Spectrum: o adaptador do spectrum.bands e do
+// spectrum.status do lucernad; a captura e a análise ficaram no daemon, com os
+// testes em Rust.
 function run(t) {
     const S = t.Spectrum;
 
-    t.test("spectrum: a escala de quem olha", () => {
-        t.eq(S.shape([0, 0.25, 1]), [0, 0.5, 1], "a raiz realça as faixas fracas");
-        t.eq(S.shape([-1, 2, "x"]), [0, 1, 0], "fora da faixa ou inválido, preso");
-        t.eq([S.shape([]), S.shape(null)], [[], []]);
+    // Guarda o estado de antes para restaurar no fim (a suíte roda no mesmo
+    // processo que as seguintes).
+    const original = { active: S.active, values: S.values, moduleAvailable: S.moduleAvailable };
+
+    function frame(n, v) {
+        return { bands: Array.from({ length: n }, () => v) };
+    }
+
+    t.test("spectrum: tópicos conforme o pedido", () => {
+        t.eq(S.wantedTopics(false), ["spectrum.status"]);
+        t.eq(S.wantedTopics(true), ["spectrum.status", "spectrum.bands"]);
     });
 
-    t.test("spectrum: as falhas seguidas", () => {
-        t.eq([S.failuresAfter(0, false), S.failuresAfter(2, false)], [1, 3], "saiu sem quadro: soma");
-        t.eq(S.failuresAfter(3, true), 1, "rodou e caiu: recomeça a conta");
+    t.test("spectrum: as faixas de duas em duas, pelo maior", () => {
+        t.eq(S.pairMax([0.1, 0.9, 0.4, 0.2]), [0.9, 0.4]);
+        t.eq(S.pairMax([0.5, 0.1, 0.3]), [0.5, 0.3], "ímpar: a última sozinha");
+        t.eq(S.pairMax([]), []);
+        const bands = [];
+        for (let i = 0; i < S.bars; i++)
+            bands.push(i / S.bars);
+        const paired = S.pairMax(bands);
+        t.eq(paired.length, Math.ceil(S.bars / 2));
+        t.eq(paired[0], bands[1], "o par dos graves");
     });
 
-    t.test("spectrum: o recuo do reinício", () => {
-        t.eq([1, 2, 3].map(f => S.retryDelay(f, 4)), [1000, 2000, 4000], "1, 2, 4 s");
-        t.eq([S.retryDelay(4, 4), S.retryDelay(9, 4)], [-1, -1], "na quarta seguida, desiste");
-        t.eq(S.retryDelay(0, 4), 1000);
+    t.test("spectrum: o player vai como nome ou null", () => {
+        t.eq(S.playerParam("org.mpris.MediaPlayer2.spotify"), "org.mpris.MediaPlayer2.spotify");
+        t.eq(S.playerParam(""), null);
     });
 
-    t.test("spectrum: parado, sem quadro velho", () => {
-        t.eq([S.active, S.values], [false, []]);
+    t.test("spectrum: o quadro só vale pedindo", () => {
+        try {
+            S.active = true;
+            S.apply("spectrum.bands", frame(S.bars, 0.5));
+            t.eq(S.values.length, S.bars);
+            t.eq(S.values[0], 0.5);
+            S.apply("spectrum.bands", frame(32, 0.9));
+            t.eq([S.values.length, S.values[0]], [S.bars, 0.5], "quadro de outro tamanho não vale");
+            S.apply("spectrum.bands", { bands: "x" });
+            t.eq(S.values.length, S.bars, "sem array não vale");
+            S.active = false;
+            t.eq(S.values, [], "desligado, zera");
+            S.apply("spectrum.bands", frame(S.bars, 0.5));
+            t.eq(S.values, [], "desligado, o quadro não entra");
+        } finally {
+            S.active = original.active;
+        }
     });
 
-    const cava = t.cava();
-
-    t.test("cava: a config gerada", () => {
-        const lines = cava.configFor(24, 30).split("\n");
-        t.eq(lines.slice(0, 3), ["[general]", "bars = 24", "framerate = 30"]);
-        for (const l of ["method = raw", "raw_target = /dev/stdout", "data_format = ascii", "ascii_max_range = 1000", "bar_delimiter = 59", "frame_delimiter = 10", "channels = mono"])
-            t.check(lines.includes(l), l);
+    t.test("spectrum: o quadro pelo sinal do cliente", () => {
+        try {
+            S.active = true;
+            // A mesma passagem dos dados do daemon: o JSON vira lista do QML.
+            S.client.received("spectrum.bands", JSON.parse(JSON.stringify(frame(S.bars, 0.25))));
+            t.eq(S.values.length, S.bars, "o quadro real entra");
+            t.eq(S.values[S.bars - 1], 0.25);
+            S.client.received("spectrum.bands", { bands: "x" });
+            t.eq(S.values.length, S.bars, "sem lista não vale");
+        } finally {
+            S.active = original.active;
+        }
     });
 
-    t.test("cava: um quadro em 0 a 1 por barra", () => {
-        t.eq(cava.parse("0;500;1000;", 3), [0, 0.5, 1], "com o ; do fim");
-        t.eq(cava.parse("250;750", 2), [0.25, 0.75], "sem o ; do fim");
-        t.eq(cava.parse("1200;-5;", 2), [1, 0], "fora da faixa, preso nas pontas");
+    t.test("spectrum: estado do módulo", () => {
+        S.applyStatus({ available: false, capturing: false, player: null, error: "x" });
+        t.eq(S.moduleAvailable, false);
+        S.applyStatus({ available: true, capturing: false, player: null, error: null });
+        t.eq(S.moduleAvailable, true);
+        t.eq(S.available, false, "sem daemon no teste, indisponível");
+        S.moduleAvailable = original.moduleAvailable;
     });
 
-    t.test("cava: quadro incompleto ou inválido", () => {
-        t.eq(cava.parse("10;20;", 3), null, "barras faltando");
-        t.eq(cava.parse("10;x;30;", 3), null, "número inválido");
-        t.eq(cava.parse("", 3), null, "linha vazia");
+    t.test("spectrum: a conexão caída zera", () => {
+        S.moduleAvailable = true;
+        S.values = [0.1];
+        S.connectionChanged(false);
+        t.eq([S.moduleAvailable, S.values], [false, []]);
+        S.moduleAvailable = original.moduleAvailable;
+        S.values = original.values;
     });
 
-    cava.destroy();
+    t.test("spectrum: sincronizar e configurar sem conexão só guardam", () => {
+        S.sync();
+        t.eq(S.client.owners.spectrum, S.wantedTopics(S.active));
+        const before = [S.client.nextId, Object.keys(S.client.pending).length];
+        S.configure();
+        t.eq([S.client.nextId, Object.keys(S.client.pending).length], before, "sem conexão, nada é pedido");
+    });
+
+    t.test("spectrum: conectado, configure manda o player", () => {
+        const c = S.client;
+        const saved = { pending: c.pending, nextId: c.nextId, connected: c.connected };
+        const last = () => {
+            const ids = Object.keys(c.pending).map(Number);
+            return c.pending[ids[ids.length - 1]];
+        };
+        try {
+            c.connected = true;
+            const sent = last();
+            t.eq(sent.method, "spectrum.configure", "a conexão nova configura");
+            t.eq(sent.params, { player: S.playerParam(S.player) });
+            c.pending = {};
+            S.configure();
+            const again = last();
+            t.eq([again.method, again.params], ["spectrum.configure", { player: S.playerParam(S.player) }]);
+        } finally {
+            c.connected = saved.connected;
+            c.pending = saved.pending;
+            c.nextId = saved.nextId;
+        }
+    });
+
+    t.test("spectrum: null e tópico desconhecido não mudam nada", () => {
+        try {
+            S.active = true;
+            S.apply("spectrum.bands", frame(S.bars, 0.5));
+            S.apply("spectrum.bands", null);
+            S.apply("spectrum.status", null);
+            S.apply("spectrum.xyz", { available: true });
+            t.eq([S.values.length, S.moduleAvailable], [S.bars, original.moduleAvailable]);
+        } finally {
+            S.active = original.active;
+            S.moduleAvailable = original.moduleAvailable;
+        }
+    });
+
+    t.test("spectrum: estado original restaurado", () => {
+        S.active = original.active;
+        S.values = original.values;
+        S.moduleAvailable = original.moduleAvailable;
+        t.eq([S.active, S.values, S.moduleAvailable], [false, [], false]);
+    });
 }
