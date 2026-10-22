@@ -46,8 +46,10 @@ Singleton {
     Connections {
         target: Brightness
 
+        // Só com a integrada presente e sem erro: o value não muda sem ela.
         function onValueChanged() {
-            root.show("brightness");
+            if (Brightness.hasPanel)
+                root.show("brightness");
         }
 
         function onAdjusted() {

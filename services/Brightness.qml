@@ -25,8 +25,16 @@ Singleton {
     // error }]. A integrada tem id "backlight"; os monitores, "ddc:<conector>".
     // Sem leitura, `value` é 0; uma tela com `error` fica na lista, fora do foco.
     property var screens: []
-    // O valor da tela integrada (0 sem ela): o OSD observa.
-    readonly property real value: screens.find(s => s.kind === "backlight")?.value ?? 0
+    // A última lista que chegou do daemon, sem os valores locais: volta a
+    // valer quando o holdMs de um ajuste acaba.
+    property var remote: []
+    // A tela integrada sem erro, ou null.
+    readonly property var panel: screens.find(s => s.kind === "backlight" && s.error === "") ?? null
+    readonly property bool hasPanel: panel !== null
+    // O valor da tela integrada: o OSD observa. Só muda com ela presente e
+    // sem erro (a queda do daemon ou o erro da tela não abrem o OSD com 0%);
+    // sem ela, fica o último valor (0 antes da primeira leitura).
+    property real value: 0
 
     // A tela em foco (ver focusedId), reativa ao monitor e às telas; null se não há.
     readonly property var focusedScreen: screens.find(s => s.id === focusedId()) ?? null
@@ -40,6 +48,8 @@ Singleton {
     readonly property int holdMs: 1000
     // id → Date.now() do último ajuste local.
     property var holds: ({})
+    // O holdMs do último ajuste local correndo.
+    readonly property bool holding: holdTimer.running
 
     // Emitido a cada pedido de ajuste, mesmo que o valor já esteja no limite.
     signal adjusted
@@ -95,15 +105,36 @@ Singleton {
     // O array que vem do sinal do cliente é uma lista do QML (Array.isArray
     // dá falso): vira array de JS antes do map.
     function applyScreens(data: var): void {
-        const incoming = (data.screens ? Array.from(data.screens) : []).map(s => toScreen(s));
-        screens = merged(incoming, screens, holds, Date.now());
+        remote = (data.screens ? Array.from(data.screens) : []).map(s => toScreen(s));
+        screens = merged(remote, screens, holds, Date.now());
     }
 
-    // Com o módulo parado, as telas saem (um ajuste daria o erro 1002).
+    // O holdMs acabou: a última lista do daemon vale de novo (a publicação
+    // final de um ajuste pode ter chegado dentro dele, e um DDC não republica).
+    function released(): void {
+        screens = merged(remote, screens, holds, Date.now());
+    }
+
+    // Com o módulo parado, as telas saem (um ajuste daria o erro 1002). Ao
+    // voltar, as telas são pedidas pelo power.list (o tópico pode não mudar).
     function applyStatus(data: var): void {
+        const before = error;
         error = data.error ? String(data.error) : "";
-        if (error !== "")
+        if (error !== "") {
             screens = [];
+            remote = [];
+        } else if (before !== "") {
+            reload();
+        }
+    }
+
+    // Relê as telas pelo power.list, só com a conexão feita.
+    function reload(): void {
+        if (client.connected)
+            client.call("power.list", {}, response => {
+                if (response.result)
+                    root.applyScreens(response.result);
+            });
     }
 
     // A conexão com o daemon mudou: ao cair, as telas somem; nos dois casos,
@@ -111,6 +142,7 @@ Singleton {
     function connectionChanged(connected: bool): void {
         if (!connected) {
             screens = [];
+            remote = [];
             error = "";
         }
         sync();
@@ -126,19 +158,36 @@ Singleton {
         }) : s);
     }
 
+    // A lista com o erro de uma tela trocado.
+    function withError(list: var, id: string, message: string): var {
+        return Array.from(list).map(s => s.id === id ? Object.assign({}, s, {
+            error: message
+        }) : s);
+    }
+
     // A resposta de um power.set ou power.change. O 1003 é a linha da tela
     // com erro: o texto vai para ela (sai do foco e o slider desabilita).
-    function answered(id: string, response: var): void {
+    // Devolve o que vale avisar no log: outro erro do daemon; nada no
+    // sucesso, no 1003 e sem conexão (-1, a queda já é avisada pelo cliente).
+    function answered(id: string, response: var): string {
         const failure = response?.error;
-        if (!failure)
-            return;
+        if (!failure || failure.code === -1)
+            return "";
         const message = String(failure.message ?? "erro desconhecido.");
-        if (failure.code === 1003)
-            screens = Array.from(screens).map(s => s.id === id ? Object.assign({}, s, {
-                error: message
-            }) : s);
-        else
-            console.warn(`Brightness: o ajuste de ${id} falhou: ${message}`);
+        if (failure.code !== 1003)
+            return `Brightness: o ajuste de ${id} falhou: ${message}`;
+        screens = withError(screens, id, message);
+        remote = withError(remote, id, message);
+        return "";
+    }
+
+    // O callback dos métodos: o answered e o aviso no log.
+    function warnOf(id: string): var {
+        return response => {
+            const text = root.answered(id, response);
+            if (text)
+                console.warn(text);
+        };
     }
 
     // Guarda a hora do ajuste local de uma tela (o holdMs conta dela).
@@ -146,6 +195,7 @@ Singleton {
         const next = Object.assign({}, holds);
         next[id] = Date.now();
         holds = next;
+        holdTimer.restart();
     }
 
     function set(fraction: real): void {
@@ -160,7 +210,7 @@ Singleton {
         client.call("power.set", {
             id: id,
             percent: Math.round(f * 100)
-        }, response => root.answered(id, response));
+        }, warnOf(id));
         adjusted();
     }
 
@@ -187,7 +237,7 @@ Singleton {
         client.call("power.change", {
             id: id,
             delta: Math.round(d * 100)
-        }, response => root.answered(id, response));
+        }, warnOf(id));
         adjusted();
     }
 
@@ -201,6 +251,18 @@ Singleton {
         function onConnectedChanged(): void {
             root.connectionChanged(root.client.connected);
         }
+    }
+
+    onPanelChanged: {
+        if (panel)
+            value = panel.value;
+    }
+
+    Timer {
+        id: holdTimer
+
+        interval: root.holdMs + 50
+        onTriggered: root.released()
     }
 
     Component.onCompleted: sync()

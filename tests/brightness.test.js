@@ -10,7 +10,7 @@ function run(t) {
 
     // O estado de antes, restaurado e conferido no fim de cada caso (a suíte
     // roda no mesmo processo que as seguintes).
-    const fields = ["client", "screens", "error", "lastId", "holds"];
+    const fields = ["client", "screens", "remote", "error", "lastId", "holds", "value"];
     const original = {};
     for (const f of fields)
         original[f] = B[f];
@@ -114,7 +114,7 @@ function run(t) {
         t.eq([B.screens[2].value, B.screens[2].error], [0, noAccess], "sem leitura, 0 e o erro");
         t.near(B.value, 0.5, 1e-9, "o valor da integrada");
         send(c, "power.screens", daemon([lg]));
-        t.eq(B.value, 0, "sem integrada, 0");
+        t.eq([B.hasPanel, B.value], [false, 0.5], "sem integrada, fica o último valor");
         t.eq(B.toScreen({ id: "x", kind: "ddc", name: "X", value: null, max: null, percent: null }), { id: "x", kind: "ddc", label: "X", output: "", value: 0, error: "" });
     });
 
@@ -190,20 +190,62 @@ function run(t) {
         c.receive(JSON.stringify({ jsonrpc: "2.0", id: failing.id, error: { code: 1003, message: noAccess } }));
         t.eq(B.screens[1].error, noAccess, "o texto da linha");
         t.eq(B.focusedId(), "backlight");
-        B.change(0.05);
-        c.receive(JSON.stringify({ jsonrpc: "2.0", id: last(c, "power.change").id, error: { code: 1001, message: "Essa tela não existe." } }));
+        t.eq(B.answered("backlight", { error: { code: 1001, message: "Essa tela não existe." } }), "Brightness: o ajuste de backlight falhou: Essa tela não existe.", "outro erro vai para o log");
         t.eq(B.screens[0].error, "", "outro erro não marca a linha");
+        t.eq(B.answered("backlight", { error: { code: -1, message: "Sem conexão com o teste." } }), "", "sem conexão, nada no log");
+        B.released();
+        t.eq(B.screens[1].error, noAccess, "o erro da linha sobrevive ao fim do hold");
         B.setScreen("backlight", 0.3);
         c.receive(ok(last(c, "power.set").id, {}));
         t.eq([B.screens[0].error, B.screens[0].value], ["", 0.3], "sucesso não muda nada");
+    });
+
+    withClient("brilho: a publicação dentro do hold vale quando ele acaba", c => {
+        send(c, "power.screens", daemon([panel, lg]));
+        B.setScreen("ddc:HDMI-A-1", 0.4);
+        t.check(B.holding, "o hold corre");
+        send(c, "power.screens", daemon([panel, Object.assign({}, lg, { value: 42, percent: 42 })]));
+        t.near(B.screens[1].value, 0.4, 1e-9, "dentro do hold, o local");
+        // O hold acabou (o timer chama o released()).
+        B.holds = { "ddc:HDMI-A-1": Date.now() - 2000 };
+        B.released();
+        t.near(B.screens[1].value, 0.42, 1e-9, "a publicação final do daemon");
+        t.near(B.shownValue, 0.42, 1e-9, "e o OSD também");
+    });
+
+    withClient("brilho: queda e erro da integrada não abrem o OSD", c => {
+        send(c, "power.screens", daemon([panel, lg]));
+        let changes = 0;
+        const count = () => changes++;
+        B.valueChanged.connect(count);
+        try {
+            B.connectionChanged(false);
+            t.eq([changes, B.hasPanel, B.value], [0, false, 0.5], "a queda não mexe no valor");
+            send(c, "power.screens", daemon([panel, lg]));
+            t.eq([changes, B.hasPanel], [0, true], "a volta com o mesmo valor também não");
+            send(c, "power.screens", daemon([broken(panel, "Não consegui ler o brilho da tela integrada: x."), lg]));
+            t.eq([changes, B.hasPanel, B.value], [0, false, 0.5], "a integrada com erro também não");
+            send(c, "power.screens", daemon([Object.assign({}, panel, { percent: 80 }), lg]));
+            t.eq([changes, B.value], [1, 0.8], "uma mudança de verdade sim");
+        } finally {
+            B.valueChanged.disconnect(count);
+        }
     });
 
     withClient("brilho: estado e queda", c => {
         send(c, "power.screens", daemon([panel, lg]));
         B.applyStatus({ available: false, error: "x" });
         t.eq([B.available, B.error, B.screens.length], [false, "x", 0], "o módulo parado leva as telas");
+        c.pending = {};
         send(c, "power.status", { available: true, error: null });
         t.eq([B.available, B.error], [true, ""]);
+        const list = last(c, "power.list");
+        t.check(list !== null, "o módulo de volta relê as telas");
+        c.receive(ok(list.id, daemon([panel, lg])));
+        t.eq(B.screens.map(s => s.id), ["backlight", "ddc:HDMI-A-1"], "pelo power.list");
+        c.pending = {};
+        send(c, "power.status", { available: true, error: null });
+        t.eq(last(c, "power.list"), null, "sem erro antes, não relê");
         send(c, "power.screens", daemon([panel]));
         c.want("power", []);
         B.connectionChanged(false);
