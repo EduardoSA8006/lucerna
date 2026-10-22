@@ -232,6 +232,25 @@ function run(t) {
         }
     });
 
+    withClient("brilho: o fim do hold com o mesmo percentual não abre o OSD", c => {
+        send(c, "power.screens", daemon([panel, lg]));
+        B.change(0.05);
+        t.eq(B.value, 0.55, "o valor local é o percentual inteiro (0,5 + 0,05 dá 0,55000000000000004)");
+        B.setScreen("backlight", 0.333);
+        t.eq(B.value, 0.33, "o slider também");
+        let changes = 0;
+        const count = () => changes++;
+        B.valueChanged.connect(count);
+        try {
+            send(c, "power.screens", daemon([Object.assign({}, panel, { value: 330, percent: 33 }), lg]));
+            B.holds = { backlight: Date.now() - 2000 };
+            B.released();
+            t.eq([changes, B.value], [0, 0.33], "a publicação final com o mesmo percentual não mexe no valor");
+        } finally {
+            B.valueChanged.disconnect(count);
+        }
+    });
+
     withClient("brilho: estado e queda", c => {
         send(c, "power.screens", daemon([panel, lg]));
         B.applyStatus({ available: false, error: "x" });

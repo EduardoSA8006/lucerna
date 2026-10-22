@@ -202,8 +202,11 @@ Singleton {
         setScreen("backlight", fraction);
     }
 
+    // O valor local fica no percentual inteiro, como o do daemon (percent /
+    // 100): no fim do hold, a mesma tela não muda por um resto de ponto
+    // flutuante (0,5 + 0,05 ≠ 0,55) e o OSD não reabre.
     function setScreen(id: string, fraction: real): void {
-        const f = Math.max(0.01, Math.min(1, fraction));
+        const f = Math.round(Math.max(0.01, Math.min(1, fraction)) * 100) / 100;
         screens = withValue(screens, id, f);
         hold(id);
         lastId = id;
@@ -232,7 +235,7 @@ Singleton {
         const d = Math.max(-1, Math.min(1, delta));
         const id = screen.id;
         lastId = id;
-        screens = withValue(screens, id, Math.max(0.01, Math.min(1, screen.value + d)));
+        screens = withValue(screens, id, Math.round(Math.max(0.01, Math.min(1, screen.value + d)) * 100) / 100);
         hold(id);
         client.call("power.change", {
             id: id,

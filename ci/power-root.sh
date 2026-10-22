@@ -13,7 +13,7 @@ set -euo pipefail
 
 root=${1:?uso: ci/power-root.sh <pasta>}
 case "$root" in
-    /*) ;;
+    /*) root=$(realpath -m -- "$root") ;;
     *)
         echo "ci/power-root.sh: a pasta precisa ser um caminho absoluto, veio '$root'" >&2
         exit 64

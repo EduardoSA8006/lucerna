@@ -38,7 +38,7 @@
 # `dev/test.sh run 'pkill -x lucernad'`; para voltar (sempre pelo `run`, que põe
 # o WAYLAND_DISPLAY do Hyprland aninhado, e sempre com a raiz falsa do brilho:
 # o container monta o D-Bus do sistema do host e vê o /sys dele):
-# `dev/test.sh run 'bash ~/.config/quickshell/lucerna/ci/power-root.sh /tmp/lucerna-power && setsid -f env LUCERNAD_POWER_ROOT=/tmp/lucerna-power lucernad serve'`
+# `dev/test.sh run 'bash ~/.config/quickshell/lucerna/ci/power-root.sh /tmp/lucerna-power && setsid -f env LUCERNAD_POWER_ROOT=/tmp/lucerna-power LUCERNA_IDLE_TIMEOUT_MS=86400000 lucernad serve'`
 #
 # Teclas com modificador pelo wtype: o Hyprland aninhado resolve os binds pelo
 # keycode do keymap real, e o wtype numera as teclas do keymap dele na ordem em

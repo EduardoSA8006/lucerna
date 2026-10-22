@@ -86,6 +86,24 @@ Sobras do módulo da área de transferência (baixo risco, adiadas na revisão f
   - falta um teste da ordem do `Component.onCompleted` do `Clipboard` (configurar antes de assinar) com o cliente já conectado;
   - o `onAtYEndChanged` do painel não dispara de novo quando a página somada cabe inteira na tela (a lista não chega a rolar): o "mais" seguinte só vem pelas setas.
 
+## Sobras do módulo de energia e brilho
+
+Adiadas na revisão do módulo `power` do `lucernad` (lucernad#14) e do shell (PR #50).
+
+- [ ] **lucernad:**
+  - cada escrita na integrada faz 4 chamadas D-Bus ao logind (dá para usar um `GetAll` e guardar o `Type`/`Seat` da sessão);
+  - um `GetHistory` que falha derruba o histórico inteiro (o último bom poderia ficar, com o erro ao lado);
+  - os perfis ficam sem estado inicial se a primeira leitura falha (só voltam no próximo `PropertiesChanged` ou `NameOwnerChanged`);
+  - o `O_NOFOLLOW` do `TreeWriter` vale só no último componente do caminho;
+  - `EBUSY` no endereço 0x50 (EDID) sem tentar o `I2C_SLAVE_FORCE`;
+  - docks DisplayLink (monitores sem barramento i2c de placa de vídeo) ficam de fora.
+- [ ] **Shell:**
+  - o slider recua quando o DDC leva mais de 1 s (o hold acaba antes da publicação final) e avança na publicação;
+  - corrida mínima no `reload` (`power.list`) quando o módulo volta enquanto chega um `power.screens`;
+  - com o lucernad fora desde a partida, os botões de perfil ficam escondidos (o `profilesAvailable` não tem último valor);
+  - um `1003` no meio do arrasto marca a tela com erro e o slider da central passa para a próxima tela;
+  - o `busctl` continua na imagem do container (vem do systemd do Arch base), embora o shell não o use mais.
+
 ## Depois
 
 - [ ] Aba Desempenho: um medidor de bateria em forma de pilha, só no notebook. Rascunhos de três encaixes (ao lado de CPU e GPU, em pé ao lado da Memória, faixa embaixo) em `.superpowers/brainstorm/436361-1792526405/content/bateria-desempenho.html`; o usuário quer planejar melhor antes.
