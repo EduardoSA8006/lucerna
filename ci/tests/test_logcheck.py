@@ -29,10 +29,6 @@ ENVIRONMENT = [
     '  WARN: Process failed to start, likely because the binary could not be found. Command: QList("hyprctl", "version", "-j")',
     '  WARN: Process failed to start, likely because the binary could not be found. Command: QList("hyprctl", "monitors", "all", "-j")',
     '  WARN: Process failed to start, likely because the binary could not be found. Command: QList("hyprctl", "devices", "-j")',
-    (
-        "  WARN: Process failed to start, likely because the binary could not be found. "
-        'Command: QList("brightnessctl", "-m", "-c", "backlight", "info")'
-    ),
     "  WARN quickshell.bluetooth: Could not connect to DBus. Bluetooth integration is not available.",
 ]
 

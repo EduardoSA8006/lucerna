@@ -110,6 +110,7 @@ Singleton {
     function connectionChanged(connected: bool): void {
         if (!connected) {
             history = [];
+            historyError = "";
             powerError = "";
         }
         sync();

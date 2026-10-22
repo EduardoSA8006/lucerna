@@ -18,14 +18,12 @@
 ^WARN quickshell\.hyprland\.ipc: Error making request: QLocalSocket::ServerNotFoundError request: "dispatch hl\.dsp\.dpms\(\{ action = \\"on\\" \}\)"$
 ^WARN quickshell\.hyprland\.ipc: Failed to request dispatch of "hl\.dsp\.dpms\(\{ action = \\"on\\" \}\)"$
 
-# Programas que o container não tem: o hyprctl vem com o Hyprland (fora do CI)
-# e o brightnessctl só serve com uma tela de brilho ajustável (a saída do sway
-# headless não tem). O Quickshell avisa ao não achar o binário; cada linha é o
-# comando exato medido na fumaça.
+# Programa que o container não tem: o hyprctl vem com o Hyprland (fora do CI).
+# O Quickshell avisa ao não achar o binário; cada linha é o comando exato
+# medido na fumaça.
 ^WARN: Process failed to start, likely because the binary could not be found\. Command: QList\("hyprctl", "version", "-j"\)$
 ^WARN: Process failed to start, likely because the binary could not be found\. Command: QList\("hyprctl", "monitors", "all", "-j"\)$
 ^WARN: Process failed to start, likely because the binary could not be found\. Command: QList\("hyprctl", "devices", "-j"\)$
-^WARN: Process failed to start, likely because the binary could not be found\. Command: QList\("brightnessctl", "-m", "-c", "backlight", "info"\)$
 
 # O sway não tem o protocolo de foco do Hyprland, que o Panels usa para fechar
 # os painéis com um clique fora. O aviso do Quickshell vem em duas linhas.

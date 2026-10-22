@@ -96,9 +96,12 @@ function run(t) {
     });
 
     withClient("bateria: perfis do daemon", c => {
-        send(c, "power.profiles", { available: true, performance: false });
+        // Sem o power-profiles-daemon no D-Bus do teste, o PowerProfiles do
+        // Quickshell não tem o perfil de desempenho: o "performance: true" do
+        // lucernad não pode ligar o Turbo.
+        send(c, "power.profiles", { available: true, performance: true });
         t.eq(B.profilesAvailable, true);
-        t.eq(B.hasPerformance, t.PowerProfiles?.hasPerformanceProfile ?? B.hasPerformance, "o Turbo continua do Quickshell");
+        t.eq(B.hasPerformance, false, "o Turbo continua do Quickshell, não do daemon");
         send(c, "power.profiles", { available: false, performance: false });
         t.eq(B.profilesAvailable, false, "o daemon diz que não há");
     });
@@ -108,8 +111,9 @@ function run(t) {
         send(c, "power.history", { points: [{ time: 1, rate: 5, state: 2 }] });
         send(c, "power.status", { available: true, error: "parou" });
         t.eq([B.powerError, B.powerAvailable], ["parou", false], "o módulo parou");
+        B.historyError = "e";
         B.connectionChanged(false);
-        t.eq([B.history, B.powerError], [[], ""], "a queda zera o histórico e o erro");
+        t.eq([B.history, B.historyError, B.powerError], [[], "", ""], "a queda zera o histórico e os erros");
         t.eq(B.profilesAvailable, true, "os perfis ficam com o último valor");
         send(c, "power.status", { available: true, error: null });
         t.eq(B.powerError, "");
