@@ -11,8 +11,17 @@ import qs.services
 Singleton {
     id: root
 
-    // Brilho de cada tela (a integrada e os monitores externos por DDC/CI).
+    // Brilho de cada tela (a integrada e os monitores externos por DDC/CI),
+    // vindo do lucernad.
     readonly property var brightnessScreens: Brightness.screens
+    // Vazio com o módulo de energia funcionando; senão, o porquê.
+    readonly property string brightnessUnavailable: {
+        if (Brightness.available)
+            return "";
+        if (!Brightness.client.connected)
+            return "Indisponível: sem conexão com o lucernad.";
+        return `Indisponível: ${Brightness.error}`;
+    }
 
     function setBrightness(id: string, value: real): void {
         Brightness.setScreen(id, value);

@@ -15,8 +15,17 @@ Column {
     Component.onCompleted: IdleSettings.check()
 
     SettingSection {
-        visible: IdleSettings.brightnessScreens.length > 0
+        visible: IdleSettings.brightnessScreens.length > 0 || IdleSettings.brightnessUnavailable !== ""
         title: "Brilho"
+
+        // Sem o módulo de energia do lucernad: o porquê, no lugar das telas.
+        SettingRow {
+            visible: IdleSettings.brightnessUnavailable !== ""
+            icon: Icons.brightnessMedium
+            title: "Brilho das telas"
+            description: IdleSettings.brightnessUnavailable
+            dimmed: true
+        }
 
         // Uma linha por índice: o Brightness.screens é refeito a cada
         // mudança de valor, e com a lista como modelo a linha seria recriada
@@ -31,12 +40,14 @@ Column {
                 readonly property var screen: IdleSettings.brightnessScreens[screenRow.index] ?? ({})
 
                 wide: true
-                icon: screenRow.screen.id === "backlight" ? Icons.brightnessMedium : Icons.monitor
+                icon: screenRow.screen.kind === "backlight" ? Icons.brightnessMedium : Icons.monitor
                 title: screenRow.screen.label ?? ""
-                description: screenRow.screen.output ? `${screenRow.screen.output} · pelo DDC/CI` : ""
+                // A tela com erro mostra o erro, com o slider desabilitado.
+                description: screenRow.screen.error || (screenRow.screen.kind === "ddc" ? `${screenRow.screen.output} · pelo DDC/CI` : "")
 
                 Slider {
                     width: parent.width
+                    enabled: !screenRow.screen.error
                     from: 0.01
                     to: 1
                     value: screenRow.screen.value ?? 0

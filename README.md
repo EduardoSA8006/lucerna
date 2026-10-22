@@ -138,15 +138,13 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 
 - **Hyprland 0.56+**, com a configuração em Lua (`hyprland.lua`)
 - **Quickshell 0.3.1+**
-- **lucernad** (o daemon do Lucerna): CPU, memória, rede, discos, temperatura e GPU da aba Desempenho e do card de recursos, o espectro do som do player em volta da capa (pelo PipeWire) e o histórico da área de transferência (pelo protocolo de controle de dados do Wayland); sem ele, aparecem como indisponíveis, o anel fica parado e o histórico fica desligado. Instalação no [README do lucernad](https://github.com/lucerna-desktop/lucernad#instalação).
+- **lucernad** (o daemon do Lucerna): CPU, memória, rede, discos, temperatura e GPU da aba Desempenho e do card de recursos, o espectro do som do player em volta da capa (pelo PipeWire), o histórico da área de transferência (pelo protocolo de controle de dados do Wayland), o brilho das telas (a integrada pelo logind e os monitores externos por DDC/CI, que precisam da regra udev e do módulo `i2c-dev` do README do lucernad), o gráfico de consumo da bateria e os perfis de energia (pelo UPower e pelo power-profiles-daemon, no D-Bus); sem ele, aparecem como indisponíveis, o anel fica parado, o histórico fica desligado e o slider de brilho some. Instalação no [README do lucernad](https://github.com/lucerna-desktop/lucernad#instalação).
 - **Fonte de ícones**: `ttf-material-symbols-variable` (repositório oficial do Arch)
 - Opcionais, cada um liga uma parte:
   - PipeWire: volume e mídia
   - UPower: bateria e perfis de energia
   - NetworkManager: rede
   - BlueZ: Bluetooth
-  - `brightnessctl`: brilho da tela integrada
-  - `ddcutil`: brilho dos monitores externos (DDC/CI). Precisa do módulo `i2c-dev` carregado (`echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf`); o pacote já dá acesso ao usuário da sessão.
   - `hyprsunset`: luz noturna
   - `grim` e `wf-recorder`: captura de tela e gravação
   - `fd`: busca de arquivos do launcher mais rápida (sem ele, usa o `find`)
@@ -210,7 +208,7 @@ Tudo pode ser chamado de fora com `qs -c lucerna ipc call <alvo> <função> [arg
 | `launcher` | `open <categoria> <busca>` (`apps`, `files`, `documents`, `images`, `music`, `videos`, `web`; a busca pode ser `""`), `toggle` |
 | `session` | `lock`, `isLocked` |
 | `theme` | `set <id>`, `get`, `list` |
-| `brightness` | `up`, `down`, `set <0-100>` (a tela em foco), `setFor <id> <0-100>`, `list` (as telas e os ids: `backlight`, `ddc:<barramento>`) |
+| `brightness` | `up`, `down`, `set <0-100>` (a tela em foco), `setFor <id> <0-100>`, `list` (as telas e os ids: `backlight`, `ddc:<conector>`, ex.: `ddc:HDMI-A-1`) |
 | `monitors` | `identify` |
 | `overview` | `toggle` |
 | `capture` | `open <shot\|record>` (o painel; `""` = o último), `screen`, `window` (direto), `record` (gravar ou parar), `stop` |
@@ -269,9 +267,9 @@ dev/run.sh log        # segue o log do Quickshell
 
 No host é preciso Docker, uma sessão Wayland e o usuário no grupo `docker`.
 
-- Volume, bateria e rede mostram o estado real do host: o PipeWire e o D-Bus do sistema são repassados ao container.
+- Volume, bateria e rede mostram o estado real do host: o PipeWire e o D-Bus do sistema são repassados ao container. A exceção é o que vem do módulo de energia do `lucernad`: com a raiz falsa do brilho (abaixo), ele não fala com o D-Bus do sistema, então os botões de perfil de energia somem e o gráfico de consumo fica em "Medindo".
 - Com `LUCERNA_DEV=1`, definido pelo `run.sh`, as ações que chegariam ao host são só simuladas: suspender, reiniciar e desligar, ligar e desligar Wi-Fi e Bluetooth, conectar a redes e dispositivos, e o perfil de energia. A leitura é real.
-- O brilho é só leitura no container; os ajustes são simulados.
+- O brilho no container é o de uma tela integrada falsa: o `lucernad` sobe com `LUCERNAD_POWER_ROOT=/tmp/lucerna-power` (a árvore criada pelo `ci/power-root.sh`) e os ajustes gravam no arquivo `brightness` dessa árvore, nunca no host (o container vê o `/sys` e o D-Bus do sistema dele). Sem monitores externos.
 - A senha da tela de bloqueio no container é `lucerna` (usuário `dev`).
 - Para testar a aba Mídia, a imagem tem `mpv` com `mpv-mpris`: rode `dev/run.sh shell` e depois `mpv --no-video arquivo.mp3`.
 - Para testar monitores, crie saídas virtuais: `hyprctl output create headless`.

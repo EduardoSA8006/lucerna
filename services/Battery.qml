@@ -35,107 +35,99 @@ Singleton {
     // mesmo com a bateria simulada; 0 se o UPower não sabe).
     readonly property real rate: Math.abs(device?.changeRate ?? 0)
 
+    // O cliente do lucernad (o módulo power). Não é readonly: os testes trocam
+    // por um cliente próprio.
+    property var client: Lucernad.client
+    // O error do power.status: o módulo pode estar parado com o daemon de pé.
+    property string powerError: ""
+    // Disponível é conectado e sem `powerError` (o `available` do status não
+    // diz se o módulo funciona).
+    readonly property bool powerAvailable: client.connected && powerError === ""
+
     // Consumo da última hora, para o gráfico da central: [{ time (s), value
     // (W), state (o do UPower: 1 carregando, 2 descarregando...) }], do mais
     // antigo ao mais novo, e quando foi lido (historyAt, em s). Vem do
-    // histórico do UPower (GetHistory "rate" no dispositivo da bateria; o
-    // DisplayDevice não tem): uma sonda na partida e, depois, ao ligar
-    // `historyActive` (a central na página da bateria) e a cada 60 s enquanto
-    // ele fica ligado. Se a sonda falha, o shell junta uma amostra do `rate` a
-    // cada 30 s. Só com a bateria real: a simulada (e o CI) não pergunta nada.
+    // power.history do lucernad, assinado só com `historyActive` (a central
+    // na página da bateria). `historyError` diz por que o daemon não leu.
     property bool historyActive: false
     property var history: []
     property real historyAt: 0
-    property bool upowerHistory: false
-    property int historyFailures: 0
-    property bool historyProbed: false
+    property string historyError: ""
     readonly property int historySpan: 3600
     readonly property bool realBattery: (device?.ready ?? false) && device.isLaptopBattery && device.isPresent
 
-    // A resposta do `busctl --json=short` ao GetHistory (a(udu): tempo, valor,
-    // estado; o mais novo primeiro) em pontos do mais antigo ao mais novo. Fora
-    // do formato, nenhum ponto.
-    function parseHistory(text: string): var {
-        let rows;
-        try {
-            rows = JSON.parse(text).data[0];
-        } catch (e) {
-            return [];
-        }
-        if (!Array.isArray(rows))
-            return [];
-        return rows.filter(r => Array.isArray(r) && typeof r[0] === "number" && typeof r[1] === "number" && r[1] >= 0).map(r => ({ time: r[0], value: r[1], state: r[2] ?? 0 })).sort((a, b) => a.time - b.time);
+    function wantedTopics(active: bool): var {
+        return active ? ["power.status", "power.profiles", "power.history"] : ["power.status", "power.profiles"];
     }
 
-    // A lista com a amostra no fim, sem as mais velhas que `span` segundos.
-    function pushSample(list: var, sample: var, span: real): var {
-        return [...list.filter(p => p.time >= sample.time - span), sample];
+    function sync(): void {
+        client.want("battery", wantedTopics(historyActive));
     }
 
-    // O estado ({ history, upower, failures }) depois de uma resposta do
-    // UPower: com pontos, eles (as amostras saem); sem, conta a falha, e só na
-    // terceira seguida volta às amostras, do zero (as duas fontes não se
-    // misturam).
-    function historyAfter(state: var, points: var): var {
-        if (points.length > 0)
-            return { history: points, upower: true, failures: 0 };
-        const failures = state.failures + 1;
-        if (state.upower && failures < 3)
-            return { history: state.history, upower: true, failures: failures };
-        return { history: state.upower ? [] : state.history, upower: false, failures: failures };
-    }
-
-    // A sonda: uma vez, quando a bateria real aparece.
-    onRealBatteryChanged: probeHistory()
-    Component.onCompleted: probeHistory()
-
-    function probeHistory(): void {
-        if (realBattery && !historyProbed)
-            historyQuery.running = true;
-    }
-
-    Timer {
-        interval: 60000
-        repeat: true
-        triggeredOnStart: true
-        running: root.historyActive && root.realBattery
-        onTriggered: historyQuery.running = true
-    }
-
-    // O dispositivo da bateria do notebook: o primeiro battery_* que alimenta o
-    // sistema (os de fones e mouses não). Pelo sh, calado, como a sonda dos perfis.
-    Process {
-        id: historyQuery
-
-        command: ["sh", "-c", `exec 2> /dev/null
-command -v busctl > /dev/null || exit 1
-for p in $(busctl --system --json=short call org.freedesktop.UPower /org/freedesktop/UPower org.freedesktop.UPower EnumerateDevices | grep -o '/org/freedesktop/UPower/devices/battery_[A-Za-z0-9_]*'); do
-    busctl --system get-property org.freedesktop.UPower "$p" org.freedesktop.UPower.Device PowerSupply | grep -q true && exec busctl --system --json=short call org.freedesktop.UPower "$p" org.freedesktop.UPower.Device GetHistory suu rate ${root.historySpan} 120
-done
-exit 1`]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const next = root.historyAfter({ history: root.history, upower: root.upowerHistory, failures: root.historyFailures }, root.parseHistory(text));
-                root.history = next.history;
-                root.upowerHistory = next.upower;
-                root.historyFailures = next.failures;
-                if (next.upower)
-                    root.historyAt = Date.now() / 1000;
-                root.historyProbed = true;
-            }
+    // Um estado recebido do daemon; `null` (o tópico ainda sem amostra) e
+    // tópico desconhecido não mudam nada.
+    function apply(topic: string, data: var): void {
+        if (data === null || data === undefined)
+            return;
+        switch (topic) {
+        case "power.history":
+            applyHistory(data);
+            break;
+        case "power.profiles":
+            applyProfiles(data);
+            break;
+        case "power.status":
+            applyStatus(data);
+            break;
         }
     }
 
-    // A amostra do shell, se a sonda não achou o histórico do UPower.
-    Timer {
-        interval: 30000
-        repeat: true
-        triggeredOnStart: true
-        running: root.realBattery && root.historyProbed && !root.upowerHistory
-        onTriggered: {
-            const charging = root.device?.state === UPowerDeviceState.Charging || root.device?.state === UPowerDeviceState.PendingCharge;
-            root.historyAt = Date.now() / 1000;
-            root.history = root.pushSample(root.history, { time: root.historyAt, value: root.rate, state: charging ? 1 : 2 }, root.historySpan);
+    // Os pontos do daemon ({ time, rate, state }; o array do sinal é uma lista
+    // do QML e vira array de JS antes do filter) em { time, value, state }, do
+    // mais antigo ao mais novo; só com tempo e taxa numéricos e taxa >= 0.
+    function applyHistory(data: var): void {
+        const rows = data.points ? Array.from(data.points) : [];
+        history = rows.filter(r => typeof r.time === "number" && typeof r.rate === "number" && r.rate >= 0).map(r => ({
+                    time: r.time,
+                    value: r.rate,
+                    state: r.state ?? 0
+                })).sort((a, b) => a.time - b.time);
+        historyAt = Date.now() / 1000;
+        historyError = data.error ? String(data.error) : "";
+    }
+
+    function applyProfiles(data: var): void {
+        profilesAvailable = data.available === true;
+    }
+
+    function applyStatus(data: var): void {
+        powerError = data.error ? String(data.error) : "";
+    }
+
+    // A conexão com o daemon mudou: ao cair, o histórico some (os perfis
+    // ficam com o último valor: a troca é do Quickshell); nos dois casos, a
+    // assinatura vai de novo.
+    function connectionChanged(connected: bool): void {
+        if (!connected) {
+            history = [];
+            historyError = "";
+            powerError = "";
+        }
+        sync();
+    }
+
+    onHistoryActiveChanged: sync()
+    Component.onCompleted: sync()
+
+    Connections {
+        target: root.client
+
+        function onReceived(topic: string, data: var): void {
+            root.apply(topic, data);
+        }
+
+        function onConnectedChanged(): void {
+            root.connectionChanged(root.client.connected);
         }
     }
 
@@ -146,16 +138,11 @@ exit 1`]
     readonly property bool hasPerformance: PowerProfiles.hasPerformanceProfile
     readonly property var profileNames: ["Economia", "Equilibrado", "Turbo"]
 
-    // O power-profiles-daemon responde no D-Bus do sistema? O PowerProfiles do
-    // Quickshell não diz; sem ele, a central esconde os botões de perfil. Pelo
-    // sh: sem busctl ou sem o D-Bus do sistema (o CI), sai com erro, calado.
+    // O power-profiles-daemon responde no D-Bus do sistema? Vem do power.profiles
+    // do lucernad; sem o daemon, fica o último valor conhecido. O PowerProfiles
+    // do Quickshell não diz se o serviço existe; sem ele, a central esconde os
+    // botões de perfil.
     property bool profilesAvailable: false
-
-    Process {
-        running: true
-        command: ["sh", "-c", "command -v busctl > /dev/null && { busctl --system introspect net.hadess.PowerProfiles /net/hadess/PowerProfiles || busctl --system introspect org.freedesktop.UPower.PowerProfiles /org/freedesktop/UPower/PowerProfiles; } > /dev/null 2>&1"]
-        onExited: code => root.profilesAvailable = code === 0
-    }
 
     function setProfile(value: int): void {
         if (value === profile)

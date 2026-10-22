@@ -31,6 +31,9 @@ Singleton {
     // Gráfico do consumo da última hora: os pontos (x e y de 0 a 1) e o valor
     // de agora.
     readonly property var chart: chartPoints(phase(Battery.history, charging), Battery.historyAt, Battery.historySpan)
+    // O que o gráfico diz sem pontos: por que não há (sem o lucernad, o módulo
+    // parado ou o erro do histórico) ou "Medindo".
+    readonly property string chartNote: chart.length > 0 ? "" : !Battery.client.connected ? "Indisponível: sem conexão com o lucernad." : Battery.powerError !== "" ? `Indisponível: ${Battery.powerError}` : Battery.historyError !== "" ? `Indisponível: ${Battery.historyError}` : "Medindo"
     readonly property string consumptionText: consumption(Battery.rate, charging)
 
     // O histórico ({ time, value }, do mais antigo ao mais novo) na janela de

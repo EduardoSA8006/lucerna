@@ -13,8 +13,12 @@ hl.on("hyprland.start", function()
     -- encerra por ociosidade (24 h). Só com o WAYLAND_DISPLAY do Hyprland
     -- aninhado (wayland-<número>): o container recebe o socket do compositor do
     -- host como wayland-host, e um lucernad nele observaria (e tomaria) a área
-    -- de transferência de verdade do usuário.
-    hl.exec_cmd([[sh -c 'case "$WAYLAND_DISPLAY" in wayland-[0-9]*) exec env LUCERNA_IDLE_TIMEOUT_MS=86400000 lucernad serve ;; *) echo "hyprland.lua: o lucernad não sobe: WAYLAND_DISPLAY=$WAYLAND_DISPLAY não é o do Hyprland aninhado (wayland-<número>)" >&2 ;; esac']])
+    -- de transferência de verdade do usuário. E sempre com a raiz falsa do
+    -- brilho (ci/power-root.sh, LUCERNAD_POWER_ROOT): o container monta o
+    -- D-Bus do sistema do host e vê o /sys dele; sem ela, um ajuste de brilho
+    -- aqui mudaria o brilho de verdade do host (o lucernad em container sem a
+    -- raiz deixa o módulo indisponível, mas a defesa não depende só dele).
+    hl.exec_cmd([[sh -c 'case "$WAYLAND_DISPLAY" in wayland-[0-9]*) bash ~/.config/quickshell/lucerna/ci/power-root.sh /tmp/lucerna-power && exec env LUCERNAD_POWER_ROOT=/tmp/lucerna-power LUCERNA_IDLE_TIMEOUT_MS=86400000 lucernad serve ;; *) echo "hyprland.lua: o lucernad não sobe: WAYLAND_DISPLAY=$WAYLAND_DISPLAY não é o do Hyprland aninhado (wayland-<número>)" >&2 ;; esac']])
     hl.exec_cmd("qs -c lucerna")
 end)
 

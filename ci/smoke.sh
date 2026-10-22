@@ -20,6 +20,14 @@
 # a busca "fumaca" acha o texto com o trecho marcado, e o `lucernad copiar`
 # põe o texto de volta na seleção (lido pelo lucernad-selecao). O painel da
 # área de transferência é capturado com os dois itens.
+# Depois dela, a fase "brilho": o lucernad sobe com LUCERNAD_POWER_ROOT numa
+# árvore falsa (ci/power-root.sh: uma tela integrada de teste com 1000 de
+# máximo e 500 de valor; nada de logind, DDC ou /sys de verdade); o `lucernad
+# brilho` precisa mostrar a `backlight` em 50% (5 s), a tecla `brightness up`
+# precisa levar o arquivo da árvore a 550 (2 s, com a captura do OSD) e dez
+# teclas seguidas, a 1000 (2 s, a rajada juntada no limite); a central é
+# capturada com o slider. Na fase "lucernad fora", a página Tela e ociosidade
+# das configurações também é capturada, com o brilho "Indisponível".
 # O som nunca alcança um alto-falante: o PipeWire da fumaça é próprio, sem os
 # monitores de hardware, e o mpv toca só no sink nulo. A unidade roda de novo
 # numa cópia separada (unit_suites e unit_run, do ci/lib.sh), e a cobertura de
@@ -33,7 +41,9 @@
 # com valor acima de 0,05 em 5 s), fluxo de captura que sobra com o painel
 # fechado (5 s), a área de transferência (texto que não entra em 5 s, imagem
 # sem miniatura, senha que entra, busca sem o texto ou sem o trecho, colar de
-# volta que não devolve o texto), `ipc call`
+# volta que não devolve o texto), o brilho (lucernad sem o aviso da árvore de
+# teste no log, a tela falsa que não aparece em 50% em 5 s, a tecla que não
+# leva o arquivo a 550 ou a rajada que não chega a 1000, cada uma em 2 s), `ipc call`
 # com código diferente de 0, `panels get` diferente do esperado, painel que não
 # fecha, shell que cai (inclusive no repouso de 5 s depois do último passo),
 # shell que não encerra limpo com `qs kill` (código 0 em 10 s), aviso ou erro
@@ -251,8 +261,14 @@ row "player de teste" "org.mpris.MediaPlayer2.mpv* em 10 s" "$mpris"
 # fumaça inteira cabe nela); o socket dele fica no XDG_RUNTIME_DIR da fumaça.
 # Sem WAYLAND_DISPLAY: a área de transferência observa a sessão que o shell
 # manda no clipboard.configure (o caminho do daemon sem sessão no ambiente).
+# O brilho é o de uma árvore falsa (LUCERNAD_POWER_ROOT, criada pelo
+# ci/power-root.sh): a fumaça rodada fora do container nunca toca o brilho de
+# verdade.
 lucernad_sock="$XDG_RUNTIME_DIR/lucerna/lucernad.sock"
-LUCERNA_IDLE_TIMEOUT_MS=600000 setsid env -u WAYLAND_DISPLAY lucernad serve > "$out/lucernad.log" 2>&1 &
+power_root="$XDG_RUNTIME_DIR/power"
+bash "$repo/ci/power-root.sh" "$power_root" || fail "o ci/power-root.sh não criou a árvore falsa do brilho em $power_root"
+power_file="$power_root/sys/class/backlight/lucerna_teste/brightness"
+LUCERNAD_POWER_ROOT=$power_root LUCERNA_IDLE_TIMEOUT_MS=600000 setsid env -u WAYLAND_DISPLAY lucernad serve > "$out/lucernad.log" 2>&1 &
 lucernad_pid=$!
 for _ in $(seq 50); do
     [ -S "$lucernad_sock" ] && break
@@ -264,6 +280,9 @@ if [ ! -S "$lucernad_sock" ]; then
     fail "o lucernad não abriu $lucernad_sock em 10 s (veja lucernad.log)"
 fi
 row "lucernad" "socket em 10 s" "lucerna/lucernad.sock"
+grep -qF "LUCERNAD_POWER_ROOT=$power_root: o brilho é de teste" "$out/lucernad.log" \
+    || fail "o lucernad não avisou que o brilho é o da árvore de teste ($power_root; veja lucernad.log)"
+row "lucernad" "brilho da árvore de teste" "LUCERNAD_POWER_ROOT=power"
 
 # O shell grava o próprio PID (o bash do meio dá lugar ao qs com exec, e o
 # grupo é o dele): é por ele que a fumaça confere que o shell continua vivo e o
@@ -507,8 +526,63 @@ step clipboard clipboard open
 step capture capture open shot
 step overview overview toggle
 
+# Fase "brilho". backlight_percent: o percent da tela `backlight` no `lucernad
+# --json brilho` (vazio se o daemon não responder ou a tela não vier).
+backlight_percent() {
+    timeout "$CMD_TIMEOUT" lucernad --json brilho 2> /dev/null | python3 -c '
+import json, sys
+for line in sys.stdin:
+    try:
+        page = json.loads(line)
+    except ValueError:
+        continue
+    screens = page.get("screens") if isinstance(page, dict) else None
+    if isinstance(screens, list):
+        for screen in screens:
+            if isinstance(screen, dict) and screen.get("id") == "backlight" and not screen.get("error"):
+                print(screen.get("percent"))
+        break
+' || true
+}
+# wait_power <valor>: espera até 2 s o arquivo brightness da árvore falsa
+# chegar ao valor; o último lido fica em $power.
+wait_power() {
+    for _ in $(seq 10); do
+        power=$(cat "$power_file" 2> /dev/null || true)
+        [ "$power" = "$1" ] && return 0
+        sleep 0.2
+    done
+    return 1
+}
+percent=""
+for _ in $(seq 25); do
+    percent=$(backlight_percent)
+    [ "$percent" = 50 ] && break
+    sleep 0.2
+done
+row "brilho" "tela integrada falsa em 50% em 5 s" "${percent:-(não veio)}"
+[ "$percent" = 50 ] || fail "o lucernad --json brilho não trouxe a tela backlight em 50% em 5 s (veio \"$percent\"; veja lucernad.log)"
+n=$((n + 1))
+ipc brightness up > /dev/null || fail "ipc call brightness up falhou: $(why $?)"
+wait_power 550 || true
+row "brilho" "tecla: o arquivo em 550 em 2 s" "${power:-(vazio)}"
+[ "$power" = 550 ] || fail "depois do ipc call brightness up, o brightness da árvore falsa não chegou a 550 em 2 s (veio \"$power\")"
+shot "$out/shots/$(printf '%02d' "$n")-osd-brilho.png" || fail "o grim não capturou o OSD do brilho: $(why $?)"
+for _ in $(seq 10); do
+    ipc brightness up > /dev/null || fail "ipc call brightness up (rajada) falhou: $(why $?)"
+done
+wait_power 1000 || true
+row "brilho" "rajada de 10 teclas: o arquivo em 1000 em 2 s" "${power:-(vazio)}"
+[ "$power" = 1000 ] || fail "depois de 10 ipc call brightness up, o brightness da árvore falsa não chegou a 1000 em 2 s (veio \"$power\")"
+alive || fail "o shell caiu na fase do brilho"
+n=$((n + 1))
+ipc central open "" > /dev/null || fail "ipc call central open falhou: $(why $?)"
+sleep 1
+shot "$out/shots/$(printf '%02d' "$n")-central-brilho.png" || fail "o grim não capturou a central com o brilho: $(why $?)"
+ipc panels close > /dev/null || fail "ipc call panels close falhou: $(why $?)"
+
 # Fase "lucernad fora": o daemon para, o shell nota e as abas que leem dele
-# mostram o "indisponível" (as capturas desses dois passos).
+# mostram o "indisponível" (as capturas desses três passos).
 stop_group "$lucernad_pid"
 lucernad_pid=""
 if ! wait_log "lucerna: sem conexão com o lucernad"; then
@@ -518,6 +592,7 @@ fi
 row "lucernad fora" "o shell nota em 10 s" "lucerna: sem conexão com o lucernad"
 step dashboard dashboard open performance
 step dashboard dashboard open overview
+step settings settings open idle
 
 # Repouso: o shell fica parado alguns segundos depois do último passo, para o
 # que chega tarde (um Timer, uma resposta assíncrona, o efeito do último

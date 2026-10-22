@@ -35,8 +35,10 @@
 # fica onde está. Em escala fracionária a imagem sai borrada. Fora do KDE, não faz nada.
 # LUCERNA_TEST_SIZE=LARGURAxALTURA: o tamanho da janela (padrão 1920x1080).
 # O lucernad sobe com o Hyprland (dev/hyprland.lua). Para ver o shell sem ele:
-# `dev/test.sh run 'pkill -x lucernad'`; para voltar: `dev/test.sh run 'setsid -f lucernad serve'`
-# (sempre pelo `run`, que põe o WAYLAND_DISPLAY do Hyprland aninhado).
+# `dev/test.sh run 'pkill -x lucernad'`; para voltar (sempre pelo `run`, que põe
+# o WAYLAND_DISPLAY do Hyprland aninhado, e sempre com a raiz falsa do brilho:
+# o container monta o D-Bus do sistema do host e vê o /sys dele):
+# `dev/test.sh run 'bash ~/.config/quickshell/lucerna/ci/power-root.sh /tmp/lucerna-power && setsid -f env LUCERNAD_POWER_ROOT=/tmp/lucerna-power LUCERNA_IDLE_TIMEOUT_MS=86400000 lucernad serve'`
 #
 # Teclas com modificador pelo wtype: o Hyprland aninhado resolve os binds pelo
 # keycode do keymap real, e o wtype numera as teclas do keymap dele na ordem em
@@ -70,7 +72,14 @@
 #   dev/test.sh see $p capture open shot
 #   dev/test.sh ipc session lock; sleep 1; dev/test.sh shot $p-bloqueio; dev/test.sh run 'wtype lucerna && wtype -k Return'
 #   dev/test.sh run 'notify-send "Teste do Lucerna" "Corpo da notificação, comprido o bastante para quebrar em duas linhas"'; sleep 1; dev/test.sh shot $p-popup
+#   # Brilho: antes de qualquer tecla, confira que o lucernad tem a raiz falsa (o
+#   # D-Bus do sistema do host está montado); se não vier
+#   # LUCERNAD_POWER_ROOT=/tmp/lucerna-power, pare. A tela é a integrada falsa
+#   # (lucerna_teste); o arquivo brightness dela muda, o do host não.
+#   dev/test.sh run 'tr "\0" "\n" < /proc/$(pgrep -xo lucernad)/environ | grep ^LUCERNAD_POWER_ROOT='
+#   dev/test.sh run 'lucernad brilho'
 #   dev/test.sh ipc brightness up; dev/test.sh shot $p-osd; dev/test.sh ipc brightness down
+#   dev/test.sh run 'cat /tmp/lucerna-power/sys/class/backlight/lucerna_teste/brightness'
 #   for e in strip island pill islands; do dev/test.sh setc "dict(barStyle='$e')"; sleep 1; dev/test.sh shot $p-barra-$e; done; dev/test.sh setc "dict(barStyle='strip')"
 #   for e in compact full grid; do dev/test.sh setc "dict(launcherStyle='$e')"; dev/test.sh see $p-$e launcher open apps ""; done; dev/test.sh setc "dict(launcherStyle='compact')"
 #   # Nesta imagem, o Hyprland (0.56.2, config Lua) não aceita mais o
@@ -356,7 +365,7 @@ case "${1:-}" in
         ex "$2"
         ;;
     *)
-        sed -n '2,39p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+        sed -n '2,41p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
         exit 2
         ;;
 esac

@@ -22,7 +22,7 @@ RUN pacman -Syu --noconfirm --needed \
         mesa vulkan-intel \
         qt6-multimedia qt6-multimedia-ffmpeg intel-media-driver libva-utils \
         dbus kitty foot htop grim libnotify wtype \
-        libpipewire wireplumber brightnessctl ddcutil hyprsunset wf-recorder \
+        libpipewire wireplumber hyprsunset wf-recorder \
         ttf-material-symbols-variable ttf-jetbrains-mono-nerd ttf-cascadia-code-nerd noto-fonts noto-fonts-emoji \
         mpv mpv-mpris ffmpeg \
         hicolor-icon-theme adwaita-icon-theme \

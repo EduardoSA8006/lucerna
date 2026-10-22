@@ -21,9 +21,9 @@ Regras para um plugin próprio:
 | --- | --- | --- | --- |
 | `lucerna-spectrum` | `libcava` + `aubio` (visualizador e batida) | o módulo `spectrum` do `lucernad` (PipeWire e FFT próprias), lido pelo `Spectrum` | Espectro por frequência (FFT própria sobre um stream do PipeWire) e detecção de batida |
 | `lucerna-shapes` | `qt6-m3shapes` | Formas desenhadas com `QtQuick.Shapes` (curvas polares) | Morfismo entre formas diferentes, com o mesmo número de vértices, em C++ e com antisserrilhamento melhor |
-| `lucerna-ddc` | `ddcutil` | Não há: só o brilho da tela interna, via `brightnessctl` | Brilho de monitores externos por DDC/CI direto no `/dev/i2c-*` |
+| `lucerna-ddc` | `ddcutil` | o módulo `power` do `lucernad` (DDC/CI próprio sobre o `/dev/i2c-*`), lido pelo `Brightness` | Brilho de monitores externos por DDC/CI direto no `/dev/i2c-*` |
 | `lucerna-palette` | `python-materialyoucolor` (usado pelo `caelestia-cli`) | Não há: os temas são fixos | Gerar um tema a partir das cores do wallpaper |
-| `lucerna-brightness` | `brightnessctl` | `brightnessctl` | Brilho da tela interna pelo `SetBrightness` do logind, via D-Bus, sem processo externo |
+| `lucerna-brightness` | `brightnessctl` | o módulo `power` do `lucernad` (logind, sem processo externo), lido pelo `Brightness` | Brilho da tela interna pelo `SetBrightness` do logind, via D-Bus, sem processo externo |
 
 ## Ordem sugerida
 
