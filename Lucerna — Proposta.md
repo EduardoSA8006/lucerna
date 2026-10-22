@@ -28,7 +28,7 @@ Com um shell próprio, só roda o que foi escrito, e cada decisão visual e de c
 - **Quickshell 0.3.1 ou mais novo**, que detecta o modo Lua do Hyprland (`Hyprland.usingLua`).
 - **Fonte de ícones:** `ttf-material-symbols-variable`, do repositório oficial do Arch. É a única dependência de pacote além do Hyprland, do Quickshell e do `lucernad`.
 - **Obrigatório: o `lucernad`**, o daemon do Lucerna, de onde vêm CPU, memória, rede, discos, temperatura e GPU (sem ele, a aba Desempenho mostra "indisponível").
-- Serviços do sistema usados quando presentes: PipeWire (áudio), UPower (bateria), NetworkManager (rede), `brightnessctl` (brilho da tela integrada) e `ddcutil` (brilho dos monitores externos por DDC/CI). Na falta de um deles, o componente correspondente simplesmente não aparece.
+- Serviços do sistema usados quando presentes: PipeWire (áudio), UPower (bateria), NetworkManager (rede) e o `lucernad` (brilho das telas, integrada e monitores externos por DDC/CI, e o histórico e os perfis de energia). Na falta de um deles, o componente correspondente simplesmente não aparece.
 - **Mínimo de dependências de terceiros:** o que o Qt e o Quickshell já oferecem vem primeiro (`XMLHttpRequest`, `QtQuick.Shapes`); as leituras do `/proc` e do `/sys` (CPU, memória, rede, discos, temperatura e GPU) vêm do `lucernad`. Quando algo crescer a ponto de pedir C++, a saída é um plugin próprio, em repositório separado, e não uma biblioteca externa. Os candidatos estão em [`Lucerna — Plugins Próprios.md`](<Lucerna — Plugins Próprios.md>).
 
 ## Identidade visual

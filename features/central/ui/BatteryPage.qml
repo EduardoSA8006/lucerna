@@ -191,8 +191,8 @@ Column {
 
             Txt {
                 anchors.centerIn: parent
-                visible: PowerState.chart.length === 0
-                text: "Medindo"
+                visible: PowerState.chartNote !== ""
+                text: PowerState.chartNote
                 faint: true
             }
         }

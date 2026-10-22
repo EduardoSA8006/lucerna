@@ -138,15 +138,13 @@ Três estilos, escolhidos em Configurações → Launcher. O **completo** tem bu
 
 - **Hyprland 0.56+**, com a configuração em Lua (`hyprland.lua`)
 - **Quickshell 0.3.1+**
-- **lucernad** (o daemon do Lucerna): CPU, memória, rede, discos, temperatura e GPU da aba Desempenho e do card de recursos, o espectro do som do player em volta da capa (pelo PipeWire) e o histórico da área de transferência (pelo protocolo de controle de dados do Wayland); sem ele, aparecem como indisponíveis, o anel fica parado e o histórico fica desligado. Instalação no [README do lucernad](https://github.com/lucerna-desktop/lucernad#instalação).
+- **lucernad** (o daemon do Lucerna): CPU, memória, rede, discos, temperatura e GPU da aba Desempenho e do card de recursos, o espectro do som do player em volta da capa (pelo PipeWire) o histórico da área de transferência (pelo protocolo de controle de dados do Wayland), o brilho das telas (a integrada pelo logind e os monitores externos por DDC/CI, que precisam da regra udev e do módulo `i2c-dev` do README do lucernad), o gráfico de consumo da bateria e os perfis de energia (pelo UPower e pelo power-profiles-daemon, no D-Bus); sem ele, aparecem como indisponíveis, o anel fica parado, o histórico fica desligado e o slider de brilho some. Instalação no [README do lucernad](https://github.com/lucerna-desktop/lucernad#instalação).
 - **Fonte de ícones**: `ttf-material-symbols-variable` (repositório oficial do Arch)
 - Opcionais, cada um liga uma parte:
   - PipeWire: volume e mídia
   - UPower: bateria e perfis de energia
   - NetworkManager: rede
   - BlueZ: Bluetooth
-  - `brightnessctl`: brilho da tela integrada
-  - `ddcutil`: brilho dos monitores externos (DDC/CI). Precisa do módulo `i2c-dev` carregado (`echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf`); o pacote já dá acesso ao usuário da sessão.
   - `hyprsunset`: luz noturna
   - `grim` e `wf-recorder`: captura de tela e gravação
   - `fd`: busca de arquivos do launcher mais rápida (sem ele, usa o `find`)

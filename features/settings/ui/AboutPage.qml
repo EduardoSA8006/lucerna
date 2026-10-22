@@ -73,7 +73,7 @@ Column {
 
         SettingRow {
             title: "Opcionais"
-            description: "PipeWire, UPower, NetworkManager e brightnessctl"
+            description: "PipeWire, UPower e NetworkManager"
         }
 
         SettingRow {
