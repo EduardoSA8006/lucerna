@@ -10,7 +10,7 @@
         "services/AudioStreams.qml": ["describe"],
         "services/Battery.qml": ["parseHistory", "pushSample", "historyAfter"],
         "services/Bluetooth.qml": ["isBusy"],
-        "services/Brightness.qml": ["parse"],
+        "services/Brightness.qml": ["wantedTopics", "sync", "toScreen", "merged", "apply", "applyScreens", "applyStatus", "connectionChanged", "withValue", "set", "setScreen", "focusedId", "change", "answered", "hold"],
         "services/Capture.qml": ["geometryArg"],
         "services/Clipboard.qml": ["wantedTopics", "sync", "configureParams", "configure", "listParams", "load", "more", "fetch", "request", "merge", "applyPage", "apply", "applyHistory", "applyStatus", "connectionChanged", "copy", "remove", "pin", "clear", "copyResult", "copyImage"],
         "services/Input.qml": ["option", "luaString", "luaValue", "nest", "unbindLua", "bindLua", "parseKeymap", "keyBlock", "patchKeymap"],
